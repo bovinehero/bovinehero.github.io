@@ -1,15 +1,15 @@
 ---
-layout: page
-title: About
+title: /about
+layout: default
 permalink: /about/
 ---
 
-Some information about you!
+I am the Bovine Hero, join me in my adventures into info sec.
 
-### More Information
+I've worked in tech for a while now and I wanted to share some of my experiences with the internet
 
-A place to include any other types of information that you'd like to include about yourself.
+## Disclamer
 
-### Contact me
+All of the things on my site are my opinion, they do not in any way reflect the views of employers past or present.
 
-[email@domain.com](mailto:email@domain.com)
+Any content published on this site is intended for training and knowledge sharing, I do not condone its use for nefarious or otherwise illegal purposes. (Please don't be bad actors!)
