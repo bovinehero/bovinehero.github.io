@@ -17,7 +17,7 @@ title: Bovine Hero's Blog
 email: tech_blog@bovinehero.com
 description: >- # this means to ignore newlines until "baseurl:"
   bovine hero's escapades in learning computer security.
-baseurl: "" # the subpath of your site, e.g. /blog
+baseurl: "/" # the subpath of your site, e.g. /blog
 url: "" # the base hostname & protocol for your site, e.g. http://example.com
 twitter_username: BovineHero
 github_username:  bovinehero
