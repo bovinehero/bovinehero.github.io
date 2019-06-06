@@ -50,4 +50,4 @@ header_pages:
 
 footer: 'follow us on <a href="https://twitter.com/BovineHero">twitter</a>'
 
-#style: light # dark (default) or light
+style: dark #(default) or light
