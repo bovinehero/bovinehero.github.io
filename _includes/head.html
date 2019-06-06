@@ -9,8 +9,8 @@
     <link rel="stylesheet" type="text/css" href="/main-light.css">  
     <!--<link rel="stylesheet" type="text/css" href="{{ "/assets/main-light.css" | relative_url }}">-->
   {%- else -%}
-    <link rel="stylesheet" type="text/css" href="/main-dark.css">
-    <link rel="stylesheet" type="text/css" href="{{ "/assets/main-dark.css" | relative_url }}">
+    <link rel="stylesheet" type="text/css" href="/{{ site.baseurl }}/assets/main-dark.css">
+    <!--<link rel="stylesheet" type="text/css" href="{{ "/assets/main-dark.css" | relative_url }}">-->
   {%- endif -%}
 
   {%- if jekyll.environment == 'production' and site.google_analytics -%}
