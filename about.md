@@ -1,7 +1,7 @@
 ---
-title: /bhero
+title: /about
 layout: default
-permalink: /
+permalink: /about
 ---
 
 # Lorem ipsum

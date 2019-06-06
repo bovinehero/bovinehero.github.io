@@ -1,7 +1,7 @@
 ---
-title: /bhero
-layout: default
-permalink: /
+title: /blog
+layout: home
+permalink: /blog
 ---
 
 # Lorem ipsum
