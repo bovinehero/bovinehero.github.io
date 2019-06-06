@@ -24,8 +24,9 @@ github_username:  bovinehero
 
 # Build settings
 markdown: kramdown
-#theme: jekyll-theme-console
-remote-theme: b2a3e8/jekyll-theme-console
+#theme: jekyll-theme-hacker
+theme: jekyll-theme-console #I want this one!
+#remote-theme: b2a3e8/jekyll-theme-console
 plugins:
   - jekyll-feed
   - jekyll-seo-tag
