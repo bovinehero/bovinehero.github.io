@@ -4,6 +4,13 @@ layout: default
 permalink: /
 ---
 
-# This is Home
+> Feast your eyes on console theme (CSS is hard - I used a template!).
 
-Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.
+# This is Home!
+
+Welcome to Bovine Hero! 
+
+Herein lies some of my adventures into info sec, the ones I can talk about at least.
+
+Check out /blog for my musings
+

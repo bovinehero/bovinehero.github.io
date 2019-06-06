@@ -1,6 +1,8 @@
 ---
 layout: post
 title:  "Hello Blog!"
+description: "Hello World"
+tags: hello world 
 ---
 
 # Welcome To Bovine Hero
