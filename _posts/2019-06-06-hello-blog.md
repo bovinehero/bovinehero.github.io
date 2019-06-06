@@ -1,10 +1,10 @@
 ---
 layout: post
-title:  "Welcome to Bovine Hero!"
+title:  "Hello Blog!"
 ---
 
-# Welcome
+# Welcome To Bovine Hero
 
-**Hello world**, this is my first blog post.
+**Hello World!** this is officially the first post of Bovine Hero's site.
+We are live!
 
-I hope you like it!
