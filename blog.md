@@ -4,5 +4,3 @@ layout: home
 permalink: /blog
 ---
 
-# This is Blog
-

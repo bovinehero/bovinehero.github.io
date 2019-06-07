@@ -4,8 +4,6 @@ layout: default
 permalink: /about
 ---
 
-# This is About!
-
 For the longest time I've been threatening to release a blog site relating to my adventures into InfoSec. Well I finally got a bit of time and pushed a site up. :)
 
 ## A disclosure
