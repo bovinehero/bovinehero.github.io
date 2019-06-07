@@ -2,6 +2,10 @@
 title: /about
 layout: default
 permalink: /about
+motd: "##########################################</br>
+### Welcome to Bovine Hero! &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;###</br>
+### Please respect system usage policy ###</br>
+##########################################"
 ---
 
 For the longest time I've been threatening to release a blog site relating to my adventures into InfoSec. Well I finally got a bit of time and pushed a site up. :)

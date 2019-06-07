@@ -2,10 +2,12 @@
 title: "~"
 layout: default
 permalink: /
-motd: Feast your eyes on console theme (CSS is hard - I used a template!).
+motd: "##########################################</br>
+### Welcome to Bovine Hero! &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;###</br>
+### Please respect system usage policy ###</br>
+##########################################"
 ---
 
-Welcome to Bovine Hero! 
 
 Herein lies some of my adventures into info sec, the ones I can talk about at least.
 
