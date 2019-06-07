@@ -1,6 +1,6 @@
 ---
 layout: post
-title:  "Hello Blog!"
+title:  "/blog/hello-blog"
 description: "Hello World"
 tags: hello world 
 ---

@@ -1,12 +1,9 @@
 ---
-title: /bhero
+title: "~"
 layout: default
 permalink: /
+motd: Feast your eyes on console theme (CSS is hard - I used a template!).
 ---
-
-> Feast your eyes on console theme (CSS is hard - I used a template!).
-
-# This is Home!
 
 Welcome to Bovine Hero! 
 
