@@ -2,10 +2,14 @@
 
 #google_analytics: UA-NNNNNNNN-N
 
+author: bhero
+
 header_pages:
   - index.md
-  - about.md
   - blog.md
+  - documents.md
+  
+  
 
 footer: 'follow us on <a href="https://twitter.com/bovinehero">twitter</a>'
 
@@ -13,3 +17,4 @@ footer: 'follow us on <a href="https://twitter.com/bovinehero">twitter</a>'
 
 plugins:
   - jekyll-seo-tag
+

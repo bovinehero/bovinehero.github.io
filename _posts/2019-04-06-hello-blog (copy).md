@@ -1,8 +1,11 @@
 ---
 layout: post
-title:  "/blog/hello-blog"
+title:  "/Documents/hello-blog.md"
+name: hello-blog3
+author: bhero
+time: "00:01"
 description: "Hello World"
-tags: hello world 
+categories: hello 
 ---
 
 ## Welcome To Bovine Hero
