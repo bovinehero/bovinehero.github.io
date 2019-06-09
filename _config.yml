@@ -5,6 +5,14 @@ google_analytics: UA-141693864-1
 
 author: bhero
 
+title: Bovine Hero's Blog
+email: tech_blog@bovinehero.com
+description: >- # this means to ignore newlines until "twitter_username:"
+  bovine hero's escapades in learning computer security.
+
+twitter_username: BovineHero
+github_username:  bovinehero
+
 header_pages:
   - index.md
   - blog.md
