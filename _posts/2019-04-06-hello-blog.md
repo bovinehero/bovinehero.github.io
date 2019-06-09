@@ -5,11 +5,11 @@ name: hello-blog2
 author: bhero
 time: "00:01"
 description: "Hello World"
-categories: [hello, world] 
+categories: [hello_world] 
 ---
 
 ## root@bovinehero:{{ page.title }}$ cat {{ page.name }}.md
 
-**Hello World!** this is officially the first post of Bovine Hero's site.
-We are live!
+**Hello World!** this is officially the first post of Bovine Hero's new site.
+Everything befor this is old content!
 
