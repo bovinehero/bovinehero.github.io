@@ -3,10 +3,10 @@ title: "~"
 name: about
 layout: default
 permalink: /
-motd: "##########################################</br>
+motd: "########################################</br>
 ## Welcome to Bovine Hero! &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;##</br>
 ## Please respect system usage policy ##</br>
-##########################################</br></br>
+########################################</br></br>
 ### Console Theme!"
 ---
 
