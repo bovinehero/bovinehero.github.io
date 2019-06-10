@@ -5,7 +5,7 @@ name: OSCP_Review
 author: bhero
 time: "00:01"
 description: "review of the OSCP curriculum and exam"
-categories: [training, certs]
+categories: certs
 ---
 
 ### Offensive Security Certified Professional (OSCP)
