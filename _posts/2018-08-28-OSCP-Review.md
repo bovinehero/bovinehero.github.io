@@ -1,14 +1,12 @@
 ---
 layout: post
 title:  "/Documents/OSCP_Review"
-name: OSCP_Review.md
+name: OSCP_Review
 author: bhero
 time: "00:01"
 description: "review of the OSCP curriculum and exam"
 categories: [training, certs]
 ---
-
-## root@bovinehero:{{ page.title }}$ cat {{ page.name }}
 
 ### Offensive Security Certified Professional (OSCP)
 

@@ -8,8 +8,6 @@ description: "Hello World"
 categories: [hello_world] 
 ---
 
-## root@bovinehero:{{ page.title }}$ cat {{ page.name }}.md
-
 **Hello World!** this is officially the first post of Bovine Hero's new site.
 Everything befor this is old content!
 
