@@ -40,6 +40,9 @@ a:hover {
 .primary-text {
   color: #0000EE; }
 
+img {
+  max-width: 100%; }
+
 @media only screen and (max-device-width: 500px) {
   * {
     font-size: 10px !important; } }
