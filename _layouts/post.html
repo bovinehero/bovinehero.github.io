@@ -1,6 +1,15 @@
 ---
 layout: default
 ---
-<h2>root@bovinehero:{{ page.title }}$ cat {{ page.name }}</h2>
-
+{% assign topic = site.topics | where: 'short_name', page.topic | first %}
+{% if topic %}
+  <h1>{{ page.title }}</h1>
+  Thread: {{ topic.name }}  <small> <a href="{{ topic.url }}">{{ page.topic }}</a></small> <br>
+{% endif %}
+{% assign author = site.authors | where: 'short_name', page.author | first %}
+{% if author %}
+  {{ page.date | date_to_string }} - <a href="{{ author.url }}">{{ author.name }}</a> 
+{% endif %}
+<br>
+<br>
 {{ content }}
