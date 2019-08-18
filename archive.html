@@ -1,0 +1,15 @@
+---
+title: Archive
+---
+<h1>Archive Posts</h1>
+
+<br>
+<ul class="archive">
+  {% for post in site.posts %}
+    <li>
+      <a href="{{ post.url }}">{{ post.title }}</a><small> - {{ post.date | date_to_string }}</small>
+      <p>{{ post.excerpt }}</p>
+    </li>
+    <br>
+  {% endfor %}
+</ul>
