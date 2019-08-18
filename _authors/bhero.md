@@ -1,6 +1,6 @@
 ---
 short_name: bhero
-name: Gary Grant
+name: Bovine Hero
 position: Security Researcher
 ---
-Gary Grant (BovineHero) is an avid security enthusiast and part-time researcher. 
+Bovine Hero is an avid security enthusiast and part-time researcher. 
