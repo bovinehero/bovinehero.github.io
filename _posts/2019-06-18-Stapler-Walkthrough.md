@@ -1,8 +1,11 @@
-# The Stapler
+---
+author: bhero
+topic: vulnHub
+---
+Walkthrough for [Stapler](https://download.vulnhub.com/stapler/Stapler.zip)
 
-get stapler: https://download.vulnhub.com/stapler/Stapler.zip
-
-setup vm: unzip and import
+## Setup
+get stapler from the url above & setup vm: unzip and import
 
 ## Basic Enum
 
@@ -360,7 +363,7 @@ strings message2.jpg
 # maybe an actual cookie? potentially just an easter egg though.
 ```
 
-![message2.jpg](message2.jpg)
+![message2.jpg](/assets/vulnhub_stuff/message2.jpg)
 
 We get another potential user, scott
 
@@ -458,7 +461,7 @@ curl http://192.168.56.104:12380 > 12380_index.html
 code review gets another user __Zoe__
 
 and a base64 encoded image:
-![decoded_20190804155642.jpeg](decoded_20190804155642.jpeg)
+![decoded_20190804155642.jpeg](/assets/vulnhub_stuff/decoded_20190804155642.jpeg)
 
 the base64 encoding _might_ give us an avenue to attack later if we have trouble uploading a shell.
 

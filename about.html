@@ -6,8 +6,9 @@ title: About
 This page tells you a little bit about the site.
 
 {% for author in site.authors %}
-    <h2><a href="{{ author.url }}">{{ author.name }}</a></h2>
-    <h3>{{ author.position }}</h3>
+    <h4><a href="{{ author.url }}">{{ author.name }}</a></h4>
+    <h6>{{ author.position }}</h6>
+    
     {{ author.content | markdownify }}
    
 {% endfor %}
