@@ -2,7 +2,7 @@
 author: bhero
 topic: vulnHub
 ---
-Walkthrough for BsidesLondon 2016 VM: [Stapler](https://download.vulnhub.com/stapler/Stapler.zip)
+Walkthrough for BsidesLondon 2016 VM: [Stapler](https://download.vulnhub.com/stapler/Stapler.zip) - PoC Page!
 
 ### Todos
 
