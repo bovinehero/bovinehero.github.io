@@ -14,7 +14,7 @@ Walkthrough for BsidesLondon 2016 VM: [Stapler](https://download.vulnhub.com/sta
  > TODO walkthough for setup
 
 get stapler from the url above & setup vm: unzip and import
-
+I'm using a sudoer standard user on Kali, but a VM will do just as well.
 
 -----------------------------
 
@@ -32,22 +32,26 @@ We can cut all the surplus text out and multi-thread with the following command:
 
 ``` bash
 nmap -T5 --max-parallelism=100 -sP 192.168.56.0/24 | awk -v RS='([0-9]+\\.){3}[0-9]+' 'RT{print RT}'
-# returns a couple of addresses quickly
+```
+Returns a couple of addresses quickly
+```
 192.168.56.1
 192.168.56.104
 ```
 
-because I'm lazy I'll assign the IP Address to a variable:
+Because I'm lazy I'll assign the IP Address to a variable:
 
 ``` bash
 STAPLER_IP=192.168.56.104
 ```
 
-Typically I'll run nmap in various levels of aggression, starting with a quick scan of the services:
+Typically I'll run nmap in various levels of aggression to be sure I don't miss anything, starting with a quick scan of the services:
 
 ``` bash
 nmap $STAPLER_IP
-# gives us:
+```
+gives us:
+```
 Host is up (0.00055s latency).
 Not shown: 992 filtered ports
 PORT     STATE  SERVICE
@@ -61,11 +65,13 @@ PORT     STATE  SERVICE
 3306/tcp open   mysql
 ```
 
-Interesting, lots of ports open, doom? - What is that? We'll check later but for now I'm going to check for hidden ports with a guess at versioning before we deep dive:
+Interesting, lots of standard service ports open. 666 and doom?!? We'll check later but for now I'm going to check for hidden ports with a guess at versioning before we deep dive:
 
 ``` bash
-sudo nmap -sV -p- $STAPLER_IP 
-#all ports scan with versions
+sudo nmap -sV -p- $STAPLER_IP
+```
+all ports scan with versions gives us:
+```
 Host is up (0.00034s latency).
 Not shown: 65523 filtered ports
 PORT      STATE  SERVICE     VERSION
@@ -127,37 +133,39 @@ Service detection performed. Please report any incorrect results at https://nmap
 Nmap done: 1 IP address (1 host up) scanned in 115.90 seconds
 ```
 
+A sneaky extra web service in there as well on port 12380, might of missed that.
+
 -----------------------------
 
 ## Triage
 
-Before going any further it's prudent to perform a little analysis to get an idea of what we are facing.
+Before going any further it's prudent to perform a little analysis to get an idea of what we might be facing. This way we can tailor our strategy to work up to remote code execution (RCE).
 
 ```
 20/tcp    closed ftp-data
 21/tcp    open   ftp         vsftpd 2.0.8 or later
 ```
 
-There is an FTP server, probrably an Active server as port 20 returns closed. In passive mode the client initiates the connection and port 20 rarely refuses connection. This might imply IP whitelisting
+There is an FTP server, probrably an Active server as port 20 returns closed. In passive mode (default in most FTP Servers) the client initiates the connection and so port 20 would not explicitly refuse connection. This active configuration implies a bit of work went into the configuration, it could mean defensive measures like no anonymous logins or IP whitelisting. We will be careful probing this service initially.
 
 ```
 22/tcp    open   ssh         OpenSSH 7.2p2 Ubuntu 4 (Ubuntu Linux; protocol 2.0)
 ```
 
-Suggestive that box is Linux, windows rarely uses port 22 for ssh. This service will be hard to interact with if we can't get valid credentials 
+Suggestive that box is Linux, windows rarely uses port 22 for ssh Remote Desktop typically is served over 3389 by default. This service will be hard to interact with if we can't get valid credentials. 
 
 ```
 53/tcp    open   domain      dnsmasq 2.75
 ```
 
-DNS is often used to hide useful features on box via whitelisting. This is particularly true in more advanced boxes in VulnHub. It is difficult to enumerate without configuring networking on the attacker box, but can often be used for a quick enumeration win. I
+DNS is often overlooked by sys admins as it is a rarer service to re-configure after deploment. It can be used to hide services on boxes via whitelisting fqdn requests over http. This is particularly true in more advanced boxes for CTF events. It is difficult service to enumerate without configuring networking on the attacker box, but is often god for a quick win for more information on a box.
 
 ```
 80/tcp    open   http        PHP cli server 5.5 or later
 12380/tcp open   http        Apache httpd 2.4.18 ((Ubuntu))
 ```
 
-HTTP servers are open by default. This is typically the best place to start when enumerating a server as web sites are great places to get RCE.
+HTTP servers are open by default. This is typically the best place to start when enumerating a server as there are tonnes of automation options for web site enumeration.
 
 ```
 123/tcp   closed ntp
@@ -171,13 +179,13 @@ Network Time, useful to know it is closed but no help just now
 139/tcp   open   netbios-ssn Samba smbd 3.X - 4.X (workgroup: WORKGROUP)
 ```
 
-SMB uses either IP port 139 or 445. SMB originally ran on top of NetBIOS using port 139. NetBIOS is an older transport layer that allows Windows computers to talk to each other on the same network. Later versions of SMB (after Windows 2000) began to use port 445 on top of a TCP stack. Using TCP allows SMB to work over the internet. The supporting ports 137 (name service) and 138 (datagram) are used for NetBIOS on the WinTEL stack. This helps nmap best guess a Linux service, interesting that we are using 139 and NOT 445.
+SMB uses either IP port 139 or 445. SMB originally ran on top of NetBIOS using port 139. NetBIOS is an older transport layer that allows Windows computers to talk to each other on the same network. Later versions of SMB (after Windows 2000) began to use port 445 on top of a TCP stack which allows SMB to work over the internet. The supporting ports 137 (name service) and 138 (datagram) are used for NetBIOS on the WinTEL stack. This helps nmap best guess a Linux service, interesting that we are using 139 and NOT 445.
 
 ```
 3306/tcp  open   mysql       MySQL 5.7.12-0ubuntu1
 ```
 
-Standard port for mysqldb access, this _should_ be set to local host-only access, could be useful but normally requires a login. Confirms that we have a LAMP stack on the box, and if we were bad guys this would be a value extraction service.
+Standard port for mysqldb access, this _should_ be set to local host-only access, could be useful but normally requires a login. Confirms that we have a LAMP stack on the box, and if we were bad guys this could be a good value extraction service.
 
 ```
 666/tcp   open   doom?
@@ -225,35 +233,42 @@ SF:f6~\xf1\]V\xdcBGu\xeb\xaa=\x8e\xef\xa4HU\x1e\x8f\x9f\x9bI\xf4\xb6GTQ\xf
 SF:3\xe9\xe5\x8e\x0b\x14L\xb2\xda\x92\x12\xf3\x95\xa2\x1c\xb3\x13\*P\x11\?
 SF:\xfb\xf3\xda\xcaDfv\x89`\xa9\xe4k\xc4S\x0e\xd6P0"); 
 ```
-Could this be a custom app? Not low hanging fruit but possibly something interesting. 
+Could this be a custom app? Not a low hanging fruit but possibly something interesting. 
 
 -----------------------------
 ## Lets go Harder
 
-Time to get more intrusive with our recon.
+Time to get more intrusive with our recon and start poking the innards of the services.
 
 ### DNS
 
-Start port 53, it is quickest to check for special info and is easy to queue up scripts for.
-launching the following script is noisy, but useful for dns services 
-
-> TODO get outputs
+Starting on port 53, it is quickest to check for special info and is easy to queue up scripts for.
+launching the following script is noisy, but useful for dns services. nmap has some useful scripts we could use with the command below, but without configuring our hosts file it'll run a long time for little rewards. My go to is:
 
 ``` bash
 sudo nmap -Pn -sU -p 53 --script=dns* $STAPLER_IP
 ```
 It takes ages and _SPOILER_ there are no issues picked up here why?
 
-Lets investigate,
+Lets investigate manually:
 
 ``` bash
 nslookup $STAPLER_IP
+```
+
+returns:
+
+```
 ** server can't find 104.56.168.192.in-addr.arpa: NXDOMAIN
 ``` 
-Ah, the VM is not recognised on our DNS. This is pretty typical of Vulnhub Boxes as they aren't on our `real` network. We could set this to our /etc/hosts and continue our hunt, we won't for now as we have no idea what else there is and the configuration may be unesessary. 
-Lets go into manual mode, open interactive nslookup with ```nslookup``` to play with the following commands:
+Ah, the VM is not recognised on our DNS. This is pretty typical of Vulnhub Boxes as they aren't on our `real` network. We could set this to our /etc/hosts and continue our hunt, but I won't until it becomes a requirement.
 
-> TODO get outputs
+Lets go into manual mode instead, open interactive nslookup with 
+
+``` bash
+nslookup
+``` 
+to play with the following commands:
 
 ``` bash
 # list primary domain server: 
@@ -268,7 +283,7 @@ server 192.168.56.104
 # comes back
 ** server can't find 104.55.168.192.in-addr.arpa: REFUSED
 ```
-Darn, no quick wins here because we don't have permissions. Might be something we want to play with later, but lets park DNS for now and move on to something else.
+Darn, no quick wins here because we don't have permissions. Might be something we want to play with later so lets park DNS for now and move on to something else.
 
 -----------------------------
 
@@ -278,8 +293,11 @@ Lets aggressive scan the service to get an idea of what we have
 
 ``` bash
 nmap -A -p 139 $STAPLER_IP
+```
 
-#returns
+returns:
+
+```
 Nmap scan report for 192.168.56.104
 Host is up (0.00034s latency).
 
@@ -315,19 +333,17 @@ Nmap done: 1 IP address (1 host up) scanned in 41.52 seconds
 
 the __smb-security-mode__ script suggests we can enumerate with a guest login.
 
-A quick(ish) scripted enum to file for the server can be done via ```enum4linux```
-> TODO link file
+A quick(ish) scripted enum to [file](/assets/vulnhub_stuff/stapler/samba_enum.txt) for the server can be done via enum4linux
 
 ``` bash
 sudo enum4linux -U -S -G -P -o -n -i $STAPLER_IP > samba_enum.txt
 ```
-> TODO get outputs
-
 But we'll go oldschool:
 ``` bash
 smbclient -L $STAPLER_IP
-# blank password gives
-
+```
+using a blank password at the prompt gives:
+```
  Sharename       Type      Comment
  ---------       ----      -------
  print$          Disk      Printer Drivers
@@ -335,25 +351,75 @@ smbclient -L $STAPLER_IP
  tmp             Disk      All temporary files should be stored here
  IPC$            IPC       IPC Service (red server (Samba, Ubuntu))
 Reconnecting with SMB1 for workgroup listing.
-
-# on examination as kathy (//fred/kathy also works)
-
+```
+Lets see what kathy can see (note Fred's mention? //fred/kathy also works)
+```
 smbclient //kathy/kathy -I $STAPLER_IP -N
 ls
-cd kathy stuff\ # might need to tab it in!
-get todo-list.txt
-cd ..\backup
-# ooh wordpress-4.tar.gz, could be interesting for source code review useful for http
-get wordpress-4.tar.gz
-# ftp config as well
-get vsftpd.conf
+```
+gives
+```
+  .                                   D        0  Fri Jun  3 17:52:52 2016
+  ..                                  D        0  Mon Jun  6 22:39:56 2016
+  kathy_stuff                         D        0  Sun Jun  5 16:02:27 2016
+  backup                              D        0  Sun Jun  5 16:04:14 2016
 
+                19478204 blocks of size 1024. 16361644 blocks available
+```
+
+``` bash
+cd kathy stuff\ # might need to tab it in!
+ls
+```
+A file!
+```
+  .                                   D        0  Sun Jun  5 16:02:27 2016
+  ..                                  D        0  Fri Jun  3 17:52:52 2016
+  todo-list.txt                       N       64  Sun Jun  5 16:02:27 2016
+
+                19478204 blocks of size 1024. 16361644 blocks available
+```
+lets get [todo-list.txt](/assets/vulnhub_stuff/stapler/todo-list.txt)
+``` bash
+get todo-list.txt
+```
+Next lets see whats in backup
+``` bash
+cd ..\backup
+ls
+```
+ooh [wordpress-4.tar.gz](/assets/vulnhub_stuff/stapler/wordpress-4.tar.gz), could be interesting for source code review and an ftp config [file](/assets/vulnhub_stuff/stapler/vsftpd.conf)
+```
+  .                                   D        0  Sun Jun  5 16:04:14 2016
+  ..                                  D        0  Fri Jun  3 17:52:52 2016
+  vsftpd.conf                         N     5961  Sun Jun  5 16:03:45 2016
+  wordpress-4.tar.gz                  N  6321767  Mon Apr 27 18:14:46 2015
+```
+Lets get the files
+```
+get wordpress-4.tar.gz
+get vsftpd.conf
+```
+Now we'll try the temp folder:
+```
 smbclient //kathy/tmp -I $STAPLER_IP -N
+ls
+```
+Another file:
+```
+  .                                   D        0  Sun Aug  4 21:03:32 2019
+  ..                                  D        0  Mon Jun  6 22:39:56 2016
+  ls                                  N      274  Sun Jun  5 16:32:58 2016
+
+```
+
+And get the ls [file](/assets/vulnhub_stuff/stapler/ls.txt):
+```
 get ls
 ```
 
 we can determin a few things from these files:
-FTP has anon login and fred and kathy are both users
+FTP has anon login and fred and kathy are both users.
 
 > __BONUS__ Eternal Red Exploit to root: 
 
@@ -438,7 +504,7 @@ mv doom doom.zip && unzip doom.zip
 
 > TODO get outputs
 
-this gives us ![message2.jpg](/assets/vulnhub_stuff/message2.jpg)
+this gives us ![message2.jpg](/assets/vulnhub_stuff/stapler/stapler/message2.jpg)
 ``` bash
 #check the jpeg for hidden stuff:
 file message2.jpg 
@@ -545,7 +611,7 @@ curl http://192.168.56.104:12380 > 12380_index.html
 code review gets another user __Zoe__
 
 and a base64 encoded image:
-![decoded_20190804155642.jpeg](/assets/vulnhub_stuff/decoded_20190804155642.jpeg)
+![decoded_20190804155642.jpeg](/assets/vulnhub_stuff/stapler/stapler/decoded_20190804155642.jpeg)
 
 the base64 encoding _might_ give us an avenue to attack later if we have trouble uploading a shell.
 
