@@ -1,0 +1,19 @@
+---
+# front matter tells Jekyll to process Liquid
+title: Home
+my_number: 5
+---
+
+<marquee>
+    Welcome to Bovine Hero! Site under construction, real content coming soon!&nbsp;&nbsp;&nbsp;
+    Welcome to Bovine Hero! Site under construction, real content coming soon!&nbsp;&nbsp;&nbsp;
+    Welcome to Bovine Hero! Site under construction, real content coming soon!&nbsp;&nbsp;&nbsp;
+    Welcome to Bovine Hero! Site under construction, real content coming soon!&nbsp;&nbsp;&nbsp;
+    Welcome to Bovine Hero! Site under construction, real content coming soon!&nbsp;&nbsp;&nbsp;
+    Welcome to Bovine Hero! Site under construction, real content coming soon!&nbsp;&nbsp;&nbsp;
+</marquee>
+
+{% for topic in site.topics %}
+    <h3><a href="{{ topic.url }}">{{ topic.name }}</a></h3>
+    {{ topic.content | markdownify }}
+{% endfor %}
