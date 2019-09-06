@@ -1,0 +1,153 @@
+Starting enum4linux v0.8.9 ( http://labs.portcullis.co.uk/application/enum4linux/ ) on Sun Aug  4 18:33:16 2019
+
+ ========================== 
+|    Target Information    |
+ ========================== 
+Target ........... 192.168.56.104
+RID Range ........ 500-550,1000-1050
+Username ......... ''
+Password ......... ''
+Known Usernames .. administrator, guest, krbtgt, domain admins, root, bin, none
+
+
+ ====================================================== 
+|    Enumerating Workgroup/Domain on 192.168.56.104    |
+ ====================================================== 
+[+] Got domain/workgroup name: WORKGROUP
+
+ ============================================== 
+|    Nbtstat Information for 192.168.56.104    |
+ ============================================== 
+Looking up status of 192.168.56.104
+	RED             <00> -         H <ACTIVE>  Workstation Service
+	RED             <03> -         H <ACTIVE>  Messenger Service
+	RED             <20> -         H <ACTIVE>  File Server Service
+	..__MSBROWSE__. <01> - <GROUP> H <ACTIVE>  Master Browser
+	WORKGROUP       <00> - <GROUP> H <ACTIVE>  Domain/Workgroup Name
+	WORKGROUP       <1d> -         H <ACTIVE>  Master Browser
+	WORKGROUP       <1e> - <GROUP> H <ACTIVE>  Browser Service Elections
+
+	MAC Address = 00-00-00-00-00-00
+
+ ======================================= 
+|    Session Check on 192.168.56.104    |
+ ======================================= 
+[+] Server 192.168.56.104 allows sessions using username '', password ''
+
+ ============================================= 
+|    Getting domain SID for 192.168.56.104    |
+ ============================================= 
+Domain Name: WORKGROUP
+Domain Sid: (NULL SID)
+[+] Can't determine if host is part of domain or part of a workgroup
+
+ ======================================== 
+|    OS information on 192.168.56.104    |
+ ======================================== 
+[+] Got OS info for 192.168.56.104 from smbclient: 
+[+] Got OS info for 192.168.56.104 from srvinfo:
+	RED            Wk Sv PrQ Unx NT SNT red server (Samba, Ubuntu)
+	platform_id     :	500
+	os version      :	6.1
+	server type     :	0x809a03
+
+ =============================== 
+|    Users on 192.168.56.104    |
+ =============================== 
+
+
+ =========================================== 
+|    Share Enumeration on 192.168.56.104    |
+ =========================================== 
+
+	Sharename       Type      Comment
+	---------       ----      -------
+	print$          Disk      Printer Drivers
+	kathy           Disk      Fred, What are we doing here?
+	tmp             Disk      All temporary files should be stored here
+	IPC$            IPC       IPC Service (red server (Samba, Ubuntu))
+Reconnecting with SMB1 for workgroup listing.
+
+	Server               Comment
+	---------            -------
+
+	Workgroup            Master
+	---------            -------
+	WORKGROUP            RED
+
+[+] Attempting to map shares on 192.168.56.104
+//192.168.56.104/print$	Mapping: DENIED, Listing: N/A
+//192.168.56.104/kathy	Mapping: OK, Listing: OK
+//192.168.56.104/tmp	Mapping: OK, Listing: OK
+//192.168.56.104/IPC$	[E] Can't understand response:
+NT_STATUS_OBJECT_NAME_NOT_FOUND listing \*
+
+ ====================================================== 
+|    Password Policy Information for 192.168.56.104    |
+ ====================================================== 
+
+
+[+] Attaching to 192.168.56.104 using a NULL share
+
+[+] Trying protocol 445/SMB...
+
+	[!] Protocol failed: [Errno Connection error (192.168.56.104:445)] timed out
+
+[+] Trying protocol 139/SMB...
+
+[+] Found domain(s):
+
+	[+] RED
+	[+] Builtin
+
+[+] Password Info for Domain: RED
+
+	[+] Minimum password length: 5
+	[+] Password history length: None
+	[+] Maximum password age: Not Set
+	[+] Password Complexity Flags: 000000
+
+		[+] Domain Refuse Password Change: 0
+		[+] Domain Password Store Cleartext: 0
+		[+] Domain Password Lockout Admins: 0
+		[+] Domain Password No Clear Change: 0
+		[+] Domain Password No Anon Change: 0
+		[+] Domain Password Complex: 0
+
+	[+] Minimum password age: None
+	[+] Reset Account Lockout Counter: 30 minutes 
+	[+] Locked Account Duration: 30 minutes 
+	[+] Account Lockout Threshold: None
+	[+] Forced Log off Time: Not Set
+
+
+[+] Retieved partial password policy with rpcclient:
+
+Password Complexity: Disabled
+Minimum Password Length: 5
+
+
+ ================================ 
+|    Groups on 192.168.56.104    |
+ ================================ 
+
+[+] Getting builtin groups:
+
+[+] Getting builtin group memberships:
+
+[+] Getting local groups:
+
+[+] Getting local group memberships:
+
+[+] Getting domain groups:
+
+[+] Getting domain group memberships:
+
+ =============================================== 
+|    Getting printer info for 192.168.56.104    |
+ =============================================== 
+No printers returned.
+
+
+enum4linux complete on Sun Aug  4 18:34:18 2019
+
