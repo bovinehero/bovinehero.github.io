@@ -1,0 +1,191 @@
+<!DOCTYPE html>
+<html lang="en-US">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<link rel="profile" href="http://gmpg.org/xfn/11">
+<link rel="pingback" href="https://192.168.56.105:12380/blogblog/xmlrpc.php">
+<title>Initech | Office Life</title>
+<link rel="alternate" type="application/rss+xml" title="Initech &raquo; Feed" href="https://192.168.56.105:12380/blogblog/?feed=rss2" />
+<link rel="alternate" type="application/rss+xml" title="Initech &raquo; Comments Feed" href="https://192.168.56.105:12380/blogblog/?feed=comments-rss2" />
+		<script type="text/javascript">
+			window._wpemojiSettings = {"baseUrl":"https:\/\/s.w.org\/images\/core\/emoji\/72x72\/","ext":".png","source":{"concatemoji":"https:\/\/192.168.56.105:12380\/blogblog\/wp-includes\/js\/wp-emoji-release.min.js?ver=4.2.1"}};
+			!function(a,b,c){function d(a){var c=b.createElement("canvas"),d=c.getContext&&c.getContext("2d");return d&&d.fillText?(d.textBaseline="top",d.font="600 32px Arial","flag"===a?(d.fillText(String.fromCharCode(55356,56812,55356,56807),0,0),c.toDataURL().length>3e3):(d.fillText(String.fromCharCode(55357,56835),0,0),0!==d.getImageData(16,16,1,1).data[0])):!1}function e(a){var c=b.createElement("script");c.src=a,c.type="text/javascript",b.getElementsByTagName("head")[0].appendChild(c)}var f;c.supports={simple:d("simple"),flag:d("flag")},c.supports.simple&&c.supports.flag||(f=c.source||{},f.concatemoji?e(f.concatemoji):f.wpemoji&&f.twemoji&&(e(f.twemoji),e(f.wpemoji)))}(window,document,window._wpemojiSettings);
+		</script>
+		<style type="text/css">
+img.wp-smiley,
+img.emoji {
+	display: inline !important;
+	border: none !important;
+	box-shadow: none !important;
+	height: 1em !important;
+	width: 1em !important;
+	margin: 0 .07em !important;
+	vertical-align: -0.1em !important;
+	background: none !important;
+	padding: 0 !important;
+}
+</style>
+<link rel='stylesheet' id='google-fonts-css'  href='https://fonts.googleapis.com/css?family=Montserrat%3A400%2C700%7COpen+Sans%3A400%2C400italic%2C600%2C700%2C700italic' type='text/css' media='all' />
+<link rel='stylesheet' id='bhost-bootstrap-css-css'  href='https://192.168.56.105:12380/blogblog/wp-content/themes/bhost/css/bootstrap.min.css?ver=4.2.1' type='text/css' media='all' />
+<link rel='stylesheet' id='bhost-meanmenu-css'  href='https://192.168.56.105:12380/blogblog/wp-content/themes/bhost/css/meanmenu.css?ver=4.2.1' type='text/css' media='all' />
+<link rel='stylesheet' id='bhost-font-awesome.min-css'  href='https://192.168.56.105:12380/blogblog/wp-content/themes/bhost/css/font-awesome.min.css?ver=4.2.1' type='text/css' media='all' />
+<link rel='stylesheet' id='bhost-style-css'  href='https://192.168.56.105:12380/blogblog/wp-content/themes/bhost/style.css?ver=4.2.1' type='text/css' media='all' />
+<link rel="EditURI" type="application/rsd+xml" title="RSD" href="https://192.168.56.105:12380/blogblog/xmlrpc.php?rsd" />
+<link rel="wlwmanifest" type="application/wlwmanifest+xml" href="https://192.168.56.105:12380/blogblog/wp-includes/wlwmanifest.xml" /> 
+<meta name="generator" content="WordPress 4.2.1" />
+	<!--[if lt IE 9]>
+	<script src="https://192.168.56.105:12380/blogblog/wp-content/themes/bhost/js/html5.js"></script>
+	<![endif]-->
+	<style type="text/css">.recentcomments a{display:inline !important;padding:0 !important;margin:0 !important;}</style>
+<style type="text/css" id="custom-background-css">
+body.custom-background { background-color: #f4f4f4; }
+</style>
+</head>
+
+<body class="home blog custom-background">
+<!-- .container is main centered wrapper -->
+
+	<div id="page" class="hfeed site">
+		<a class="skip-link screen-reader-text" href="#content">Skip to content</a>	
+		<header id="masthead" class="site-header" role="banner">		
+			<div class="site-branding">
+				<div class="container">
+					<h1 class="site-title"><a href="https://192.168.56.105:12380/blogblog/" rel="home">Initech</a></h1>
+					<p class="site-description">Office Life</p>
+				</div>
+			</div><!-- .site-branding -->				
+							
+			<div class="mainmenu">
+				<div class="container">
+					<nav>
+						<ul class="nav"><li class="current-menu-item"><a href="https://192.168.56.105:12380/blogblog">Home</a></li></ul>					</nav>
+				</div>
+			</div>										
+		</header><!-- #masthead -->
+
+	<div class="container">		
+		<div class="row">
+			<div id="content" class="site-content">
+
+
+	<div id="primary" class="content-area col-sm-8">
+		<div id="main" class="site-main" role="main">
+
+		
+						
+				
+<article id="post-14" class="single-post">
+	<header class="entry-header">
+		<div class="post-thumb-image">
+			<a href="https://192.168.56.105:12380/blogblog/?p=14" rel="bookmark"></a>
+		</div><!-- .post-thumb-image -->
+		<h1 class="entry-title"><a href="https://192.168.56.105:12380/blogblog/?p=14" rel="bookmark">Week 2</a></h1>					</header><!-- .entry-header -->
+	<div class="entry-content">
+			<p>There was a fire in the office yesterday, so things have been put on hold for indefinitely.</p>
+<p> <a href="https://192.168.56.105:12380/blogblog/?p=14#more-14" class="more-link">Continue reading <span class="screen-reader-text">&#8220;Week 2&#8243;</span> <span class="meta-nav">&rarr;</span></a></p>
+
+			</div><!-- .entry-content -->
+
+	<footer class="entry-footer">
+		<span class="by_admin">By in <a class="url fn n" href="https://192.168.56.105:12380/blogblog/?author=1">John Smith</a> </span> <span class="comments-link"><a href="https://192.168.56.105:12380/blogblog/?p=14#respond">Leave a comment</a></span>	</footer><!-- .entry-footer -->
+</article><!-- #post-## -->
+			
+				
+<article id="post-12" class="single-post">
+	<header class="entry-header">
+		<div class="post-thumb-image">
+			<a href="https://192.168.56.105:12380/blogblog/?p=12" rel="bookmark"></a>
+		</div><!-- .post-thumb-image -->
+		<h1 class="entry-title"><a href="https://192.168.56.105:12380/blogblog/?p=12" rel="bookmark">Week 1</a></h1>					</header><!-- .entry-header -->
+	<div class="entry-content">
+			<p>Not much happened this week, the office football match got in the way.</p>
+<p> <a href="https://192.168.56.105:12380/blogblog/?p=12#more-12" class="more-link">Continue reading <span class="screen-reader-text">&#8220;Week 1&#8243;</span> <span class="meta-nav">&rarr;</span></a></p>
+
+			</div><!-- .entry-content -->
+
+	<footer class="entry-footer">
+		<span class="by_admin">By in <a class="url fn n" href="https://192.168.56.105:12380/blogblog/?author=1">John Smith</a> </span> <span class="comments-link"><a href="https://192.168.56.105:12380/blogblog/?p=12#respond">Leave a comment</a></span>	</footer><!-- .entry-footer -->
+</article><!-- #post-## -->
+			
+				
+<article id="post-10" class="single-post">
+	<header class="entry-header">
+		<div class="post-thumb-image">
+			<a href="https://192.168.56.105:12380/blogblog/?p=10" rel="bookmark"></a>
+		</div><!-- .post-thumb-image -->
+		<h1 class="entry-title"><a href="https://192.168.56.105:12380/blogblog/?p=10" rel="bookmark">Welcome to Initech internal deployment blog.</a></h1>					</header><!-- .entry-header -->
+	<div class="entry-content">
+			<p>Hello World!</p>
+<p>&#8230;That&#8217;s how you start everything off!</p>
+<p>&nbsp;</p>
+<p> <a href="https://192.168.56.105:12380/blogblog/?p=10#more-10" class="more-link">Continue reading <span class="screen-reader-text">&#8220;Welcome to Initech internal deployment blog.&#8221;</span> <span class="meta-nav">&rarr;</span></a></p>
+
+			</div><!-- .entry-content -->
+
+	<footer class="entry-footer">
+		<span class="by_admin">By in <a class="url fn n" href="https://192.168.56.105:12380/blogblog/?author=1">John Smith</a> </span> <span class="comments-link"><a href="https://192.168.56.105:12380/blogblog/?p=10#respond">Leave a comment</a></span>	</footer><!-- .entry-footer -->
+</article><!-- #post-## -->
+			
+			
+		
+		</div><!-- #main -->
+	</div><!-- #primary -->
+
+
+<div class="col-sm-4">
+	<div id="secondary" class="widget-area" role="complementary">
+		<aside class="single-widget widget_search"><form role="search" method="get" class="search-form" action="https://192.168.56.105:12380/blogblog/">
+				<label>
+					<span class="screen-reader-text">Search for:</span>
+					<input type="search" class="search-field" placeholder="Search &hellip;" value="" name="s" title="Search for:" />
+				</label>
+				<input type="submit" class="search-submit" value="Search" />
+			</form></aside>		<aside class="single-widget widget_recent_entries">		<h4 class="widget-title">Recent Posts</h4>		<ul>
+					<li>
+				<a href="https://192.168.56.105:12380/blogblog/?p=14">Week 2</a>
+						</li>
+					<li>
+				<a href="https://192.168.56.105:12380/blogblog/?p=12">Week 1</a>
+						</li>
+					<li>
+				<a href="https://192.168.56.105:12380/blogblog/?p=10">Welcome to Initech internal deployment blog.</a>
+						</li>
+				</ul>
+		</aside><aside class="single-widget widget_recent_comments"><h4 class="widget-title">Recent Comments</h4><ul id="recentcomments"></ul></aside><aside class="single-widget widget_archive"><h4 class="widget-title">Archives</h4>		<ul>
+	<li><a href='https://192.168.56.105:12380/blogblog/?m=201605'>May 2016</a></li>
+		</ul>
+</aside><aside class="single-widget widget_categories"><h4 class="widget-title">Categories</h4>		<ul>
+	<li class="cat-item cat-item-1"><a href="https://192.168.56.105:12380/blogblog/?cat=1" >Uncategorized</a>
+</li>
+		</ul>
+</aside><aside class="single-widget widget_meta"><h4 class="widget-title">Meta</h4>			<ul>
+			<li><a href="https://192.168.56.105:12380/blogblog/wp-login.php?action=register">Register</a></li>			<li><a href="https://192.168.56.105:12380/blogblog/wp-login.php">Log in</a></li>
+			<li><a href="https://192.168.56.105:12380/blogblog/?feed=rss2">Entries <abbr title="Really Simple Syndication">RSS</abbr></a></li>
+			<li><a href="https://192.168.56.105:12380/blogblog/?feed=comments-rss2">Comments <abbr title="Really Simple Syndication">RSS</abbr></a></li>
+<li><a href="https://wordpress.org/" title="Powered by WordPress, state-of-the-art semantic personal publishing platform.">WordPress.org</a></li>			</ul>
+</aside>	</div><!-- #secondary -->
+</div>
+
+
+			</div><!-- #content -->
+		</div><!--.row-->
+	</div><!--.container-->
+	<footer id="footer" class="site-footer col-md-12" role="contentinfo">
+		<div class="container">
+			<div class="site-info">
+				<a href="http://wordpress.org/">Proudly powered by WordPress</a>
+				<span class="sep"> | </span>
+				Theme: bhost by <a href="http://getmasum.net/" rel="designer">BHost Theme</a>.			</div><!-- .site-info -->
+		</div>
+	</footer><!-- #footer -->
+</div><!-- #page -->
+
+<script type='text/javascript' src='https://192.168.56.105:12380/blogblog/wp-content/themes/bhost/js/bootstrap.min.js?ver=20120205'></script>
+<script type='text/javascript' src='https://192.168.56.105:12380/blogblog/wp-content/themes/bhost/js/skip-link-focus-fix.js?ver=20130115'></script>
+<script type='text/javascript' src='https://192.168.56.105:12380/blogblog/wp-content/themes/bhost/js/jquery.meanmenu.min.js?ver=20130116'></script>
+<script type='text/javascript' src='https://192.168.56.105:12380/blogblog/wp-content/themes/bhost/js/jquery.easing.min.js?ver=20130117'></script>
+<script type='text/javascript' src='https://192.168.56.105:12380/blogblog/wp-content/themes/bhost/js/custom.js?ver=20130118'></script>
+
+</body>
+</html>
