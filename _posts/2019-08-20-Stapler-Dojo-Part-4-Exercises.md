@@ -32,7 +32,7 @@ can also steal/guess username and break password - cover how to do this via hydr
 
 allow 30 mins
 
-explain there is way in with a code vulnerability, show exploit dB and searchsploit
+explain there is way in with a code vulnerability, show exploit dB and searchsploit and rev shells
 
 
 Attack the webserver via wordpress upload.
