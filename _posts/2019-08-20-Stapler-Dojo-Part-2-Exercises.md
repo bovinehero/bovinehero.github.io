@@ -50,7 +50,7 @@ nmap ip_address_1,ip_address_2,ip_address_3 ....
 
 > Q. What do each of the IP addresses return? Can you determine which IP is 'Stapler'?  
 
-> D. Consider the output, what can you determine about each IP?
+> Q. Consider the output, what can you determine about each IP?
 
 ## Active Recon
 
