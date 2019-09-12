@@ -32,17 +32,37 @@ Before going any further it's prudent to perform a little analysis to get an ide
 
 There is an FTP server, probrably an Active server as port 20 returns closed. In passive mode (default in most FTP Servers) the client initiates the connection and so port 20 would not explicitly refuse connection. This active configuration implies a bit of work went into the configuration, it could mean defensive measures like no anonymous logins or IP whitelisting. We will be careful probing this service initially.
 
+### Tools for analysis
+1. nmap
+2. ftp
+3. web-browser
+4. hydra
+
 ```
 22/tcp    open   ssh         OpenSSH 7.2p2 Ubuntu 4 (Ubuntu Linux; protocol 2.0)
 ```
 
 Suggestive that box is Linux, windows rarely uses port 22 for ssh Remote Desktop typically is served over 3389 by default. This service will be hard to interact with if we can't get valid credentials. 
 
+### Tools for analysis
+1. nmap
+2. ssh
+3. hydra
+
 ```
 53/tcp    open   domain      dnsmasq 2.75
 ```
 
-DNS is often overlooked by sys admins as it is a rarer service to re-configure after deploment. It can be used to hide services on boxes via whitelisting fqdn requests over http. This is particularly true in more advanced boxes for CTF events. It is difficult service to enumerate without configuring networking on the attacker box, but is often god for a quick win for more information on a box.
+DNS is often overlooked by sys admins as it is a rarer service to re-configure after deploment. It can be used to hide services on boxes via whitelisting fqdn requests over http. This is particularly true in more advanced boxes for CTF events. It is difficult service to enumerate without configuring networking on the attacker box, but is often good for a quick win for more information on a box.
+
+### Tools for analysis
+1. nmap
+2. nslookup
+3. host *
+4. dnsrecon *
+5. dnsenum *
+
+> *These typically are useful in real environmnets, without additional host configuraion you will have difficulty configuring these. 
 
 ```
 80/tcp    open   http        PHP cli server 5.5 or later
@@ -51,11 +71,23 @@ DNS is often overlooked by sys admins as it is a rarer service to re-configure a
 
 HTTP servers are open by default. This is typically the best place to start when enumerating a server as there are tonnes of automation options for web site enumeration.
 
+### Tools for analysis
+1. nmap
+2. web-browser
+3. nikto
+4. dirbuster
+5. burp/zap
+6. many, many more...
+
 ```
 123/tcp   closed ntp
 ```
 
-Network Time, useful to know it is closed but no help just now
+Network Time is used to help sync servers with one another over the network. Abusing this can open windows for an attacker to DoS the server. By virtue the port is closed it is of little help to us.
+
+
+### Tools for analysis
+The port is closed!
 
 ```
 137/tcp   closed netbios-ns
@@ -65,11 +97,24 @@ Network Time, useful to know it is closed but no help just now
 
 SMB uses either IP port 139 or 445. SMB originally ran on top of NetBIOS using port 139. NetBIOS is an older transport layer that allows Windows computers to talk to each other on the same network. Later versions of SMB (after Windows 2000) began to use port 445 on top of a TCP stack which allows SMB to work over the internet. The supporting ports 137 (name service) and 138 (datagram) are used for NetBIOS on the WinTEL stack. This helps nmap best guess a Linux service, interesting that we are using 139 and NOT 445.
 
+
+### Tools for analysis
+1. nmap
+2. web-browser
+3. enum4linux
+4. smbclient
+
 ```
 3306/tcp  open   mysql       MySQL 5.7.12-0ubuntu1
 ```
 
 Standard port for mysqldb access, this _should_ be set to local host-only access, could be useful but normally requires a login. Confirms that we have a LAMP stack on the box, and if we were bad guys this could be a good value extraction service.
+
+### Tools for analysis
+1. nmap
+2. mysql
+3. sqlmap
+4. sqlninja
 
 ```
 666/tcp   open   doom?
@@ -119,10 +164,15 @@ SF:\xfb\xf3\xda\xcaDfv\x89`\xa9\xe4k\xc4S\x0e\xd6P0");
 ```
 Could this be a custom app? Not a low hanging fruit but possibly something interesting.
 
-
+### Tools for analysis
+1. nmap
+2. google
+3. nc
+4. strings
+5. linux cmd tools
 
 ## Recommended Resources
 
-tutorial site for each manual step
+TODO - tutorial site for each manual step
 
 next up [Attacking](Stapler-Dojo-Part-4-Exercises.html)

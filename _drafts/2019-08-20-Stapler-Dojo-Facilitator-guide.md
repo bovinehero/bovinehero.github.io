@@ -31,11 +31,11 @@ Objective: Get everyone to be able to scan the target
 
 Objective: Complete analysis
 
-1. encourage google
-2. answer questions on the services
-3. demo manual interactions
-4. Introduce reverse shells - draw diagram
-5. demo hydra syntax
+1. Introduce reverse shells - draw diagram
+2. demo hydra syntax after 30 min
+3. encourage googling
+4. answer questions on the services
+5. demo manual interactions as required
 
 # Part 4 - 30 min
 
@@ -43,14 +43,14 @@ Objective: get remote code execution
 
 ## Tasks
 
-1. Demo a vector from the walkthrough
-
+1. Pull everyone in to get them to the same stage
+2. Demo a vector from the walkthrough
 
 key notes before attack - the plugin is vulnerable to LFI
 This allows access to root dB creds, with this we can get full shell access.
 
 This section varies with skill of audience, many folks may just want a demo others hints.
-Prefeered vector is progromatic exploit as audience are devs
+Preferred vector is progromatic exploit as audience are devs
 
 can also steal/guess username and break password - cover how to do this via hydra tutorial
 
@@ -173,13 +173,13 @@ do stuff, show execution!
 
 > This is the biggest section of the dojo. Recap here
 
-# Part 5
+# Part 5 60 min
 
 Objective: get root
 
 ## Tasks
 
-1. Demo all the ways to get root - show the walkthrough
+1. Demo all the ways that were not picked up in order to get root - show the walkthrough
 2. wrap up
 3. feedback
 
