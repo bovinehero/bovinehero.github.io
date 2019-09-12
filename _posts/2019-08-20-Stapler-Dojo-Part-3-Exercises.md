@@ -7,19 +7,7 @@ Enumeration portion of the Dojo
 
 # Enumeration
 
-Cover every service discovered, what it does and how to interact with it manually.
-Suggest a tool to try against each service 
-
-tools
-* nmap
-* browser tools/plugins 
-* curl/wget
-
-optional tool ideas
-* Burp/Zap
-
-> This is the biggest section of the dojo. Recap here
-
+At this point we should have a fair idea of the services running on our target. If we were perfoming a vuln analysis assessment this is the final stage before we begin the report. Our objective here is to gather as much information about the target as possible in order to determine possible attack vectors. As we are simulating an impact assessment, we want to take the penetration as deep as we can, thus our goal at this stage is to paint as complete a picture as possible of the system in order to attack it.
 
 ## Triage
 
@@ -62,7 +50,7 @@ DNS is often overlooked by sys admins as it is a rarer service to re-configure a
 4. dnsrecon *
 5. dnsenum *
 
-> *These typically are useful in real environmnets, without additional host configuraion you will have difficulty configuring these. 
+> *These typically are useful in real environments, without additional host configuraion you will have difficulty configuring these. 
 
 ```
 80/tcp    open   http        PHP cli server 5.5 or later
@@ -85,7 +73,6 @@ HTTP servers are open by default. This is typically the best place to start when
 
 Network Time is used to help sync servers with one another over the network. Abusing this can open windows for an attacker to DoS the server. By virtue the port is closed it is of little help to us.
 
-
 ### Tools for analysis
 The port is closed!
 
@@ -96,7 +83,6 @@ The port is closed!
 ```
 
 SMB uses either IP port 139 or 445. SMB originally ran on top of NetBIOS using port 139. NetBIOS is an older transport layer that allows Windows computers to talk to each other on the same network. Later versions of SMB (after Windows 2000) began to use port 445 on top of a TCP stack which allows SMB to work over the internet. The supporting ports 137 (name service) and 138 (datagram) are used for NetBIOS on the WinTEL stack. This helps nmap best guess a Linux service, interesting that we are using 139 and NOT 445.
-
 
 ### Tools for analysis
 1. nmap
@@ -171,7 +157,42 @@ Could this be a custom app? Not a low hanging fruit but possibly something inter
 4. strings
 5. linux cmd tools
 
+## Kicking it up a Notch
+
+At this point we need to start scraping the site for information, and while individually we may not know how each service works, as technologists google is our best friend here. 
+
+Every service offered by stapler can be interacted with manually. Your Kali instance comes with a wide variety of tooling to help you exploit weaknesses in these services, but at this stage we want information. As you work out more of the story of the box create notes and try to determine potential attack vectors. 
+
+Start by using port specific scans with targeted options to connect to the sevices with nmap. With the information you gain, try connecting to the services manually using the standard tools. Once you have an idea of what you are up against use some of the automated tools.
+
+Collaberation is encouraged, feel free to break out into groups and if you get stuck let one of the facilitaors know they will be able to provide hints on where to look next. In assessements you will often have to google things, just remember syntax on these commands is important. 
+
+## Raw Connections
+
+Session on NC bind and reverse shells
+how to make binaries that are reverse shells in msfvenom
+backpiping with linux
+
 ## Recommended Resources
+
+
+
+### msql
+hacktress some useful [links](http://www.hacktress.com/sql-injection-links-cheat-sheets-and-tools/)
+
+### SaMBa
+High on Coffee [enum4linux cheat sheet](https://highon.coffee/blog/enum4linux-cheat-sheet/)
+The mad Irish [Hacking Windows shares from Linux with Samba](https://www.madirish.net/59)
+
+### Rev Shells
+Netsec [msfvenom payloads](https://netsec.ws/?p=331)
+Pentest Monkey [Reverse Shells](http://pentestmonkey.net/cheat-sheet/shells/reverse-shell-cheat-sheet)
+Payloads All The Things [Reverse Shell Cheatsheet](https://github.com/swisskyrepo/PayloadsAllTheThings/blob/master/Methodology%20and%20Resources/Reverse%20Shell%20Cheatsheet.md)
+
+
+### Hydra
+Red Team Tutorials Hydra (Examples)[https://redteamtutorials.com/2018/10/25/hydra-brute-force-techniques/]
+Bent Robot Labs Web Hydra [example](https://bentrobotlabs.wordpress.com/2018/04/02/web-site-login-brute-forcing-with-hydra/)
 
 TODO - tutorial site for each manual step
 
