@@ -1,6 +1,7 @@
 ---
 layout: default
 ---
+
 {% assign topic = site.topics | where: 'short_name', page.topic | first %}
 {% if topic %}
   <h1>{{ page.title }}</h1>
@@ -10,5 +11,7 @@ layout: default
 {% if author %}
   {{ page.date | date_to_string }} - <a href="{{ author.url }}">{{ author.name }}</a> 
 {% endif %}
+{% include mini_nav.html %}
 <hr>
+
 {{ content }}

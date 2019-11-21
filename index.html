@@ -16,4 +16,10 @@ my_number: 5
 {% for topic in site.topics %}
     <h3><a href="{{ topic.url }}">{{ topic.name }}</a></h3>
     {{ topic.content | markdownify }}
+    <br>
+    {% for post in site.posts reversed %}
+      <a href="{{ post.url }}">{{ post.title }}</a><small> - {{ post.date | date_to_string }}</small>
+      <p>{{ post.excerpt }}</p>
+    <br>
+  {% endfor %}
 {% endfor %}
