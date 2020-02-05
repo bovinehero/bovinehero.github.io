@@ -1,6 +1,7 @@
 ---
 author: bhero
 topic: htb
+frontPage: False
 ---
 Getting started with [Hack the Box](https://www.hackthebox.eu/)
 
