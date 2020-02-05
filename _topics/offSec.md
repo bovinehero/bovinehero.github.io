@@ -1,5 +1,5 @@
 ---
 short_name: offSec
-name: Offensive Security Tutorials
+name: Offensive Security Primer
 ---
-Offensive Security Tutorials
+Offensive Security Primer Tutorials
