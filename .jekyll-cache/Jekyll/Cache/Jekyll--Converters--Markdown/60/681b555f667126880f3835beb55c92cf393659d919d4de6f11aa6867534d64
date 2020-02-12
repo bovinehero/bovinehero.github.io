@@ -1,0 +1,116 @@
+I"¤<p>Walkthrough for OPENADMIN - 10.10.10.171</p>
+
+<h2 id="overview">Overview</h2>
+
+<h2 id="setup">Setup</h2>
+
+<h3 id="tools">Tools</h3>
+
+<ol>
+  <li>nmap</li>
+</ol>
+
+<h3 id="non-standard">Non Standard</h3>
+<ol>
+  <li>gobuster</li>
+</ol>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nb">sudo </span>apt <span class="nb">install </span>gobuster
+</code></pre></div></div>
+
+<h2 id="recon">Recon</h2>
+
+<p>Set the local variable first:</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nv">TARGET</span><span class="o">=</span>10.10.10.171
+</code></pre></div></div>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nb">sudo </span>nmap <span class="nv">$TARGET</span> <span class="nt">-Pn</span>
+</code></pre></div></div>
+
+<p>I get the following:</p>
+
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>Nmap scan report for 10.10.10.171
+Host is up (0.031s latency).
+Not shown: 998 closed ports
+PORT   STATE SERVICE
+22/tcp open  ssh
+80/tcp open  http
+
+Nmap done: 1 IP address (1 host up) scanned in 0.72 seconds
+</code></pre></div></div>
+
+<p>A quick view</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>curl <span class="nt">-ik</span> <span class="nv">$TARGET</span> <span class="c"># returns standard ubuntu server</span>
+curl <span class="nt">-Ik</span> <span class="nv">$TARGET</span> <span class="c">#headers check</span>
+</code></pre></div></div>
+
+<p>gives</p>
+
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>HTTP/1.1 200 OK
+Date: Wed, 12 Feb 2020 20:05:46 GMT
+Server: Apache/2.4.29 (Ubuntu)
+Last-Modified: Thu, 21 Nov 2019 14:08:45 GMT
+ETag: "2aa6-597dbd5dcea8b"
+Accept-Ranges: bytes
+Content-Length: 10918
+Vary: Accept-Encoding
+Content-Type: text/html
+</code></pre></div></div>
+
+<p>I try quick dir brute forcing:</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>gobuster <span class="nb">dir</span> <span class="nt">-u</span> http://<span class="nv">$TARGET</span> <span class="nt">-w</span> /usr/share/wordlists/dirb/common.txt
+</code></pre></div></div>
+
+<p>gives</p>
+
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>===============================================================
+Gobuster v3.0.1
+by OJ Reeves (@TheColonial) &amp; Christian Mehlmauer (@_FireFart_)
+===============================================================
+[+] Url:            http://10.10.10.171
+[+] Threads:        10
+[+] Wordlist:       /usr/share/wordlists/dirb/common.txt
+[+] Status codes:   200,204,301,302,307,401,403
+[+] User Agent:     gobuster/3.0.1
+[+] Timeout:        10s
+===============================================================
+2020/02/12 20:13:11 Starting gobuster
+===============================================================
+/.hta (Status: 403)
+/.htpasswd (Status: 403)
+/.htaccess (Status: 403)
+/artwork (Status: 301)
+/index.html (Status: 200)
+/music (Status: 301)
+/server-status (Status: 403)
+===============================================================
+2020/02/12 20:13:26 Finished
+===============================================================
+</code></pre></div></div>
+
+<p>When I go here: <code class="highlighter-rouge">http://10.10.10.171/music/</code> there is a login option which redirects to here: <code class="highlighter-rouge">http://10.10.10.171/ona/</code></p>
+
+<p>I</p>
+
+<pre><code class="language-txt">You are NOT on the latest release version
+Your version    = v18.1.1
+Latest version = Unable to determine
+Please DOWNLOAD the latest version.
+</code></pre>
+
+<h2 id="enumeration">Enumeration</h2>
+
+<h2 id="rce">RCE</h2>
+
+<h2 id="getting-user">Getting User</h2>
+
+<p>xxxxxxxxxxxxxxxxxxxxXXXXXXXXXXXX</p>
+
+<h2 id="getting-root">Getting Root</h2>
+
+<p>xxxxxxxxxxxxxxxxxxxxXXXXXXXXXXXX</p>
+
+:ET

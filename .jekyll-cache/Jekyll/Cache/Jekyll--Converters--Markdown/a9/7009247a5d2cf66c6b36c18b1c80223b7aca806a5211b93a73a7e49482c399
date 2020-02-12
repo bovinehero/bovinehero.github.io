@@ -1,0 +1,41 @@
+I"{<p>Walkthrough for OPENADMIN - 10.10.10.171</p>
+
+<h2 id="overview">Overview</h2>
+
+<h2 id="setup">Setup</h2>
+
+<p>Running Kali I make a temporary working directory, set some variables and update all the things.</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nb">cd</span> ~/OffSec/tmp
+<span class="nv">TARGET</span><span class="o">=</span>10.10.10.171
+</code></pre></div></div>
+
+<p>If we want to add</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nb">sudo cp</span> /etc/hosts /etc/hosts.bkp
+<span class="nb">sudo</span> <span class="nt">--</span> sh <span class="nt">-c</span>  <span class="s2">"echo </span><span class="se">\"</span><span class="s2">10.10.10.171</span><span class="se">\o</span><span class="s2">penadmin.htb</span><span class="se">\"</span><span class="s2"> &gt;&gt; /etc/hosts"</span>
+</code></pre></div></div>
+
+<h2 id="scanning">Scanning</h2>
+
+<h2 id="enumeration">Enumeration</h2>
+
+<h2 id="rce">RCE</h2>
+
+<h2 id="getting-user">Getting User</h2>
+
+<p>xxxxxxxxxxxxxxxxxxxxXXXXXXXXXXXX</p>
+
+<h2 id="getting-root">Getting Root</h2>
+
+<p>xxxxxxxxxxxxxxxxxxxxXXXXXXXXXXXX</p>
+
+<h2 id="clearupsh">Clearup.sh</h2>
+
+<p>cd ~/OffSec
+sudo cp /etc/hosts tmp/hosts
+sudo cp /etc/hosts.bkp /etc/hosts
+mkdir TESTING &amp;&amp; mv -i tmp/* -t TESTING/
+rmdir tmp</p>
+
+:ET

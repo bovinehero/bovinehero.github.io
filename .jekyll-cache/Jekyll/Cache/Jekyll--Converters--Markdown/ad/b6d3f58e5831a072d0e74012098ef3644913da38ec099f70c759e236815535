@@ -1,0 +1,26 @@
+I"O<p>Walkthrough for OPENADMIN - 10.10.10.171</p>
+
+<h2 id="overview">Overview</h2>
+
+<h2 id="setup">Setup</h2>
+
+<h2 id="recon">Recon</h2>
+
+<p>Set the local variable first:</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nv">TARGET</span><span class="o">=</span>10.10.10.171
+</code></pre></div></div>
+
+<h2 id="enumeration">Enumeration</h2>
+
+<h2 id="rce">RCE</h2>
+
+<h2 id="getting-user">Getting User</h2>
+
+<p>xxxxxxxxxxxxxxxxxxxxXXXXXXXXXXXX</p>
+
+<h2 id="getting-root">Getting Root</h2>
+
+<p>xxxxxxxxxxxxxxxxxxxxXXXXXXXXXXXX</p>
+
+:ET

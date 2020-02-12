@@ -1,0 +1,44 @@
+I"�<p>Quick start guide to roll Kali for <a href="https://www.hackthebox.eu/">Hack the Box</a></p>
+
+<h2 id="getting-kali">Getting Kali</h2>
+
+<p>Fist off decide if you actually want to use Kali, you <em>can</em> run assessments with windows, <a href="">Fireye Commando</a> is pretty promising, but not for bare metal. Also most Linux distros support the tools, if you are running Linux Native you can just install the packages. Not touching Apple with a barge pole!</p>
+
+<p>Second you will need to decide how you want to run Kali, the notes below are for my bare metal post install setup. You can of course run as a VM in Virtual Box, VMWare etc.</p>
+
+<p>If you are only going to use an OS image for HTB, VMWare offers an easier and smoother experience for a single VM wit it’s decent VMWare Player. Virtual Box is fine, but some of the performance features need a bit of tweaking. If you are planning on some VulnHub exercises it is probrably better to run in Virtual Box as multi-device networks are easy (and free) in Virtual Box</p>
+
+<p>You can also look at containers, there’s Docker images if thats your thing.</p>
+
+<p>I’m running bere metal because I can, by that I mena that I have a disposible device that I can use for this sort of work.
+Generally running Kali as a primary OS it is not advised as it is a pentesting framework and older versions could be fickle on upgrades. Provided you use it for its intended purpose Kali is a viable OS as its essentially Debian Rolling with a bucket load of security tools added.</p>
+
+<p>You can get Kali <a href="">here</a>
+Docs for installing Kali <a href="">here</a></p>
+
+<h2 id="initial-setup">Initial Setup</h2>
+
+<p>Make a sudo user
+Get an IDE
+Get a Second Browser
+Get Setup for H4x
+    Discord
+    Folder Structures
+Get Setup for Work?</p>
+
+<p>Windows Exploits
+Get C#
+Get Docker - optional
+Get a Windows VM - optional</p>
+
+<p>Bonus Resources</p>
+
+<p>nmap
+searchsploit / exploitdb
+msf unleashed
+Windows priv exc
+Linux priv esc
+gits
+Hack the Box</p>
+
+:ET

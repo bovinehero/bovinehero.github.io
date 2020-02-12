@@ -1,0 +1,29 @@
+I""<p>Walkthrough for OPENADMIN - 10.10.10.171</p>
+
+<h2 id="overview">Overview</h2>
+
+<h2 id="setup">Setup</h2>
+
+<h2 id="scanning">Scanning</h2>
+
+<h2 id="enumeration">Enumeration</h2>
+
+<h2 id="rce">RCE</h2>
+
+<h2 id="getting-user">Getting User</h2>
+
+<p>xxxxxxxxxxxxxxxxxxxxXXXXXXXXXXXX</p>
+
+<h2 id="getting-root">Getting Root</h2>
+
+<p>xxxxxxxxxxxxxxxxxxxxXXXXXXXXXXXX</p>
+
+<h2 id="clearupsh">Clearup.sh</h2>
+
+<p>cd ~/OffSec
+sudo cp /etc/hosts tmp/hosts
+sudo cp /etc/hosts.bkp /etc/hosts
+mkdir TESTING &amp;&amp; mv -i tmp/* -t TESTING/
+rmdir tmp</p>
+
+:ET

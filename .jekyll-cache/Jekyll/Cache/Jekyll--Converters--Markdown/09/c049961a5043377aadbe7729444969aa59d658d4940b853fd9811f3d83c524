@@ -1,0 +1,62 @@
+I"�<p>Getting started with <a href="https://www.hackthebox.eu/">Hack the Box</a></p>
+
+<h2 id="hack-your-way-in">Hack Your Way In!</h2>
+
+<p>To get access to the site you need to prove your worth by hacking a webform.
+You don’t need any special tools, a browser and a bit of deep digging and you’ll have access in no time.</p>
+
+<h2 id="this-series-2019-edit">This Series [2019 edit]</h2>
+
+<p>The HTB series initially started as a collection of personal write ups for all retired boxes that I found to be useful for training for the OSCP certification.</p>
+
+<p>After I passed I wanted to share my experience and provide my insights to testing on suitable boxes. However post OSCP I had a few commitment changes and had little time to play on the platform.</p>
+
+<p>Fast forward from early 2018 to 2019 and I’ve got some time back to play. I’m glad to see the platform has gotten better, both the product and community has grown.</p>
+
+<p>These days it seems everyone and their dog has a write up of these boxes, this is my take on them and while there are some really useful guides I’m presenting my personal take on the challenges.</p>
+
+<p>If you are looking to beat HTB, IppSec and his <a href="https://www.youtube.com/channel/UCa6eh7gCkpPo5XXUDfygQQA">YouTube Channel</a> contains a walkthrough for all of the retired boxes. In hindsight I’ve taken different approaches to some of the attacks he used I’m really just focusing on ones I enjoyed or that I think will help cultivate specific OffSec skills.</p>
+
+<h2 id="useful-scriptlets">Useful Scriptlets</h2>
+
+<p>Some stuff I find handy</p>
+
+<h3 id="setupsh">Setup.sh</h3>
+
+<p>I like to run engagements from a dedicated <code class="highlighter-rouge">OffSec\tmp</code> in my home directory. I always take a backup of my <code class="highlighter-rouge">hosts</code> file as well as some boxes require that we add DNS records to be able to access all areas.</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nb">sudo </span>apt update <span class="o">&amp;&amp;</span> <span class="nb">sudo </span>apt upgrade
+<span class="nb">sudo cp</span> /etc/hosts /etc/hosts.bkp 
+<span class="nb">mkdir</span> ~/OffSec/tmp <span class="o">&amp;&amp;</span> <span class="nb">cd</span> ~/OffSec/tmp
+</code></pre></div></div>
+
+<p>And for the the clearup afterwards I like to revert the <code class="highlighter-rouge">hosts</code> file and make a password <code class="highlighter-rouge">XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX</code> protected archive:</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nb">cp</span> /etc/hosts ~/OffSec/tmp/hosts
+<span class="nb">sudo cp</span> /etc/hosts.bkp /etc/hosts
+7za a ~/OffSec/SAMPLE.7z <span class="nt">-pXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX</span> ~/OffSec/tmp
+</code></pre></div></div>
+
+<p>To get the archive back:</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>7za x ~/OffSec/SAMPLE.7z <span class="nt">-pXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX</span> <span class="nt">-o</span>/tmp/SAMPLE
+</code></pre></div></div>
+
+<h3 id="hosts-file">Hosts File</h3>
+
+<p>If we want to add a domain name to our hosts file:</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nb">sudo cp</span> /etc/hosts /etc/hosts.bkp <span class="c">#always make a backup first!</span>
+<span class="nb">sudo</span> <span class="nt">--</span> sh <span class="nt">-c</span>  <span class="s2">"echo </span><span class="se">\"</span><span class="s2">10.10.10.xx</span><span class="se">\s</span><span class="s2">ample.htb</span><span class="se">\"</span><span class="s2"> &gt;&gt; /etc/hosts"</span>
+</code></pre></div></div>
+
+<p>And I want to revert it back after the engagement:</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nb">sudo cp</span> /etc/hosts.bkp /etc/hosts
+</code></pre></div></div>
+
+<h3 id="connectionsh">Connection.sh</h3>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nb">sudo </span>openvpn htb.opvn
+</code></pre></div></div>
+:ET

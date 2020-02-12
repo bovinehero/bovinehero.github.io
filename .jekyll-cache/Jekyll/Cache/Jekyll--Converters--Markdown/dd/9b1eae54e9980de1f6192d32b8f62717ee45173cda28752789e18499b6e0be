@@ -1,0 +1,131 @@
+I"�<p>Getting started with Offensive Security</p>
+
+<h2 id="what-is-offsec">What is OffSec?</h2>
+
+<p>In this respect not to confuse the term with <a href="https://www.offensive-security.com/">Offensive Security</a> who have defined the standard of excellence in penetration testing training.</p>
+
+<blockquote>
+  <p>Offensive Security (OffSec) is a proactive and adversarial approach to protecting computer systems, networks and individuals from attacks. Conventional security – sometimes referred to as “defensive security” – focuses on reactive measures, such as patching software and finding and fixing system vulnerabilities.</p>
+</blockquote>
+
+<p>How far we take an adversarial approach is always defined in scope, however a 100% adversarial stance where we ‘hack back’ malicious actors is not something we can do legally. Instead we focus emulating bad actor actions on targets that we own or are legally allowed to engage. Having a written scope is important for these engagements as it defines boundaries and, provided it is genuine and adhered to can help to keep testers on the right side of the law.</p>
+
+<p>Often seen as an arcane art OffSec is an intimidating field to get into, but like any expertise it really only requires hard work and determination to succeed. Traditionally it was the realm of the underground hacker, the reclusive teenager, the cyber criminals and elite government agents. These days OffSec is an important part of the development lifecycle and when implemented correctly a great way to reduce risk to a company. As with anything in the corporate world, this comes with a useful framework we can use to consider the different areas of expertise.</p>
+
+<h2 id="getting-started---the-cissp-domains">Getting Started - The CISSP Domains</h2>
+
+<p>We can classify OffSec into a few different domains which mirrors Conventional Security, the <a href="https://www.isc2.org/Certifications/CISSP">CISSP</a> uses the following:</p>
+
+<ol>
+  <li>Security and Risk Management</li>
+  <li>Asset Security</li>
+  <li>Security Architecture and Engineering</li>
+  <li>Communications and Network Security</li>
+  <li>Identity and Access Management</li>
+  <li>Security Assessment and Testing</li>
+  <li>Security Operations</li>
+  <li>Software Development Security</li>
+</ol>
+
+<p>While we should endevour to understand all of these at some level, before we can delve into later posts it is prudent to explore these in order that we may understand process a little.</p>
+
+<h3 id="security-and-risk-management">Security and Risk Management</h3>
+
+<p>This is the domain of the Risk, Controls and Compliance Managers, they keep us right legally and define the allowed ‘how’ and ‘why’</p>
+
+<ul>
+  <li>The confidentiality, integrity and availability of information</li>
+  <li>Security governance principles</li>
+  <li>Compliance requirements</li>
+  <li>Legal and regulatory issues relating to information security</li>
+  <li>IT policies and procedures</li>
+  <li>Risk-based management concepts</li>
+</ul>
+
+<h3 id="asset-security">Asset Security</h3>
+
+<p>While this domain does address physical security it also must consider logical security. Information Security Specalists are typicaly the experts here.</p>
+
+<ul>
+  <li>The classification and ownership of information and assets</li>
+  <li>Privacy</li>
+  <li>Retention periods</li>
+  <li>Data security controls</li>
+  <li>Handling requirements</li>
+</ul>
+
+<h3 id="security-architecture-and-engineering">Security Architecture and Engineering</h3>
+
+<p>This domain is where our Infrastructure and Software Architects/Engineers tend to focus. With an effective understanding of the folllowing concepts they design and build secure systems.</p>
+
+<ul>
+  <li>Engineering processes using secure design principles</li>
+  <li>Fundamental concepts of security models</li>
+  <li>Security capabilities of information systems</li>
+  <li>Assessing and mitigating vulnerabilities in systems</li>
+  <li>Cryptography</li>
+  <li>Designing and implementing physical security</li>
+</ul>
+
+<h3 id="communications-and-network-security">Communications and Network Security</h3>
+
+<p>Networking engineers need to be the subject matter experts here as the ensure inter server communication between sevices is secure:</p>
+
+<ul>
+  <li>Secure design principles for network architecture</li>
+  <li>Secure network components</li>
+  <li>Secure communication channels</li>
+</ul>
+
+<h3 id="identity-and-access-management">Identity and Access Management</h3>
+
+<p>This domain can be complex and difficult to navigate, but is an area all employees should be aware of. Identity and Access Managment is how YOUR identy is confirmed in the system and is covered by the following topics:</p>
+
+<ul>
+  <li>Physical and logical access to assets</li>
+  <li>Identification and authentication</li>
+  <li>Integrating identity as a service and third-party identity services</li>
+  <li>Authorisation mechanisms</li>
+  <li>The identity and access provisioning lifecycle</li>
+</ul>
+
+<h3 id="security-assessment-and-testing">Security Assessment and Testing</h3>
+
+<p>This domain focuses on the design, performance and analysis of security testing. It is traditionally the domain of the Red Team and Penetration Testers and includes:</p>
+
+<ul>
+  <li>Designing and validating assessment and test strategies</li>
+  <li>Security control testing</li>
+  <li>Collecting security process data</li>
+  <li>Test outputs</li>
+  <li>Internal and third-party security audits</li>
+</ul>
+
+<h3 id="security-operations">Security Operations</h3>
+
+<p>This domain addresses the way plans are put into action. It follows the Blue Team (Operate and dedicated conventional security) and covers:</p>
+
+<ul>
+  <li>Understanding and supporting investigations</li>
+  <li>Requirements for investigation types</li>
+  <li>Logging and monitoring activities</li>
+  <li>Securing the provision of resources</li>
+  <li>Foundational security operations concepts</li>
+  <li>Applying resource protection techniques</li>
+  <li>Incident management</li>
+  <li>Disaster recovery</li>
+  <li>Managing physical security</li>
+  <li>Business continuity</li>
+</ul>
+
+<h3 id="software-development-security">Software Development Security</h3>
+
+<p>This is the prime domain of Software Developers and covers software. It is also an area where Red and Blue Team specialists want to be proficient:</p>
+
+<ul>
+  <li>Security in the software development life cycle (SDLC)</li>
+  <li>Security controls in development environments</li>
+  <li>The effectiveness of software security</li>
+  <li>Secure coding guidelines and standards</li>
+</ul>
+:ET

