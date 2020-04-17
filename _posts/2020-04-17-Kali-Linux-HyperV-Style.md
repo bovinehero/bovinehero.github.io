@@ -341,4 +341,4 @@ During this post we looked at how to set up a base Kali VM for HTB on Windows 10
 We configured some virtual hardware, looked at some optional additions for GPU and an extra NIC. 
 Next we configured RDP from a post install of the Kali OS on our hardware and finally we made a backup image for use in the future.
 
-Next post [{{page.next.title}}]({{page.next.url}}) I'm going to look at building on this image and get set up for ![HTB](https://www.hackthebox.eu/home)
+Next post [{{page.next.title}}]({{page.next.url}}) I'm going to look at building on this image and get set up for [HTB](https://www.hackthebox.eu/home)
