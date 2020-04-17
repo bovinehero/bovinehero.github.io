@@ -1,3 +1,12 @@
 _site
 .sass-cache
+<<<<<<< HEAD
 .jekyll-metadata
+=======
+Gemfile
+Gemfile.lock
+node_modules
+package.json
+
+_posts/2020-01-01-*
+>>>>>>> 42156fd6ba599d669cd4e24cf274321e2c970ca2
