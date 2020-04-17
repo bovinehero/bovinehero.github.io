@@ -3,15 +3,27 @@
   <head>
     <meta charset="utf-8">
     <title>Bovine Hero | {{ page.title }}</title>
-    <link rel="stylesheet" href="/assets/css/styles.css">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
+    <link rel="stylesheet" href="/assets/css/bootstrap.min.css">
+    <link rel="stylesheet" href="/assets/css/custom.css">
+    
     {% feed_meta %}
     {% seo %}
   </head>
   <body>
     <div class="container">
-      {% include navigation.html %}
+      <a name="top"></a>
+      <nav class="topnav">
+        <a href="/"><img src="/assets/images/moo-head-badge.png"></a>
+        {% for page in site.pages %}
+          {% if page.title and page.title != "Home" %}<a href="{{ page.url }}">{{ page.title }}</a>{{ page.link }}{% endif %}
+        {% endfor %}
+        
+      </nav>
+    </div> 
+    <div class="container">
+      
       {{ content }}
+      
       {% include footer.html %}
     </div>
     {% include analytics.html %}

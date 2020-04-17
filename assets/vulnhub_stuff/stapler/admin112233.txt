@@ -1,8 +1,0 @@
-<html>
-<head>
-<title>mwwhahahah</title>
-<body>
-<noscript>Give yourself a cookie! Javascript didn't run =)</noscript>
-<script type="text/javascript">window.alert("This could of been a BeEF-XSS hook ;)");window.location="http://www.xss-payloads.com/";</script>
-</body>
-</html>

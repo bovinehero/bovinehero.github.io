@@ -1,17 +1,30 @@
 ---
 layout: default
 ---
-
-{% assign topic = site.topics | where: 'short_name', page.topic | first %}
-{% if topic %}
-  <h1>{{ page.title }}</h1>
-  Thread: {{ topic.name }}  <small> <a href="{{ topic.url }}">{{ page.topic }}</a></small> <br>
-{% endif %}
-{% assign author = site.authors | where: 'short_name', page.author | first %}
-{% if author %}
-  {{ page.date | date_to_string }} - <a href="{{ author.url }}">{{ author.name }}</a> 
-{% endif %}
-{% include mini_nav.html %}
-<hr>
+<div class="PostTitle">
+<h1>{{ page.title }}</h1>
+{% for category in page.categories %}
+    <a href="/posts/#{{ category }}" >{{ category }}</a> Series:
+{% endfor %}
+<small>{{ page.date | date: "%Y-%m-%d" }}</small></br>
+</div>
+<div class="PostsNavigation">
+    {% if page.previous.url and page.previous.categories == page.categories %}
+      <a class="prev" href="{{page.previous.url}}">&laquo; {{page.previous.title}}</a>
+    {% endif %}
+    | 
+    {% if page.next.url and page.next.categories == page.categories %}
+      <a class="next" href="{{page.next.url}}">{{page.next.title}} &raquo;</a>
+    {% endif %}
+</div>
+<div class="TagsNavigation">
+    Tags: 
+    {% for tag in page.tags %}
+    <a href="/tags/#{{ tag }}" ><span class="badge badge-pill badge-dark tags">{{ tag }}</span></a>
+    {% endfor %}
+</div>
 
 {{ content }}
+
+
+

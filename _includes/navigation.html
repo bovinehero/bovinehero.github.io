@@ -1,7 +1,0 @@
-<nav class="topnav">
-  <a href="/"><img src="/assets/images/moo-head-badge.png"></a>
-  {% for item in site.data.navigation %}
-    {% if item.name != "Home" %}<a href="{{ item.link }}">{{ item.name }}</a>{% endif %}
-  {% endfor %}
-  
-</nav>
