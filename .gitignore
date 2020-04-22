@@ -8,4 +8,4 @@ package.json
 
 _posts/2020-01-01-*
 
-!_site/protected/*
+!_site/protected/
