@@ -6,7 +6,7 @@
  */
  $base-font-family:     'Ubuntu', sans-serif !default;
  $base-font-size:       16px !default;
- $mobile-font-size:     10px !default;
+ $mobile-font-size:     16px !default;
  $base-line-height:     'normal' !default;
  $container-width:      90% !default;
  $container-max-width:  1200px !default;
@@ -136,6 +136,8 @@
     color: $primary-color;
     border-left: 15px solid $header-color;
  }
+
+// @media only screen and (min-width: 481px) { * { font-size: $mobile-font-size !important; } }
 
  @media only screen and (max-device-width: 500px) { * { font-size: $mobile-font-size !important; } }
  /*h1:before { content: "#";  margin-right: 9px; }
