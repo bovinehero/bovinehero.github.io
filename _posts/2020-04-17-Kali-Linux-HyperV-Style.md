@@ -27,7 +27,7 @@ HyperV isn't software that runs on top of the 'host' OS, it abstracts out the Ho
 
 ![micro.png](\assets\images\KaliSetup\posts\micro.png)
 
-> When I talk about Host VMs, I am referring to the Parent or Admin VM, while technically they are different, functionally they perform the same role in most cases. The Guests are all the other VMs managed by they hypervisor. 
+> When I talk about Host VMs, I am referring to the Parent or Admin VM, while technically they are different, functionally they perform the same role in most cases. The Guests are all the other VMs managed by the hypervisor. 
 
 This technique turns HyperV into a Type1 hypervisor which not only exposes more hardware resources for the VMs but also offers logical sand-boxing increasing security. The main problem with this approach is that the host machine is now a VM, which means it is very, very difficult to use other virtualization platforms at the same time as HyperV.
 
