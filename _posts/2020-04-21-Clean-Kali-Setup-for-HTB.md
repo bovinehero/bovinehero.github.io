@@ -50,7 +50,7 @@ sudo apt install code -y
 
 ### Connect to HTB
 
-
+Coming Soon!
 
 
 Next post [{{page.next.title}}]({{page.next.url}}) I'm going to look at tackling a retired box on the platform using this VM.
