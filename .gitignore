@@ -7,3 +7,5 @@ node_modules
 package.json
 
 _posts/2020-01-01-*
+
+!_site/protected/*
