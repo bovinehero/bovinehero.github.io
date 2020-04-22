@@ -1,4 +1,4 @@
-_site
+#_site
 .sass-cache
 .jekyll-metadata
 Gemfile
@@ -8,4 +8,3 @@ package.json
 
 _posts/2020-01-01-*
 
-!_site/protected/

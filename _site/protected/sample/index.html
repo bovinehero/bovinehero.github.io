@@ -1,0 +1,119 @@
+<!doctype html>
+<html>
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Bovine Hero | sample</title>
+    <link rel="stylesheet" href="/assets/css/bootstrap.min.css">
+    <link rel="stylesheet" href="/assets/css/custom.css">
+    
+    <link type="application/atom+xml" rel="alternate" href="http://localhost:4000/feed.xml" title="Bovine Hero Blog" />
+    <!-- Begin Jekyll SEO tag v2.6.1 -->
+<title>sample | Bovine Hero Blog</title>
+<meta name="generator" content="Jekyll v3.8.6" />
+<meta property="og:title" content="sample" />
+<meta property="og:locale" content="en_US" />
+<meta name="description" content="Bovine Hero’s Security Blog" />
+<meta property="og:description" content="Bovine Hero’s Security Blog" />
+<link rel="canonical" href="http://localhost:4000/protected/sample/" />
+<meta property="og:url" content="http://localhost:4000/protected/sample/" />
+<meta property="og:site_name" content="Bovine Hero Blog" />
+<script type="application/ld+json">
+{"url":"http://localhost:4000/protected/sample/","headline":"sample","description":"Bovine Hero’s Security Blog","@type":"WebPage","@context":"https://schema.org"}</script>
+<!-- End Jekyll SEO tag -->
+
+  </head>
+  <body>
+    <div class="container">
+      <a name="top"></a>
+      <nav class="topnav">
+        <a href="/"><img src="/assets/images/moo-head-badge.png"></a>
+        
+          
+        
+          <a href="/about/">About</a>
+        
+          
+        
+          
+        
+          <a href="/posts/">Posts</a>
+        
+          <a href="/tags/">Tags</a>
+        
+          <a href="/protected/sample/">sample</a>
+        
+          
+        
+          
+        
+          
+        
+      </nav>
+    </div> 
+    <div class="container">
+      
+      <div id="content">
+  Insert password for decryption
+  <input id="password" type="password">
+  <button onclick="decrypt()">Decrypt</button>
+  <p id="errmsg" style="color: red;"></p>
+</div>
+
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/crypto-js/3.1.9-1/crypto-js.min.js" integrity="sha256-u6BamZiW5tCemje2nrteKC2KoLIKX9lKPSpvCkOhamw=" crossorigin="anonymous"></script>
+<script>
+  function decrypt() {
+    var protectedContent = "mDCUvTQyGW0njfAWHE4a2g==|jWLChWyo5FPXOuvcphyKPM1F3r8jdIy0j0WRWws1IyI=|TyvBRvzMJLi1u0Tsh0neHLQY4axjhl6USESyIlVp1M/LgsS6gX5OTkzWR5iWiZ1r12xetSfmOLRllSGzYhLhRo6hrxpJYDG6UvdcntKy/fD3s18NHEYAQBO25pxYyITDCSiYOR3aj3WsMhApQCGCPpWo5sXhu718oYOz0eB4ZM61pBquD8CYAWqfDJrmt980";
+    var password = document.getElementById('password').value;
+
+    var payload = protectedContent.split("|");
+    var iv = payload[0];
+    var hmac = payload[1];
+    var cipherText = payload[2];
+
+    var passphraseDgst = CryptoJS.SHA256(password).toString();
+    var decryptedhmac = CryptoJS.HmacSHA256(cipherText, CryptoJS.enc.Hex.parse(passphraseDgst)).toString().trim();
+    if(CryptoJS.enc.Base64.parse(hmac).toString() === decryptedhmac){
+      var decrypted = CryptoJS.AES.decrypt(
+        {ciphertext:CryptoJS.enc.Base64.parse(cipherText)},
+        CryptoJS.enc.Hex.parse(passphraseDgst),
+        {iv:CryptoJS.enc.Base64.parse(iv)}
+      );
+      var content = CryptoJS.enc.Utf8.stringify(decrypted);
+      document.getElementById('content').innerHTML = content;
+    } else {
+      document.getElementById('errmsg').innerHTML = "Wrong password";
+    }
+  }
+
+  var passwordInput = document.getElementById('password');
+  passwordInput.addEventListener("keyup", function(event) {
+    event.preventDefault();
+    if (event.keyCode === 13) {
+      decrypt();
+    }
+  })
+</script>
+      
+      <footer>
+    <small><a href="#top">Back to top of page</a></small><br>
+    <small>&copy; Copyright 2020 <a href="/">https://bovinehero.com</a></small><br>
+    <a href="/feed.xml" rel="alternate" type="application/atom+xml">RSS Feed</a>
+    
+</footer>
+    </div>
+    <script>
+    (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+    (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+    m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+    })(window,document,'script','//www.google-analytics.com/analytics.js','ga');
+  
+    ga('create', 'UA-141693864-1', 'auto');
+    ga('send', 'pageview');
+</script>
+
+<script data-ad-client="ca-pub-2833351525065794" async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js"></script>
+
+  </body>
+</html>
