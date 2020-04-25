@@ -1,4 +1,130 @@
-<?xml version="1.0" encoding="utf-8"?><feed xmlns="http://www.w3.org/2005/Atom" ><generator uri="https://jekyllrb.com/" version="3.8.5">Jekyll</generator><link href="http://localhost:4000/feed.xml" rel="self" type="application/atom+xml" /><link href="http://localhost:4000/" rel="alternate" type="text/html" /><updated>2020-04-22T21:43:37+01:00</updated><id>http://localhost:4000/feed.xml</id><title type="html">Bovine Hero Blog</title><subtitle>Bovine Hero's Security Blog</subtitle><entry><title type="html">Clean Kali Setup for HTB</title><link href="http://localhost:4000/kalisetup/Clean-Kali-Setup-for-HTB.html" rel="alternate" type="text/html" title="Clean Kali Setup for HTB" /><published>2020-04-21T00:00:00+01:00</published><updated>2020-04-21T00:00:00+01:00</updated><id>http://localhost:4000/kalisetup/Clean-Kali-Setup-for-HTB</id><content type="html" xml:base="http://localhost:4000/kalisetup/Clean-Kali-Setup-for-HTB.html">&lt;p&gt;In this post I’m going to look at setting up a base Kali image for &lt;a href=&quot;https://www.hackthebox.eu/home&quot;&gt;HTB&lt;/a&gt;.&lt;/p&gt;
+<?xml version="1.0" encoding="utf-8"?><feed xmlns="http://www.w3.org/2005/Atom" ><generator uri="https://jekyllrb.com/" version="3.8.5">Jekyll</generator><link href="http://localhost:4000/feed.xml" rel="self" type="application/atom+xml" /><link href="http://localhost:4000/" rel="alternate" type="text/html" /><updated>2020-04-25T09:39:49+01:00</updated><id>http://localhost:4000/feed.xml</id><title type="html">Bovine Hero Blog</title><subtitle>Bovine Hero's Security Blog</subtitle><entry><title type="html">Commando Setup for HTB</title><link href="http://localhost:4000/commandosetup/zzzCommando-Setup-for-HTB.html" rel="alternate" type="text/html" title="Commando Setup for HTB" /><published>2020-04-25T00:00:00+01:00</published><updated>2020-04-25T00:00:00+01:00</updated><id>http://localhost:4000/commandosetup/zzzCommando-Setup-for-HTB</id><content type="html" xml:base="http://localhost:4000/commandosetup/zzzCommando-Setup-for-HTB.html">&lt;p&gt;In this post I’m going to look at setting up a base Commando image for &lt;a href=&quot;https://www.hackthebox.eu/home&quot;&gt;HTB&lt;/a&gt;.&lt;/p&gt;
+
+&lt;h2 id=&quot;prerequisites&quot;&gt;Prerequisites&lt;/h2&gt;
+
+&lt;p&gt;You will need a clean install of Commando, my previous post &lt;a href=&quot;/commandosetup/Windows-Commando-Install.html&quot;&gt;Windows Commando&lt;/a&gt; covers where to get it and information on how to install it. That’s the image I’m starting from. You will also need an account for Hack the Box, I won’t be covering how to get an account for it here as that’s cheating 😉&lt;/p&gt;
+
+&lt;p&gt;If you are really stuck, try looking at the source code.&lt;/p&gt;
+
+&lt;h2 id=&quot;setting-up-the-system&quot;&gt;Setting Up the System&lt;/h2&gt;
+
+&lt;p&gt;Commando ships with a fantastic array of tools by default, but really all we need to do is work out a VPN solution.&lt;/p&gt;
+
+&lt;p&gt;Coming Soon!&lt;/p&gt;
+
+&lt;h2 id=&quot;connect-to-htb&quot;&gt;Connect to HTB&lt;/h2&gt;
+
+&lt;p&gt;Coming Soon!&lt;/p&gt;
+
+&lt;p&gt;Next post &lt;a href=&quot;&quot;&gt;&lt;/a&gt; I’m going to look at tackling a retired box on the platform using this VM.&lt;/p&gt;</content><author><name></name></author><category term="LabSetup" /><category term="HyperV" /><category term="Windows" /><summary type="html">In this post I’m going to look at setting up a base Commando image for HTB.</summary></entry><entry><title type="html">Windows Commando</title><link href="http://localhost:4000/commandosetup/Windows-Commando-Install.html" rel="alternate" type="text/html" title="Windows Commando" /><published>2020-04-25T00:00:00+01:00</published><updated>2020-04-25T00:00:00+01:00</updated><id>http://localhost:4000/commandosetup/Windows-Commando-Install</id><content type="html" xml:base="http://localhost:4000/commandosetup/Windows-Commando-Install.html">&lt;p&gt;Kali is the industry agreed Linux platform for Penetration Testing. While it is an excellent framework, sometimes it can be challenging getting it to fit Windows use-cases. Often it is simpler just to use Windows, in this post I’m going to setup a Windows Commando VM.&lt;/p&gt;
+
+&lt;h2 id=&quot;prerequisites&quot;&gt;Prerequisites&lt;/h2&gt;
+
+&lt;p&gt;You will need a genuine copy of windows 10 to follow along, &lt;strong&gt;I DO NOT&lt;/strong&gt; recommend running the Commando configuration on bare metal. The setup scripts really strip out the defenses on the OS, so using Commando as your daily driver can be really risky. &lt;strong&gt;You have been warned!&lt;/strong&gt;&lt;/p&gt;
+
+&lt;p&gt;At time of writing you will need the following spec:&lt;/p&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;Windows 10 1803, 1809, 1903 or 1909 - Windows 7 is no longer supported. Install should work but issues will not be resolved. New tools will not be added but can be manually installed.&lt;/li&gt;
+  &lt;li&gt;60 GB Hard Drive&lt;/li&gt;
+  &lt;li&gt;2 GB RAM&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;h3 id=&quot;the-virtual-machine&quot;&gt;The Virtual Machine&lt;/h3&gt;
+
+&lt;p&gt;Building a VM is beyond the scope of this post. I’m using a gen1 hyper-v machine and windows 10, I wrote &lt;a href=&quot;/kalisetup/Kali-Linux-HyperV-Style.html&quot;&gt;Kali Linux HyperV Style&lt;/a&gt; outlining how to set up a Kali VM on Hyper-V, the steps can be easily adapted to Windows 10.&lt;/p&gt;
+
+&lt;p&gt;It doesn’t really matter which platform you chose, there are plenty to chose from and plenty of guides to follow on how to create them. I don’t believe in re-inventing the wheel, nor do I want to sway you in the solution you chose. I repeat, &lt;strong&gt;I DO NOT&lt;/strong&gt; recommend running the Commando configuration on bare metal (although some features will not work as a VM).&lt;/p&gt;
+
+&lt;blockquote&gt;
+  &lt;p&gt;If you are using Windows to download the image you will need to download the Setup Tool and select the ISO file option to get the image. Pretending to be Linux will let you go straight to the ISO downloads.&lt;/p&gt;
+&lt;/blockquote&gt;
+
+&lt;p&gt;As for a new Windows 10 ‘Machine’, I’m using the &lt;strong&gt;Windows.iso&lt;/strong&gt; iso available &lt;a href=&quot;https://www.microsoft.com/en-gb/software-download/windows10&quot;&gt;here&lt;/a&gt;. You may need a valid Activation Key of format (xxxxx-xxxxx-xxxxx-xxxxx-xxxxx) to use images from this source.&lt;/p&gt;
+
+&lt;h3 id=&quot;a-note-about-commando&quot;&gt;A note about Commando&lt;/h3&gt;
+
+&lt;p&gt;The Commando &lt;a href=&quot;https://github.com/fireeye/commando-vm&quot;&gt;repo&lt;/a&gt; is basically a powershell script that installs dependencies and packages for a lot of security tools. It runs on an install and forced reboot cycle which can take some time to complete. It is still experimental, I wouldn’t recommend&lt;/p&gt;
+
+&lt;p&gt;As an extra inconvenience it often requires a couple of runs (and is not 100% unattended) to be sure the install has taken all the packages.&lt;/p&gt;
+
+&lt;p&gt;&lt;img src=&quot;\assets\images\CommandoSetup\posts\warning.png&quot; alt=&quot;warning.png&quot; /&gt;&lt;/p&gt;
+
+&lt;p&gt;While this is tedious, we must remember that the base OS is not designed to accommodate the security tools out of the box, in fact it is designed to defend against them.&lt;/p&gt;
+
+&lt;h2 id=&quot;going-commando&quot;&gt;Going Commando&lt;/h2&gt;
+
+&lt;p&gt;This is a short read, but long process. The install script will throw errors during the process but a re-running it &lt;em&gt;after&lt;/em&gt; it completes will bring you closer to a full install as dependencies are met. For full clarity I had to run the script XX times to complete the setup, not all programs installed on the first run.&lt;/p&gt;
+
+&lt;p&gt;Download the installer packages from &lt;a href=&quot;https://github.com/fireeye/commando-vm&quot;&gt;here&lt;/a&gt;&lt;/p&gt;
+
+&lt;p&gt;Log into the windows host and open a powershell as an admin.&lt;/p&gt;
+
+&lt;p&gt;Run the following commands to allow unrestricted access for the installer and execute it. (see the risk here?!? 😉)&lt;/p&gt;
+
+&lt;figure class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-powershell&quot; data-lang=&quot;powershell&quot;&gt;&lt;span class=&quot;nf&quot;&gt;Unblock-File&lt;/span&gt;&lt;span class=&quot;w&quot;&gt; &lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;nx&quot;&gt;\install.ps1&lt;/span&gt;&lt;span class=&quot;w&quot;&gt;
+&lt;/span&gt;&lt;span class=&quot;nf&quot;&gt;Set-ExecutionPolicy&lt;/span&gt;&lt;span class=&quot;w&quot;&gt; &lt;/span&gt;&lt;span class=&quot;nx&quot;&gt;Unrestricted&lt;/span&gt;&lt;span class=&quot;w&quot;&gt; &lt;/span&gt;&lt;span class=&quot;nt&quot;&gt;-f&lt;/span&gt;&lt;span class=&quot;w&quot;&gt;
+&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;nf&quot;&gt;\install.ps1&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/figure&gt;
+
+&lt;p&gt;Make sure to turn off Tamper Protection:&lt;/p&gt;
+
+&lt;p&gt;&lt;img src=&quot;\assets\images\CommandoSetup\posts\tamperOff.png&quot; alt=&quot;tamperOff.png&quot; /&gt;&lt;/p&gt;
+
+&lt;blockquote&gt;
+  &lt;p&gt;More detailed Instructions on how to &lt;a href=&quot;https://www.tenforums.com/tutorials/123792-turn-off-tamper-protection-windows-defender-antivirus.html&quot;&gt;Turn off Tamper Protection&lt;/a&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+
+&lt;p&gt;The PoSH terminal will through errors as dependencies need to be met, but following the on screen prompts will eventually produces the framework.&lt;/p&gt;
+
+&lt;p&gt;First time round it reboots:&lt;/p&gt;
+
+&lt;p&gt;&lt;img src=&quot;\assets\images\CommandoSetup\posts\cycle.png&quot; alt=&quot;cycle.png&quot; /&gt;&lt;/p&gt;
+
+&lt;p&gt;after a few moments it restarts the script:&lt;/p&gt;
+
+&lt;p&gt;&lt;img src=&quot;\assets\images\CommandoSetup\posts\restart.png&quot; alt=&quot;restart.png&quot; /&gt;&lt;/p&gt;
+
+&lt;p&gt;An issue I had was with the command &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;apt-get -y update --fix-missing &amp;amp;&amp;amp; apt-get -y dist-upgrade &amp;amp;&amp;amp; exit&lt;/code&gt; when the script was installing the kali linux subsystem:&lt;/p&gt;
+
+&lt;p&gt;&lt;img src=&quot;\assets\images\CommandoSetup\posts\dpkg.png&quot; alt=&quot;dpkg.png&quot; /&gt;&lt;/p&gt;
+
+&lt;p&gt;My network card went into hibernate on the host machine and interrupted the install, doh!&lt;/p&gt;
+
+&lt;p&gt;I ran the suggested command to attempt a repair:&lt;/p&gt;
+
+&lt;figure class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-bash&quot; data-lang=&quot;bash&quot;&gt;dpkg &lt;span class=&quot;nt&quot;&gt;--configure&lt;/span&gt; &lt;span class=&quot;nt&quot;&gt;-a&lt;/span&gt; &lt;/code&gt;&lt;/pre&gt;&lt;/figure&gt;
+
+&lt;p&gt;This will take a while.&lt;/p&gt;
+
+&lt;p&gt;At various stages, some of the Kali packages may fail. In some cases this will be because the host won’t have the “hardware” (Bluetooth for example) or because the packages are not compatible (yet). The Kali packages in the subsystem aren’t as big a deal for me as my preference is to use a Kali VM for Linux, but the benefits of having Linux tooling on Windows (curl, wget, ssh etc) make this a worthwhile tool to configure.&lt;/p&gt;
+
+&lt;p&gt;Once the command finishes, the installation can continue if I run the following in the Kali subsystem terminal:&lt;/p&gt;
+
+&lt;figure class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-bash&quot; data-lang=&quot;bash&quot;&gt;apt-get &lt;span class=&quot;nt&quot;&gt;-y&lt;/span&gt; update &lt;span class=&quot;nt&quot;&gt;--fix-missing&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;&amp;amp;&amp;amp;&lt;/span&gt; apt-get &lt;span class=&quot;nt&quot;&gt;-y&lt;/span&gt; dist-upgrade &lt;span class=&quot;o&quot;&gt;&amp;amp;&amp;amp;&lt;/span&gt; &lt;span class=&quot;nb&quot;&gt;exit&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/figure&gt;
+
+&lt;p&gt;This caused the script to time out and fail on the cmd terminal:&lt;/p&gt;
+
+&lt;p&gt;&lt;img src=&quot;\assets\images\CommandoSetup\posts\scriptFail.png&quot; alt=&quot;scriptFail.png&quot; /&gt;&lt;/p&gt;
+
+&lt;p&gt;I let the rest of the Kali install, but it doesn’t complete the build, if like me you don’t see the README.md and the Background Commando you might need to run the script again as admin:&lt;/p&gt;
+
+&lt;figure class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-powershell&quot; data-lang=&quot;powershell&quot;&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;nf&quot;&gt;\install.ps1&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/figure&gt;
+
+&lt;p&gt;This time it progresses a lot faster, the PoSH terminal will throw and handle errors as it encounters dependencies that still need to be met but it checks and skips over packages that are already installed.&lt;/p&gt;
+
+&lt;p&gt;Following the on screen prompts eventually produces the finished framework:&lt;/p&gt;
+
+&lt;blockquote&gt;
+  &lt;p&gt;As I’m running this on a VM, the Hyper-V tooling is not available and will always throw an error.&lt;/p&gt;
+&lt;/blockquote&gt;
+
+&lt;p&gt;Note the README.md and the Background have been set.&lt;/p&gt;
+
+&lt;p&gt;&lt;img src=&quot;\assets\images\CommandoSetup\posts\CVM_logo.png&quot; alt=&quot;commando.png&quot; /&gt;&lt;/p&gt;
+
+&lt;h2 id=&quot;wrap-up&quot;&gt;Wrap Up&lt;/h2&gt;
+
+&lt;p&gt;During this post we introduced Commando on Windows 10 and took a look at the steps to install it. Next post &lt;a href=&quot;/commandosetup/zzzCommando-Setup-for-HTB.html&quot;&gt;Commando Setup for HTB&lt;/a&gt; I’m going to look at building on this image and get set up for &lt;a href=&quot;https://www.hackthebox.eu/home&quot;&gt;HTB&lt;/a&gt;&lt;/p&gt;</content><author><name></name></author><category term="LabSetup" /><category term="HyperV" /><category term="Windows" /><summary type="html">Kali is the industry agreed Linux platform for Penetration Testing. While it is an excellent framework, sometimes it can be challenging getting it to fit Windows use-cases. Often it is simpler just to use Windows, in this post I’m going to setup a Windows Commando VM.</summary></entry><entry><title type="html">Clean Kali Setup for HTB</title><link href="http://localhost:4000/kalisetup/Clean-Kali-Setup-for-HTB.html" rel="alternate" type="text/html" title="Clean Kali Setup for HTB" /><published>2020-04-18T00:00:00+01:00</published><updated>2020-04-18T00:00:00+01:00</updated><id>http://localhost:4000/kalisetup/Clean-Kali-Setup-for-HTB</id><content type="html" xml:base="http://localhost:4000/kalisetup/Clean-Kali-Setup-for-HTB.html">&lt;p&gt;In this post I’m going to look at setting up a base Kali image for &lt;a href=&quot;https://www.hackthebox.eu/home&quot;&gt;HTB&lt;/a&gt;.&lt;/p&gt;
 
 &lt;h2 id=&quot;prerequisites&quot;&gt;Prerequisites&lt;/h2&gt;
 
@@ -37,7 +163,7 @@
 
 &lt;p&gt;Coming Soon!&lt;/p&gt;
 
-&lt;p&gt;Next post &lt;a href=&quot;&quot;&gt;&lt;/a&gt; I’m going to look at tackling a retired box on the platform using this VM.&lt;/p&gt;</content><author><name></name></author><category term="LabSetup" /><category term="HyperV" /><category term="Kali" /><summary type="html">In this post I’m going to look at setting up a base Kali image for HTB.</summary></entry><entry><title type="html">Kali Linux HyperV Style</title><link href="http://localhost:4000/kalisetup/Kali-Linux-HyperV-Style.html" rel="alternate" type="text/html" title="Kali Linux HyperV Style" /><published>2020-04-17T00:00:00+01:00</published><updated>2020-04-17T00:00:00+01:00</updated><id>http://localhost:4000/kalisetup/Kali-Linux-HyperV-Style</id><content type="html" xml:base="http://localhost:4000/kalisetup/Kali-Linux-HyperV-Style.html">&lt;p&gt;Sometimes I run Kali in HyperV, because I have a beefy windows 10 (professional) laptop and also why the hell not?!? 
+&lt;p&gt;Next post &lt;a href=&quot;/commandosetup/Windows-Commando-Install.html&quot;&gt;Windows Commando&lt;/a&gt; I’m going to look at tackling a retired box on the platform using this VM.&lt;/p&gt;</content><author><name></name></author><category term="LabSetup" /><category term="HyperV" /><category term="Kali" /><summary type="html">In this post I’m going to look at setting up a base Kali image for HTB.</summary></entry><entry><title type="html">Kali Linux HyperV Style</title><link href="http://localhost:4000/kalisetup/Kali-Linux-HyperV-Style.html" rel="alternate" type="text/html" title="Kali Linux HyperV Style" /><published>2020-04-17T00:00:00+01:00</published><updated>2020-04-17T00:00:00+01:00</updated><id>http://localhost:4000/kalisetup/Kali-Linux-HyperV-Style</id><content type="html" xml:base="http://localhost:4000/kalisetup/Kali-Linux-HyperV-Style.html">&lt;p&gt;Sometimes I run Kali in HyperV, because I have a beefy windows 10 (professional) laptop and also why the hell not?!? 
 This post I’m going to build out a HyperV Kali VM from the base image available from Offensive Security.&lt;/p&gt;
 
 &lt;h2 id=&quot;prerequisites&quot;&gt;Prerequisites&lt;/h2&gt;
@@ -131,7 +257,7 @@ Because it is no-longer supported, I can’t enable this in the GUI but can via 
 
 &lt;p&gt;And it does:&lt;/p&gt;
 
-&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;# REDACTED #
+&lt;div class=&quot;language-plaintext highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;# REDACTED #
 Name                        : NVIDIA GeForce GTX 1070
 # REDACTED #
 Enabled                     : True
@@ -144,12 +270,12 @@ CompatibleForVirtualization : True
 
 &lt;figure class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-ps&quot; data-lang=&quot;ps&quot;&gt;Enable-VMRemoteFXPhysicalVideoAdapter &quot;NVIDIA GeForce GTX 1070&quot;&lt;/code&gt;&lt;/pre&gt;&lt;/figure&gt;
 
-&lt;p&gt;I can check the VM names I want to make this available to with &lt;code class=&quot;highlighter-rouge&quot;&gt;Get-VM&lt;/code&gt; but I know that its called Kali, so I run:&lt;/p&gt;
+&lt;p&gt;I can check the VM names I want to make this available to with &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;Get-VM&lt;/code&gt; but I know that its called Kali, so I run:&lt;/p&gt;
 
 &lt;figure class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-ps&quot; data-lang=&quot;ps&quot;&gt;Add-VMRemoteFx3dVideoAdapter -VMName &quot;Kali&quot;&lt;/code&gt;&lt;/pre&gt;&lt;/figure&gt;
 
 &lt;blockquote&gt;
-  &lt;p&gt;If I want to disable this at a later date I can use &lt;code class=&quot;highlighter-rouge&quot;&gt;Disable-VMRemoteFXPhysicalVideoAdapter &quot;NVIDIA GeForce GTX 1070&quot;&lt;/code&gt;&lt;/p&gt;
+  &lt;p&gt;If I want to disable this at a later date I can use &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;Disable-VMRemoteFXPhysicalVideoAdapter &quot;NVIDIA GeForce GTX 1070&quot;&lt;/code&gt;&lt;/p&gt;
 &lt;/blockquote&gt;
 
 &lt;p&gt;This allows me to configure Advanced features RemoteFX 3D Video Adapter, like 8 monitors!&lt;/p&gt;
@@ -202,7 +328,7 @@ CompatibleForVirtualization : True
 
 &lt;figure class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-bash&quot; data-lang=&quot;bash&quot;&gt;&lt;span class=&quot;nb&quot;&gt;sudo &lt;/span&gt;apt &lt;span class=&quot;nb&quot;&gt;install &lt;/span&gt;xrdp &lt;span class=&quot;nt&quot;&gt;-y&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/figure&gt;
 
-&lt;p&gt;Next I want to ensure it works, first i take note of the IP address &lt;code class=&quot;highlighter-rouge&quot;&gt;192.168.0.47&lt;/code&gt; via the &lt;code class=&quot;highlighter-rouge&quot;&gt;ifconfig&lt;/code&gt; command. I’ll need this to connect from my Host to the Kali guest.&lt;/p&gt;
+&lt;p&gt;Next I want to ensure it works, first i take note of the IP address &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;192.168.0.47&lt;/code&gt; via the &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;ifconfig&lt;/code&gt; command. I’ll need this to connect from my Host to the Kali guest.&lt;/p&gt;
 
 &lt;p&gt;root logins over RDP are not a good idea, you may want to create an admin user if you have not already done so.&lt;/p&gt;
 
@@ -228,7 +354,7 @@ update-rc.d xrdp &lt;span class=&quot;nb&quot;&gt;enable&lt;/span&gt;&lt;/code&g
 
 &lt;p&gt;it looks like this:&lt;/p&gt;
 
-&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;screen mode id:i:2
+&lt;div class=&quot;language-plaintext highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;screen mode id:i:2
 use multimon:i:0
 desktopwidth:i:1920
 desktopheight:i:1080
@@ -277,15 +403,15 @@ rdgiskdcproxy:i:0
 kdcproxyname:s:
 &lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
 
-&lt;p&gt;In order to use more than one monitor I need to set &lt;code class=&quot;highlighter-rouge&quot;&gt;use multimon:i:1&lt;/code&gt; and &lt;code class=&quot;highlighter-rouge&quot;&gt;selectedmonitors:&lt;/code&gt; to the monitors I want to use.&lt;/p&gt;
+&lt;p&gt;In order to use more than one monitor I need to set &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;use multimon:i:1&lt;/code&gt; and &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;selectedmonitors:&lt;/code&gt; to the monitors I want to use.&lt;/p&gt;
 
-&lt;p&gt;using &lt;code class=&quot;highlighter-rouge&quot;&gt;mstsc.exe /l&lt;/code&gt; helps to identify the values I want:&lt;/p&gt;
+&lt;p&gt;using &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;mstsc.exe /l&lt;/code&gt; helps to identify the values I want:&lt;/p&gt;
 
 &lt;p&gt;&lt;img src=&quot;\assets\images\KaliSetup\posts\mstsc_l.png&quot; alt=&quot;mstsc_l.png&quot; /&gt;&lt;/p&gt;
 
-&lt;p&gt;&lt;code class=&quot;highlighter-rouge&quot;&gt;selectedmonitors:s:1,3&lt;/code&gt; is the new value and for quickness I add &lt;code class=&quot;highlighter-rouge&quot;&gt;full address:s:192.168.0.47&lt;/code&gt; so that it auto-populates the GUI. My config now looks like this:&lt;/p&gt;
+&lt;p&gt;&lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;selectedmonitors:s:1,3&lt;/code&gt; is the new value and for quickness I add &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;full address:s:192.168.0.47&lt;/code&gt; so that it auto-populates the GUI. My config now looks like this:&lt;/p&gt;
 
-&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;screen mode id:i:2
+&lt;div class=&quot;language-plaintext highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;screen mode id:i:2
 use multimon:i:1
 desktopwidth:i:1920
 desktopheight:i:1080

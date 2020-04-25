@@ -3,7 +3,10 @@ layout: post
 title:  "Think like a Hacker"
 categories: "musings"
 tags: [Offsec]
+thumb: \assets\images\KaliSetup\posts\kisspng-security-hacker-hacktivism-lulzsec-logo-anonymous-transparent.png
+
 ---
+
 
 Lots of different terms apply to the offensive side of security, collectively I refer to it as the Red side but what is the difference in the real world?
  

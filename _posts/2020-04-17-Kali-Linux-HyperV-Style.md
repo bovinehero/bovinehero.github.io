@@ -3,6 +3,7 @@ layout: post
 title:  "Kali Linux HyperV Style"
 categories: "KaliSetup"
 tags: [LabSetup, HyperV]
+thumb: \assets\images\KaliSetup\posts\1920px-Kali_Linux_2.0_wordmark.svg.png
 ---
 
 Sometimes I run Kali in HyperV, because I have a beefy windows 10 (professional) laptop and also why the hell not?!? 

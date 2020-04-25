@@ -21,7 +21,7 @@
 <meta property="og:type" content="article" />
 <meta property="article:published_time" content="2020-04-17T00:00:00+01:00" />
 <script type="application/ld+json">
-{"url":"http://localhost:4000/kalisetup/Kali-Linux-HyperV-Style.html","headline":"Kali Linux HyperV Style","dateModified":"2020-04-17T00:00:00+01:00","datePublished":"2020-04-17T00:00:00+01:00","description":"Sometimes I run Kali in HyperV, because I have a beefy windows 10 (professional) laptop and also why the hell not?!? This post I’m going to build out a HyperV Kali VM from the base image available from Offensive Security.","@type":"BlogPosting","mainEntityOfPage":{"@type":"WebPage","@id":"http://localhost:4000/kalisetup/Kali-Linux-HyperV-Style.html"},"@context":"https://schema.org"}</script>
+{"mainEntityOfPage":{"@type":"WebPage","@id":"http://localhost:4000/kalisetup/Kali-Linux-HyperV-Style.html"},"url":"http://localhost:4000/kalisetup/Kali-Linux-HyperV-Style.html","description":"Sometimes I run Kali in HyperV, because I have a beefy windows 10 (professional) laptop and also why the hell not?!? This post I’m going to build out a HyperV Kali VM from the base image available from Offensive Security.","headline":"Kali Linux HyperV Style","@type":"BlogPosting","dateModified":"2020-04-17T00:00:00+01:00","datePublished":"2020-04-17T00:00:00+01:00","@context":"https://schema.org"}</script>
 <!-- End Jekyll SEO tag -->
 
   </head>
@@ -43,7 +43,7 @@
         
           <a href="/tags/">Tags</a>
         
-          <a href="/protected/sample/">sample encypted</a>
+          
         
           
         
@@ -55,29 +55,45 @@
     </div> 
     <div class="container">
       
+      <div class="row">
+  
+    <div class="col-sm-6">
+      
       <div class="PostTitle">
-<h1>Kali Linux HyperV Style</h1>
+      <h1>Kali Linux HyperV Style</h1>
+      <small>2020-04-17</small></br>
 
-    <a href="/posts/#KaliSetup" >KaliSetup</a> Series:
-
-<small>2020-04-17</small></br>
+      
+        Series: <a href="/posts/#KaliSetup" >KaliSetup</a> 
+      
+      </div>
+      <div class="PostsNavigation">
+        
+        | 
+        
+          <a class="next" href="/kalisetup/Clean-Kali-Setup-for-HTB.html">Clean Kali Setup for HTB &raquo;</a>
+        
+      </div>
+      <div class="TagsNavigation">
+          Tags: 
+          
+          <a href="/tags/#LabSetup" ><span class="badge badge-pill badge-dark tags">LabSetup</span></a>
+          
+          <a href="/tags/#HyperV" ><span class="badge badge-pill badge-dark tags">HyperV</span></a>
+          
+      </div>
+      
+    </div>
+    <div class="col-sm-2">
+      <!-- Buffer Space-->
+    </div>
+    <div class="col-sm-4">
+      <!--Space for Post Notes-->
+      <img src="\assets\images\KaliSetup\posts\1920px-Kali_Linux_2.0_wordmark.svg.png" class="post-thumb">
+    </div>
 </div>
-<div class="PostsNavigation">
-    
-    | 
-    
-      <a class="next" href="/kalisetup/Clean-Kali-Setup-for-HTB.html">Clean Kali Setup for HTB &raquo;</a>
-    
-</div>
-<div class="TagsNavigation">
-    Tags: 
-    
-    <a href="/tags/#LabSetup" ><span class="badge badge-pill badge-dark tags">LabSetup</span></a>
-    
-    <a href="/tags/#HyperV" ><span class="badge badge-pill badge-dark tags">HyperV</span></a>
-    
-</div>
-
+<hr>
+<br>
 <p>Sometimes I run Kali in HyperV, because I have a beefy windows 10 (professional) laptop and also why the hell not?!? 
 This post I’m going to build out a HyperV Kali VM from the base image available from Offensive Security.</p>
 
@@ -172,7 +188,7 @@ Because it is no-longer supported, I can’t enable this in the GUI but can via 
 
 <p>And it does:</p>
 
-<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code># REDACTED #
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code># REDACTED #
 Name                        : NVIDIA GeForce GTX 1070
 # REDACTED #
 Enabled                     : True
@@ -185,12 +201,12 @@ CompatibleForVirtualization : True
 
 <figure class="highlight"><pre><code class="language-ps" data-lang="ps">Enable-VMRemoteFXPhysicalVideoAdapter "NVIDIA GeForce GTX 1070"</code></pre></figure>
 
-<p>I can check the VM names I want to make this available to with <code class="highlighter-rouge">Get-VM</code> but I know that its called Kali, so I run:</p>
+<p>I can check the VM names I want to make this available to with <code class="language-plaintext highlighter-rouge">Get-VM</code> but I know that its called Kali, so I run:</p>
 
 <figure class="highlight"><pre><code class="language-ps" data-lang="ps">Add-VMRemoteFx3dVideoAdapter -VMName "Kali"</code></pre></figure>
 
 <blockquote>
-  <p>If I want to disable this at a later date I can use <code class="highlighter-rouge">Disable-VMRemoteFXPhysicalVideoAdapter "NVIDIA GeForce GTX 1070"</code></p>
+  <p>If I want to disable this at a later date I can use <code class="language-plaintext highlighter-rouge">Disable-VMRemoteFXPhysicalVideoAdapter "NVIDIA GeForce GTX 1070"</code></p>
 </blockquote>
 
 <p>This allows me to configure Advanced features RemoteFX 3D Video Adapter, like 8 monitors!</p>
@@ -243,7 +259,7 @@ CompatibleForVirtualization : True
 
 <figure class="highlight"><pre><code class="language-bash" data-lang="bash"><span class="nb">sudo </span>apt <span class="nb">install </span>xrdp <span class="nt">-y</span></code></pre></figure>
 
-<p>Next I want to ensure it works, first i take note of the IP address <code class="highlighter-rouge">192.168.0.47</code> via the <code class="highlighter-rouge">ifconfig</code> command. I’ll need this to connect from my Host to the Kali guest.</p>
+<p>Next I want to ensure it works, first i take note of the IP address <code class="language-plaintext highlighter-rouge">192.168.0.47</code> via the <code class="language-plaintext highlighter-rouge">ifconfig</code> command. I’ll need this to connect from my Host to the Kali guest.</p>
 
 <p>root logins over RDP are not a good idea, you may want to create an admin user if you have not already done so.</p>
 
@@ -269,7 +285,7 @@ update-rc.d xrdp <span class="nb">enable</span></code></pre></figure>
 
 <p>it looks like this:</p>
 
-<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>screen mode id:i:2
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>screen mode id:i:2
 use multimon:i:0
 desktopwidth:i:1920
 desktopheight:i:1080
@@ -318,15 +334,15 @@ rdgiskdcproxy:i:0
 kdcproxyname:s:
 </code></pre></div></div>
 
-<p>In order to use more than one monitor I need to set <code class="highlighter-rouge">use multimon:i:1</code> and <code class="highlighter-rouge">selectedmonitors:</code> to the monitors I want to use.</p>
+<p>In order to use more than one monitor I need to set <code class="language-plaintext highlighter-rouge">use multimon:i:1</code> and <code class="language-plaintext highlighter-rouge">selectedmonitors:</code> to the monitors I want to use.</p>
 
-<p>using <code class="highlighter-rouge">mstsc.exe /l</code> helps to identify the values I want:</p>
+<p>using <code class="language-plaintext highlighter-rouge">mstsc.exe /l</code> helps to identify the values I want:</p>
 
 <p><img src="\assets\images\KaliSetup\posts\mstsc_l.png" alt="mstsc_l.png" /></p>
 
-<p><code class="highlighter-rouge">selectedmonitors:s:1,3</code> is the new value and for quickness I add <code class="highlighter-rouge">full address:s:192.168.0.47</code> so that it auto-populates the GUI. My config now looks like this:</p>
+<p><code class="language-plaintext highlighter-rouge">selectedmonitors:s:1,3</code> is the new value and for quickness I add <code class="language-plaintext highlighter-rouge">full address:s:192.168.0.47</code> so that it auto-populates the GUI. My config now looks like this:</p>
 
-<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>screen mode id:i:2
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>screen mode id:i:2
 use multimon:i:1
 desktopwidth:i:1920
 desktopheight:i:1080

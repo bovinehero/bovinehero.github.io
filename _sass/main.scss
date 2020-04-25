@@ -130,7 +130,9 @@
     border-left: 15px solid $primary-color;
  }
  
-
+ hr {
+    border: 1px solid $base-color;
+ }
  .jumbotron {
     background-color: $background-color;
     color: $primary-color;
@@ -246,6 +248,13 @@ th, td {
  .tags {
     background-color:  $tags-color;
  }
+
+ .post-thumb {
+    max-height: 200px;
+    background-color: $base-color;
+    float: right;
+ }
+
 
 a:hover, a:active {
     background-color:  $background-color;

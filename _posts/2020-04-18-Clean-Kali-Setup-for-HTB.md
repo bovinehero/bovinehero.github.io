@@ -3,7 +3,9 @@ layout: post
 title:  "Clean Kali Setup for HTB"
 categories: KaliSetup
 tags: [LabSetup, HyperV, Kali]
+thumb: \assets\images\KaliSetup\posts\1920px-Kali_Linux_2.0_wordmark.svg.png
 ---
+
 
 
 In this post I'm going to look at setting up a base Kali image for [HTB](https://www.hackthebox.eu/home).
