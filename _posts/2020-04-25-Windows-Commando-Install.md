@@ -32,19 +32,18 @@ As for a new Windows 10 'Machine', I'm using the __Windows.iso__ iso available [
 
 ### A note about Commando
 
-The Commando [repo](https://github.com/fireeye/commando-vm) is basically a powershell script that installs dependencies and packages for a lot of security tools. It runs on an install and forced reboot cycle which can take some time to complete. It is still experimental, I wouldn't recommend 
+This is a short read, but loooong install process. The installer script will throw errors during the process but a re-running it _after_ it completes will bring you closer to a full install as dependencies are updated and met. You can reduce the tool-set (I won't be), the Kali Linux subsystem in particular takes a fair chunk of time to finish.
 
+The Commando [repo](https://github.com/fireeye/commando-vm) is basically a powershell script that installs dependencies and packages for a lot of security tools. It runs on an install and forced reboot cycle which can take some time to complete. 
 
-As an extra inconvenience it often requires a couple of runs (and is not 100% unattended) to be sure the install has taken all the packages.
+It is still a little experimental, but the install script does a good job of handling issues. It often requires a couple of runs (which are not unattended), but will eventually pick up everything without the need for manual configuration.
 
 
 ![warning.png](\assets\images\CommandoSetup\posts\warning.png)
 
-While this is tedious, we must remember that the base OS is not designed to accommodate the security tools out of the box, in fact it is designed to defend against them.
+While this is tedious, we must remember that the base OS is not designed to accommodate the security tools out of the box, in fact Windows has many layers designed to defend against them.
 
 ## Going Commando
-
-This is a short read, but long process. The install script will throw errors during the process but a re-running it _after_ it completes will bring you closer to a full install as dependencies are met. For full clarity I had to run the script XX times to complete the setup, not all programs installed on the first run.
 
 Download the installer packages from [here](https://github.com/fireeye/commando-vm)
 
@@ -76,7 +75,6 @@ after a few moments it restarts the script:
 
 ![restart.png](\assets\images\CommandoSetup\posts\restart.png)
 
-
 An issue I had was with the command `apt-get -y update --fix-missing && apt-get -y dist-upgrade && exit` when the script was installing the kali linux subsystem:
 
 ![dpkg.png](\assets\images\CommandoSetup\posts\dpkg.png)
@@ -103,13 +101,15 @@ This caused the script to time out and fail on the cmd terminal:
 ![scriptFail.png](\assets\images\CommandoSetup\posts\scriptFail.png)
 
 
+Full disclosure: I had to run the script once to complete the setup, but it took about 8 hours to complete.
+
 I let the rest of the Kali install, but it doesn't complete the build, if like me you don't see the README.md and the Background Commando you might need to run the script again as admin: 
 
 {% highlight powershell %}
 .\install.ps1
 {% endhighlight %}
 
-This time it progresses a lot faster, the PoSH terminal will throw and handle errors as it encounters dependencies that still need to be met but it checks and skips over packages that are already installed. 
+This time it progresses a lot faster, the PoSH terminal will throw and handle errors as it encounters dependencies that it missed the first time round and validates packages that are already installed. 
 
 Following the on screen prompts eventually produces the finished framework:
 
@@ -118,7 +118,7 @@ Following the on screen prompts eventually produces the finished framework:
 Note the README.md and the Background have been set.
 
 
-![commando.png](\assets\images\CommandoSetup\posts\CVM_logo.png)
+![commando.png](\assets\images\CommandoSetup\posts\commandoDesktop.png)
 
 
 

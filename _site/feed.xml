@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="utf-8"?><feed xmlns="http://www.w3.org/2005/Atom" ><generator uri="https://jekyllrb.com/" version="3.8.5">Jekyll</generator><link href="http://localhost:4000/feed.xml" rel="self" type="application/atom+xml" /><link href="http://localhost:4000/" rel="alternate" type="text/html" /><updated>2020-04-25T09:39:49+01:00</updated><id>http://localhost:4000/feed.xml</id><title type="html">Bovine Hero Blog</title><subtitle>Bovine Hero's Security Blog</subtitle><entry><title type="html">Commando Setup for HTB</title><link href="http://localhost:4000/commandosetup/zzzCommando-Setup-for-HTB.html" rel="alternate" type="text/html" title="Commando Setup for HTB" /><published>2020-04-25T00:00:00+01:00</published><updated>2020-04-25T00:00:00+01:00</updated><id>http://localhost:4000/commandosetup/zzzCommando-Setup-for-HTB</id><content type="html" xml:base="http://localhost:4000/commandosetup/zzzCommando-Setup-for-HTB.html">&lt;p&gt;In this post I’m going to look at setting up a base Commando image for &lt;a href=&quot;https://www.hackthebox.eu/home&quot;&gt;HTB&lt;/a&gt;.&lt;/p&gt;
+<?xml version="1.0" encoding="utf-8"?><feed xmlns="http://www.w3.org/2005/Atom" ><generator uri="https://jekyllrb.com/" version="3.8.5">Jekyll</generator><link href="http://localhost:4000/feed.xml" rel="self" type="application/atom+xml" /><link href="http://localhost:4000/" rel="alternate" type="text/html" /><updated>2020-04-25T15:45:11+01:00</updated><id>http://localhost:4000/feed.xml</id><title type="html">Bovine Hero Blog</title><subtitle>Bovine Hero's Security Blog</subtitle><entry><title type="html">Commando Setup for HTB</title><link href="http://localhost:4000/commandosetup/zzzCommando-Setup-for-HTB.html" rel="alternate" type="text/html" title="Commando Setup for HTB" /><published>2020-04-25T00:00:00+01:00</published><updated>2020-04-25T00:00:00+01:00</updated><id>http://localhost:4000/commandosetup/zzzCommando-Setup-for-HTB</id><content type="html" xml:base="http://localhost:4000/commandosetup/zzzCommando-Setup-for-HTB.html">&lt;p&gt;In this post I’m going to look at setting up a base Commando image for &lt;a href=&quot;https://www.hackthebox.eu/home&quot;&gt;HTB&lt;/a&gt;.&lt;/p&gt;
 
 &lt;h2 id=&quot;prerequisites&quot;&gt;Prerequisites&lt;/h2&gt;
 
@@ -44,17 +44,19 @@
 
 &lt;h3 id=&quot;a-note-about-commando&quot;&gt;A note about Commando&lt;/h3&gt;
 
-&lt;p&gt;The Commando &lt;a href=&quot;https://github.com/fireeye/commando-vm&quot;&gt;repo&lt;/a&gt; is basically a powershell script that installs dependencies and packages for a lot of security tools. It runs on an install and forced reboot cycle which can take some time to complete. It is still experimental, I wouldn’t recommend&lt;/p&gt;
+&lt;p&gt;This is a short read, but loooong install process. The installer script will throw errors during the process but a re-running it &lt;em&gt;after&lt;/em&gt; it completes will bring you closer to a full install as dependencies are updated and met. You can reduce the tool-set (I won’t be), the Kali Linux subsystem in particular takes a fair chunk of time to finish.&lt;/p&gt;
 
-&lt;p&gt;As an extra inconvenience it often requires a couple of runs (and is not 100% unattended) to be sure the install has taken all the packages.&lt;/p&gt;
+&lt;p&gt;The Commando &lt;a href=&quot;https://github.com/fireeye/commando-vm&quot;&gt;repo&lt;/a&gt; is basically a powershell script that installs dependencies and packages for a lot of security tools. It runs on an install and forced reboot cycle which can take some time to complete.&lt;/p&gt;
+
+&lt;p&gt;It is still a little experimental, but the install script does a good job of handling issues. It often requires a couple of runs (which are not unattended), but will eventually pick up everything without the need for manual configuration.&lt;/p&gt;
 
 &lt;p&gt;&lt;img src=&quot;\assets\images\CommandoSetup\posts\warning.png&quot; alt=&quot;warning.png&quot; /&gt;&lt;/p&gt;
 
-&lt;p&gt;While this is tedious, we must remember that the base OS is not designed to accommodate the security tools out of the box, in fact it is designed to defend against them.&lt;/p&gt;
+&lt;p&gt;While this is tedious, we must remember that the base OS is not designed to accommodate the security tools out of the box, in fact Windows has many layers designed to defend against them.&lt;/p&gt;
 
 &lt;h2 id=&quot;going-commando&quot;&gt;Going Commando&lt;/h2&gt;
 
-&lt;p&gt;This is a short read, but long process. The install script will throw errors during the process but a re-running it &lt;em&gt;after&lt;/em&gt; it completes will bring you closer to a full install as dependencies are met. For full clarity I had to run the script XX times to complete the setup, not all programs installed on the first run.&lt;/p&gt;
+&lt;p&gt;Full disclosure: I had to run the script XX times to complete the setup, as not all programs installed on the first run.&lt;/p&gt;
 
 &lt;p&gt;Download the installer packages from &lt;a href=&quot;https://github.com/fireeye/commando-vm&quot;&gt;here&lt;/a&gt;&lt;/p&gt;
 
@@ -110,7 +112,7 @@
 
 &lt;figure class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-powershell&quot; data-lang=&quot;powershell&quot;&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;nf&quot;&gt;\install.ps1&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/figure&gt;
 
-&lt;p&gt;This time it progresses a lot faster, the PoSH terminal will throw and handle errors as it encounters dependencies that still need to be met but it checks and skips over packages that are already installed.&lt;/p&gt;
+&lt;p&gt;This time it progresses a lot faster, the PoSH terminal will throw and handle errors as it encounters dependencies that it missed the first time round and validates packages that are already installed.&lt;/p&gt;
 
 &lt;p&gt;Following the on screen prompts eventually produces the finished framework:&lt;/p&gt;
 
@@ -120,7 +122,7 @@
 
 &lt;p&gt;Note the README.md and the Background have been set.&lt;/p&gt;
 
-&lt;p&gt;&lt;img src=&quot;\assets\images\CommandoSetup\posts\CVM_logo.png&quot; alt=&quot;commando.png&quot; /&gt;&lt;/p&gt;
+&lt;p&gt;&lt;img src=&quot;\assets\images\CommandoSetup\posts\commandoDesktop.png&quot; alt=&quot;commando.png&quot; /&gt;&lt;/p&gt;
 
 &lt;h2 id=&quot;wrap-up&quot;&gt;Wrap Up&lt;/h2&gt;
 
