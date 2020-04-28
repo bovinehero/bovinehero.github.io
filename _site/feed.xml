@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="utf-8"?><feed xmlns="http://www.w3.org/2005/Atom" ><generator uri="https://jekyllrb.com/" version="3.8.5">Jekyll</generator><link href="http://localhost:4000/feed.xml" rel="self" type="application/atom+xml" /><link href="http://localhost:4000/" rel="alternate" type="text/html" /><updated>2020-04-25T15:45:11+01:00</updated><id>http://localhost:4000/feed.xml</id><title type="html">Bovine Hero Blog</title><subtitle>Bovine Hero's Security Blog</subtitle><entry><title type="html">Commando Setup for HTB</title><link href="http://localhost:4000/commandosetup/zzzCommando-Setup-for-HTB.html" rel="alternate" type="text/html" title="Commando Setup for HTB" /><published>2020-04-25T00:00:00+01:00</published><updated>2020-04-25T00:00:00+01:00</updated><id>http://localhost:4000/commandosetup/zzzCommando-Setup-for-HTB</id><content type="html" xml:base="http://localhost:4000/commandosetup/zzzCommando-Setup-for-HTB.html">&lt;p&gt;In this post I’m going to look at setting up a base Commando image for &lt;a href=&quot;https://www.hackthebox.eu/home&quot;&gt;HTB&lt;/a&gt;.&lt;/p&gt;
+<?xml version="1.0" encoding="utf-8"?><feed xmlns="http://www.w3.org/2005/Atom" ><generator uri="https://jekyllrb.com/" version="3.8.5">Jekyll</generator><link href="http://localhost:4000/feed.xml" rel="self" type="application/atom+xml" /><link href="http://localhost:4000/" rel="alternate" type="text/html" /><updated>2020-04-28T15:28:22+01:00</updated><id>http://localhost:4000/feed.xml</id><title type="html">Bovine Hero Blog</title><subtitle>Bovine Hero's Security Blog</subtitle><entry><title type="html">Commando Setup for HTB</title><link href="http://localhost:4000/commandosetup/zzzCommando-Setup-for-HTB.html" rel="alternate" type="text/html" title="Commando Setup for HTB" /><published>2020-04-25T00:00:00+01:00</published><updated>2020-04-25T00:00:00+01:00</updated><id>http://localhost:4000/commandosetup/zzzCommando-Setup-for-HTB</id><content type="html" xml:base="http://localhost:4000/commandosetup/zzzCommando-Setup-for-HTB.html">&lt;p&gt;In this post I’m going to look at setting up a base Commando image for &lt;a href=&quot;https://www.hackthebox.eu/home&quot;&gt;HTB&lt;/a&gt;.&lt;/p&gt;
 
 &lt;h2 id=&quot;prerequisites&quot;&gt;Prerequisites&lt;/h2&gt;
 
@@ -56,8 +56,6 @@
 
 &lt;h2 id=&quot;going-commando&quot;&gt;Going Commando&lt;/h2&gt;
 
-&lt;p&gt;Full disclosure: I had to run the script XX times to complete the setup, as not all programs installed on the first run.&lt;/p&gt;
-
 &lt;p&gt;Download the installer packages from &lt;a href=&quot;https://github.com/fireeye/commando-vm&quot;&gt;here&lt;/a&gt;&lt;/p&gt;
 
 &lt;p&gt;Log into the windows host and open a powershell as an admin.&lt;/p&gt;
@@ -107,6 +105,8 @@
 &lt;p&gt;This caused the script to time out and fail on the cmd terminal:&lt;/p&gt;
 
 &lt;p&gt;&lt;img src=&quot;\assets\images\CommandoSetup\posts\scriptFail.png&quot; alt=&quot;scriptFail.png&quot; /&gt;&lt;/p&gt;
+
+&lt;p&gt;Full disclosure: I had to run the script once to complete the setup, but it took about 8 hours to complete.&lt;/p&gt;
 
 &lt;p&gt;I let the rest of the Kali install, but it doesn’t complete the build, if like me you don’t see the README.md and the Background Commando you might need to run the script again as admin:&lt;/p&gt;
 

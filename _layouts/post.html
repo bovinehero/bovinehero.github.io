@@ -2,9 +2,16 @@
 layout: default
 ---
 <div class="row">
-  
+    <div class="col-sm-4">
+    </div>
+    <div class="col-sm-4">
+      <img src="{{ page.thumb }}" class="img-fluid post-thumb">
+    </div>
+    <div class="col-sm-4">
+    </div>
+</div>
+<div class="row">
     <div class="col-sm-6">
-      
       <div class="PostTitle">
       <h1>{{ page.title }}</h1>
       <small>{{ page.date | date: "%Y-%m-%d" }}</small></br>
@@ -35,7 +42,7 @@ layout: default
     </div>
     <div class="col-sm-4">
       <!--Space for Post Notes-->
-      <img src="{{ page.thumb }}" class="post-thumb">
+      
     </div>
 </div>
 <hr>
