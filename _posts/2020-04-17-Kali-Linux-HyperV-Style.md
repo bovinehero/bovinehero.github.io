@@ -174,7 +174,7 @@ At this point I _could_ finish up, but the problem with HyperV is that the defau
 
 On windows hosts this is fairly trivial, but on linux we need to install some software. After logging in I pop a terminal and run the following command to install an rdp server on Kali:
 
-{% highlight bash %}
+{% highlight shell %}
 sudo apt install xrdp -y
 {% endhighlight %}
 
@@ -184,7 +184,7 @@ root logins over RDP are not a good idea, you may want to create an admin user i
 
 Next I run the following commands in order to start the RDP service now and on every reboot:
 
-{% highlight bash %}
+{% highlight shell %}
 sudo service xrdp start
 sudo service xrdp-sesman start
 update-rc.d xrdp enable

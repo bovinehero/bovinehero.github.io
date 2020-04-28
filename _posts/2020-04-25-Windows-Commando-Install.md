@@ -82,7 +82,7 @@ An issue I had was with the command `apt-get -y update --fix-missing && apt-get 
 My network card went into hibernate on the host machine and interrupted the install, doh!
 
 I ran the suggested command to attempt a repair:
-{% highlight bash %}
+{% highlight shell %}
 dpkg --configure -a 
 {% endhighlight %}
 
@@ -92,7 +92,7 @@ At various stages, some of the Kali packages may fail. In some cases this will b
 
 Once the command finishes, the installation can continue if I run the following in the Kali subsystem terminal:
 
-{% highlight bash %}
+{% highlight shell %}
 apt-get -y update --fix-missing && apt-get -y dist-upgrade && exit
 {% endhighlight %}
 
@@ -119,8 +119,6 @@ Note the README.md and the Background have been set.
 
 
 ![commando.png](\assets\images\CommandoSetup\posts\commandoDesktop.png)
-
-
 
 ## Wrap Up
 

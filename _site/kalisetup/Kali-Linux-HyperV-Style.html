@@ -59,7 +59,7 @@
     <div class="col-sm-4">
     </div>
     <div class="col-sm-4">
-      <img src="\assets\images\KaliSetup\posts\1920px-Kali_Linux_2.0_wordmark.svg.png" class="img-fluid post-thumb">
+      <img src="\assets\images\KaliSetup\posts\1920px-Kali_Linux_2.0_wordmark.svg.png" class="img-fluid post-thumb img-circle">
     </div>
     <div class="col-sm-4">
     </div>
@@ -264,7 +264,7 @@ CompatibleForVirtualization : True
 
 <p>On windows hosts this is fairly trivial, but on linux we need to install some software. After logging in I pop a terminal and run the following command to install an rdp server on Kali:</p>
 
-<figure class="highlight"><pre><code class="language-bash" data-lang="bash"><span class="nb">sudo </span>apt <span class="nb">install </span>xrdp <span class="nt">-y</span></code></pre></figure>
+<figure class="highlight"><pre><code class="language-shell" data-lang="shell"><span class="nb">sudo </span>apt <span class="nb">install </span>xrdp <span class="nt">-y</span></code></pre></figure>
 
 <p>Next I want to ensure it works, first i take note of the IP address <code class="language-plaintext highlighter-rouge">192.168.0.47</code> via the <code class="language-plaintext highlighter-rouge">ifconfig</code> command. I’ll need this to connect from my Host to the Kali guest.</p>
 
@@ -272,7 +272,7 @@ CompatibleForVirtualization : True
 
 <p>Next I run the following commands in order to start the RDP service now and on every reboot:</p>
 
-<figure class="highlight"><pre><code class="language-bash" data-lang="bash"><span class="nb">sudo </span>service xrdp start
+<figure class="highlight"><pre><code class="language-shell" data-lang="shell"><span class="nb">sudo </span>service xrdp start
 <span class="nb">sudo </span>service xrdp-sesman start
 update-rc.d xrdp <span class="nb">enable</span></code></pre></figure>
 

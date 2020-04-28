@@ -13,15 +13,15 @@
 <meta name="generator" content="Jekyll v3.8.5" />
 <meta property="og:title" content="Clean Kali Setup for HTB" />
 <meta property="og:locale" content="en_US" />
-<meta name="description" content="In this post I’m going to look at setting up a base Kali image for HTB." />
-<meta property="og:description" content="In this post I’m going to look at setting up a base Kali image for HTB." />
+<meta name="description" content="In this short post I’m going to look at setting up a base Kali image for HTB." />
+<meta property="og:description" content="In this short post I’m going to look at setting up a base Kali image for HTB." />
 <link rel="canonical" href="http://localhost:4000/kalisetup/Clean-Kali-Setup-for-HTB.html" />
 <meta property="og:url" content="http://localhost:4000/kalisetup/Clean-Kali-Setup-for-HTB.html" />
 <meta property="og:site_name" content="Bovine Hero Blog" />
 <meta property="og:type" content="article" />
 <meta property="article:published_time" content="2020-04-18T00:00:00+01:00" />
 <script type="application/ld+json">
-{"mainEntityOfPage":{"@type":"WebPage","@id":"http://localhost:4000/kalisetup/Clean-Kali-Setup-for-HTB.html"},"url":"http://localhost:4000/kalisetup/Clean-Kali-Setup-for-HTB.html","description":"In this post I’m going to look at setting up a base Kali image for HTB.","headline":"Clean Kali Setup for HTB","@type":"BlogPosting","dateModified":"2020-04-18T00:00:00+01:00","datePublished":"2020-04-18T00:00:00+01:00","@context":"https://schema.org"}</script>
+{"mainEntityOfPage":{"@type":"WebPage","@id":"http://localhost:4000/kalisetup/Clean-Kali-Setup-for-HTB.html"},"url":"http://localhost:4000/kalisetup/Clean-Kali-Setup-for-HTB.html","description":"In this short post I’m going to look at setting up a base Kali image for HTB.","headline":"Clean Kali Setup for HTB","@type":"BlogPosting","dateModified":"2020-04-18T00:00:00+01:00","datePublished":"2020-04-18T00:00:00+01:00","@context":"https://schema.org"}</script>
 <!-- End Jekyll SEO tag -->
 
   </head>
@@ -59,7 +59,7 @@
     <div class="col-sm-4">
     </div>
     <div class="col-sm-4">
-      <img src="\assets\images\KaliSetup\posts\1920px-Kali_Linux_2.0_wordmark.svg.png" class="img-fluid post-thumb">
+      <img src="\assets\images\KaliSetup\posts\1920px-Kali_Linux_2.0_wordmark.svg.png" class="img-fluid post-thumb img-circle">
     </div>
     <div class="col-sm-4">
     </div>
@@ -103,7 +103,7 @@
 </div>
 <hr>
 <br>
-<p>In this post I’m going to look at setting up a base Kali image for <a href="https://www.hackthebox.eu/home">HTB</a>.</p>
+<p>In this short post I’m going to look at setting up a base Kali image for <a href="https://www.hackthebox.eu/home" target="_blank">HTB</a>.</p>
 
 <h2 id="prerequisites">Prerequisites</h2>
 
@@ -119,7 +119,7 @@
 
 <p>I do a full clean and upgrade to ensure everything is up to date before I start:</p>
 
-<figure class="highlight"><pre><code class="language-bash" data-lang="bash"><span class="nb">sudo </span>apt-get clean 
+<figure class="highlight"><pre><code class="language-shell" data-lang="shell"><span class="nb">sudo </span>apt-get clean 
 <span class="nb">sudo </span>apt-get update 
 <span class="nb">sudo </span>apt-get upgrade <span class="nt">-y</span> 
 <span class="nb">sudo </span>apt-get dist-upgrade <span class="nt">-y</span></code></pre></figure>
@@ -130,19 +130,35 @@
 
 <p>I need to pull the secure keys for the Microsoft code repo and add reference to it to my apt sources.</p>
 
-<figure class="highlight"><pre><code class="language-bash" data-lang="bash">curl <span class="nt">-sSL</span> https://packages.microsoft.com/keys/microsoft.asc | <span class="nb">sudo </span>apt-key add -
+<figure class="highlight"><pre><code class="language-shell" data-lang="shell">curl <span class="nt">-sSL</span> https://packages.microsoft.com/keys/microsoft.asc | <span class="nb">sudo </span>apt-key add -
 <span class="nb">echo</span> <span class="s2">"deb [arch=amd64] https://packages.microsoft.com/repos/vscode stable main"</span> | <span class="nb">sudo tee</span> /etc/apt/sources.list.d/vscode.list</code></pre></figure>
 
 <p>Next I need to refresh my packages and install the software</p>
 
-<figure class="highlight"><pre><code class="language-bash" data-lang="bash"><span class="nb">sudo </span>apt update
+<figure class="highlight"><pre><code class="language-shell" data-lang="shell"><span class="nb">sudo </span>apt update
 <span class="nb">sudo </span>apt <span class="nb">install </span>code <span class="nt">-y</span></code></pre></figure>
+
+<h3 id="additional-tools">Additional Tools</h3>
+
+<p>Kali’s default repos offer access to 1000s of tools, many of which have considerable feature overlap. If you can’t find the tools you want in the apt repos, these days the next level tools can readily be found on many a git site. Post IDE install I rarely add anything else on a VM build, I prefer to restore a clean image and reconfigure it as the engagement requires.</p>
 
 <h3 id="connect-to-htb">Connect to HTB</h3>
 
-<p>Coming Soon!</p>
+<p>On linux this is trivial, the instructions are on the website and the openvpn tool ships with the standard Kali install by default. I don’t have any configuration changes that I <em>need</em> to make on the VM as it has a public IP address. If my username was BovineHero on HTB then the command would look like this:</p>
 
-<p>Next post <a href="/commandosetup/Windows-Commando-Install.html">Windows Commando</a> I’m going to look at tackling a retired box on the platform using this VM.</p>
+<figure class="highlight"><pre><code class="language-shell" data-lang="shell"><span class="nb">sudo </span>openvpn BovineHero.ovpn</code></pre></figure>
+
+<p>This opens a new tun0 adapter which connects to Hack the Box’s network.</p>
+
+<p>I can view the settings with the <code class="language-plaintext highlighter-rouge">ip</code> command:</p>
+
+<figure class="highlight"><pre><code class="language-shell" data-lang="shell">ip address</code></pre></figure>
+
+<p>It’ll look something like this:</p>
+
+<p><img src="\assets\images\KaliSetup\posts\tun0.png" alt="tun0.png" /></p>
+
+<p>Next post <a href="/commandosetup/Windows-Commando-Install.html">Windows Commando</a> I’m going posting my writeup for Popcorn a retired box on the platform using Kali.</p>
 
 
 
