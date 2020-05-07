@@ -1,9 +1,9 @@
 ---
 layout: post
 title:  "Windows Commando"
-categories: "CommandoSetup"
+categories: "KaliSetup"
 tags: [LabSetup, HyperV, Windows]
-thumb: \assets\images\CommandoSetup\posts\CVM_logo.png
+thumb: \assets\images\KaliSetup\posts\CVM_logo.png
 ---
 
 
@@ -39,7 +39,7 @@ The Commando [repo](https://github.com/fireeye/commando-vm) is basically a power
 It is still a little experimental, but the install script does a good job of handling issues. It often requires a couple of runs (which are not unattended), but will eventually pick up everything without the need for manual configuration.
 
 
-![warning.png](\assets\images\CommandoSetup\posts\warning.png)
+![warning.png](\assets\images\KaliSetup\posts\warning.png)
 
 While this is tedious, we must remember that the base OS is not designed to accommodate the security tools out of the box, in fact Windows has many layers designed to defend against them.
 
@@ -61,7 +61,7 @@ Set-ExecutionPolicy Unrestricted -f
 Make sure to turn off Tamper Protection:
 
 
-![tamperOff.png](\assets\images\CommandoSetup\posts\tamperOff.png)
+![tamperOff.png](\assets\images\KaliSetup\posts\tamperOff.png)
 
 > More detailed Instructions on how to [Turn off Tamper Protection](https://www.tenforums.com/tutorials/123792-turn-off-tamper-protection-windows-defender-antivirus.html)
 
@@ -69,15 +69,15 @@ The PoSH terminal will through errors as dependencies need to be met, but follow
 
 First time round it reboots:
 
-![cycle.png](\assets\images\CommandoSetup\posts\cycle.png)
+![cycle.png](\assets\images\KaliSetup\posts\cycle.png)
 
 after a few moments it restarts the script:
 
-![restart.png](\assets\images\CommandoSetup\posts\restart.png)
+![restart.png](\assets\images\KaliSetup\posts\restart.png)
 
 An issue I had was with the command `apt-get -y update --fix-missing && apt-get -y dist-upgrade && exit` when the script was installing the kali linux subsystem:
 
-![dpkg.png](\assets\images\CommandoSetup\posts\dpkg.png)
+![dpkg.png](\assets\images\KaliSetup\posts\dpkg.png)
 
 My network card went into hibernate on the host machine and interrupted the install, doh!
 
@@ -98,7 +98,7 @@ apt-get -y update --fix-missing && apt-get -y dist-upgrade && exit
 
 This caused the script to time out and fail on the cmd terminal:
 
-![scriptFail.png](\assets\images\CommandoSetup\posts\scriptFail.png)
+![scriptFail.png](\assets\images\KaliSetup\posts\scriptFail.png)
 
 
 Full disclosure: I had to run the script once to complete the setup, but it took about 8 hours to complete.
@@ -118,8 +118,8 @@ Following the on screen prompts eventually produces the finished framework:
 Note the README.md and the Background have been set.
 
 
-![commando.png](\assets\images\CommandoSetup\posts\commandoDesktop.png)
+![commando.png](\assets\images\KaliSetup\posts\commandoDesktop.png)
 
 ## Wrap Up
 
-During this post we introduced Commando on Windows 10 and took a look at the steps to install it. Next post [{{page.next.title}}]({{page.next.url}}) I'm going to look at building on this image and get set up for [HTB](https://www.hackthebox.eu/home)
+During this post we introduced Commando on Windows 10 and took a look at the steps to install it. Next post [{{page.next.title}}]({{page.next.url}}) I'm going to look at building on the my original Kali Image to get set up for [HTB](https://www.hackthebox.eu/home)

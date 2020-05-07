@@ -6,7 +6,11 @@ tags: [LabSetup, Kali, HTB]
 thumb: https://www.hackthebox.eu/storage/avatars/06ffcd9635c701b4b6667ae4c97cc7e5.png
 ---
 
-A while back I re-started my Hack the Box journey, this is my write-up of Popcorn : 10.10.10.6 using Kali Linux.
+A while back I re-started my Hack the Box journey, eventually making it to Guru. This post covers my write-up of Popcorn : 10.10.10.6 using Kali Linux.
+
+## Why Popcorn?
+
+Popcorn is an interesting box, it has an easy to access web layer but requires a little bit of custom testing to actually get a reverse shell. Once you get into the box it is exploitable via it's 'classic' kernel which easily allows root access to the system. This box is rated medium difficulty and is a great example of an 'OSCP like' box as it tells a story with believable weaknesses. By way of comparison Popcorn took around 8 hours to beat and individual OSCP exam challenges take me between 40 min and 6 hours each.
 
 ## Enumeration
 
@@ -819,8 +823,12 @@ id
 uid=0(root) gid=0(root)
 {% endhighlight %}
 
-From here we can get the flags...
+From here getting the flags is easy.
 
 ## Conclusions
 
-This post concludes the [KaliSetup](/posts/#{{ categories }}) series, where I set up a Kali VM in HyperV for use in [HTB](https://www.hackthebox.eu/home){:target="_blank"} and used it to target the retired Popcorn Machine.
+In this post I covered an in-depth look at attacking the Popcorn machine.
+
+We looked at basic scanning and enumeration of services to find a hidden webapp. I then bypassed the authentication controls via SQLi which gave me admin access to the web app. From here I was able to double down on inadequete file upload santisation to install a reverse shell. From here it was trivial to maintain my persistence and work towards exploiting the insecure kernel.
+
+This post concludes the [KaliSetup](/posts/#{{ categories }}) series, where I set up Kali and Commando VMs in HyperV. I then built on the Kali VM to set up for use in [HTB](https://www.hackthebox.eu/home){:target="_blank"} and then broke into the retired Popcorn machine.
