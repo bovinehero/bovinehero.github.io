@@ -1,7 +1,7 @@
 ---
 layout: post
 title:  "Think like a Hacker"
-categories: "musings"
+categories: "OffsecMusings"
 tags: [Offsec]
 thumb: \assets\images\KaliSetup\posts\kisspng-security-hacker-hacktivism-lulzsec-logo-anonymous-transparent.png
 

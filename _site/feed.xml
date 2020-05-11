@@ -1,4 +1,8 @@
-<?xml version="1.0" encoding="utf-8"?><feed xmlns="http://www.w3.org/2005/Atom" ><generator uri="https://jekyllrb.com/" version="3.8.5">Jekyll</generator><link href="http://localhost:4000/feed.xml" rel="self" type="application/atom+xml" /><link href="http://localhost:4000/" rel="alternate" type="text/html" /><updated>2020-04-28T18:02:17+01:00</updated><id>http://localhost:4000/feed.xml</id><title type="html">Bovine Hero Blog</title><subtitle>Bovine Hero's Security Blog</subtitle><entry><title type="html">HTB Popcorn Walkthrough with Kali</title><link href="http://localhost:4000/kalisetup/HTB-Popcorn-with-Kali.html" rel="alternate" type="text/html" title="HTB Popcorn Walkthrough with Kali" /><published>2020-04-27T00:00:00+01:00</published><updated>2020-04-27T00:00:00+01:00</updated><id>http://localhost:4000/kalisetup/HTB-Popcorn-with-Kali</id><content type="html" xml:base="http://localhost:4000/kalisetup/HTB-Popcorn-with-Kali.html">&lt;p&gt;A while back I re-started my Hack the Box journey, this is my write-up of Popcorn : 10.10.10.6 using Kali Linux.&lt;/p&gt;
+<?xml version="1.0" encoding="utf-8"?><feed xmlns="http://www.w3.org/2005/Atom" ><generator uri="https://jekyllrb.com/" version="3.8.5">Jekyll</generator><link href="http://localhost:4000/feed.xml" rel="self" type="application/atom+xml" /><link href="http://localhost:4000/" rel="alternate" type="text/html" /><updated>2020-05-07T19:46:25+01:00</updated><id>http://localhost:4000/feed.xml</id><title type="html">Bovine Hero Blog</title><subtitle>Bovine Hero's Security Blog</subtitle><entry><title type="html">HTB Popcorn Walkthrough with Kali</title><link href="http://localhost:4000/kalisetup/HTB-Popcorn-with-Kali.html" rel="alternate" type="text/html" title="HTB Popcorn Walkthrough with Kali" /><published>2020-04-20T00:00:00+01:00</published><updated>2020-04-20T00:00:00+01:00</updated><id>http://localhost:4000/kalisetup/HTB-Popcorn-with-Kali</id><content type="html" xml:base="http://localhost:4000/kalisetup/HTB-Popcorn-with-Kali.html">&lt;p&gt;A while back I re-started my Hack the Box journey, eventually making it to Guru. This post covers my write-up of Popcorn : 10.10.10.6 using Kali Linux.&lt;/p&gt;
+
+&lt;h2 id=&quot;why-popcorn&quot;&gt;Why Popcorn?&lt;/h2&gt;
+
+&lt;p&gt;Popcorn is an interesting box, it has an easy to access web layer but requires a little bit of custom testing to actually get a reverse shell. Once you get into the box it is exploitable via it’s ‘classic’ kernel which easily allows root access to the system. This box is rated medium difficulty and is a great example of an ‘OSCP like’ box as it tells a story with believable weaknesses. By way of comparison Popcorn took around 8 hours to beat and individual OSCP exam challenges take me between 40 min and 6 hours each.&lt;/p&gt;
 
 &lt;h2 id=&quot;enumeration&quot;&gt;Enumeration&lt;/h2&gt;
 
@@ -691,143 +695,19 @@ gcc 15704.c &lt;span class=&quot;nt&quot;&gt;-o&lt;/span&gt; evil&lt;/code&gt;&l
 &lt;figure class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-shell&quot; data-lang=&quot;shell&quot;&gt;&lt;span class=&quot;nb&quot;&gt;id
 &lt;/span&gt;&lt;span class=&quot;nv&quot;&gt;uid&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;0&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;root&lt;span class=&quot;o&quot;&gt;)&lt;/span&gt; &lt;span class=&quot;nv&quot;&gt;gid&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;0&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;root&lt;span class=&quot;o&quot;&gt;)&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/figure&gt;
 
-&lt;p&gt;From here we can get the flags…&lt;/p&gt;
+&lt;p&gt;From here getting the flags is easy.&lt;/p&gt;
 
 &lt;h2 id=&quot;conclusions&quot;&gt;Conclusions&lt;/h2&gt;
 
-&lt;p&gt;This post concludes the &lt;a href=&quot;/posts/#&quot;&gt;KaliSetup&lt;/a&gt; series, where I set up a Kali VM in HyperV for use in &lt;a href=&quot;https://www.hackthebox.eu/home&quot; target=&quot;_blank&quot;&gt;HTB&lt;/a&gt; and used it to target the retired Popcorn Machine.&lt;/p&gt;</content><author><name></name></author><category term="LabSetup" /><category term="Kali" /><category term="HTB" /><summary type="html">A while back I re-started my Hack the Box journey, this is my write-up of Popcorn : 10.10.10.6 using Kali Linux.</summary></entry><entry><title type="html">Commando Setup for HTB</title><link href="http://localhost:4000/commandosetup/Commando-Setup-for-HTB.html" rel="alternate" type="text/html" title="Commando Setup for HTB" /><published>2020-04-26T00:00:00+01:00</published><updated>2020-04-26T00:00:00+01:00</updated><id>http://localhost:4000/commandosetup/Commando-Setup-for-HTB</id><content type="html" xml:base="http://localhost:4000/commandosetup/Commando-Setup-for-HTB.html">&lt;p&gt;In this post I’m going to look at setting up a base Commando image for &lt;a href=&quot;https://www.hackthebox.eu/home&quot;&gt;HTB&lt;/a&gt;.&lt;/p&gt;
+&lt;p&gt;In this post I covered an in-depth look at attacking the Popcorn machine.&lt;/p&gt;
+
+&lt;p&gt;We looked at basic scanning and enumeration of services to find a hidden webapp. I then bypassed the authentication controls via SQLi which gave me admin access to the web app. From here I was able to double down on inadequete file upload santisation to install a reverse shell. From here it was trivial to maintain my persistence and work towards exploiting the insecure kernel.&lt;/p&gt;
+
+&lt;p&gt;This post concludes the &lt;a href=&quot;/posts/#&quot;&gt;KaliSetup&lt;/a&gt; series, where I set up Kali and Commando VMs in HyperV. I then built on the Kali VM to set up for use in &lt;a href=&quot;https://www.hackthebox.eu/home&quot; target=&quot;_blank&quot;&gt;HTB&lt;/a&gt; and then broke into the retired Popcorn machine.&lt;/p&gt;</content><author><name></name></author><category term="LabSetup" /><category term="Kali" /><category term="HTB" /><summary type="html">A while back I re-started my Hack the Box journey, eventually making it to Guru. This post covers my write-up of Popcorn : 10.10.10.6 using Kali Linux.</summary></entry><entry><title type="html">Clean Kali Setup for HTB</title><link href="http://localhost:4000/kalisetup/Clean-Kali-Setup-for-HTB.html" rel="alternate" type="text/html" title="Clean Kali Setup for HTB" /><published>2020-04-19T00:00:00+01:00</published><updated>2020-04-19T00:00:00+01:00</updated><id>http://localhost:4000/kalisetup/Clean-Kali-Setup-for-HTB</id><content type="html" xml:base="http://localhost:4000/kalisetup/Clean-Kali-Setup-for-HTB.html">&lt;p&gt;In this short post I’m going to look at setting up a base Kali image for &lt;a href=&quot;https://www.hackthebox.eu/home&quot; target=&quot;_blank&quot;&gt;HTB&lt;/a&gt;.&lt;/p&gt;
 
 &lt;h2 id=&quot;prerequisites&quot;&gt;Prerequisites&lt;/h2&gt;
 
-&lt;p&gt;You will need a clean install of Commando, my previous post &lt;a href=&quot;/commandosetup/Windows-Commando-Install.html&quot;&gt;Windows Commando&lt;/a&gt; covers where to get it and information on how to install it. That’s the image I’m starting from. You will also need an account for Hack the Box, I won’t be covering how to get an account for it here as that’s cheating 😉&lt;/p&gt;
-
-&lt;p&gt;If you are really stuck, try looking at the source code.&lt;/p&gt;
-
-&lt;h2 id=&quot;setting-up-the-system&quot;&gt;Setting Up the System&lt;/h2&gt;
-
-&lt;p&gt;Commando ships with a fantastic array of tools by default, but really all we need to do is work out a VPN solution.&lt;/p&gt;
-
-&lt;p&gt;Coming Soon!&lt;/p&gt;
-
-&lt;h2 id=&quot;connect-to-htb&quot;&gt;Connect to HTB&lt;/h2&gt;
-
-&lt;p&gt;Coming Soon!&lt;/p&gt;
-
-&lt;p&gt;Next post &lt;a href=&quot;/kalisetup/HTB-Popcorn-with-Kali.html&quot;&gt;HTB Popcorn Walkthrough with Kali&lt;/a&gt; I’m going to look at tackling a retired box on the platform using this VM.&lt;/p&gt;</content><author><name></name></author><category term="LabSetup" /><category term="HyperV" /><category term="Windows" /><summary type="html">In this post I’m going to look at setting up a base Commando image for HTB.</summary></entry><entry><title type="html">Windows Commando</title><link href="http://localhost:4000/commandosetup/Windows-Commando-Install.html" rel="alternate" type="text/html" title="Windows Commando" /><published>2020-04-25T00:00:00+01:00</published><updated>2020-04-25T00:00:00+01:00</updated><id>http://localhost:4000/commandosetup/Windows-Commando-Install</id><content type="html" xml:base="http://localhost:4000/commandosetup/Windows-Commando-Install.html">&lt;p&gt;Kali is the industry agreed Linux platform for Penetration Testing. While it is an excellent framework, sometimes it can be challenging getting it to fit Windows use-cases. Often it is simpler just to use Windows, in this post I’m going to setup a Windows Commando VM.&lt;/p&gt;
-
-&lt;h2 id=&quot;prerequisites&quot;&gt;Prerequisites&lt;/h2&gt;
-
-&lt;p&gt;You will need a genuine copy of windows 10 to follow along, &lt;strong&gt;I DO NOT&lt;/strong&gt; recommend running the Commando configuration on bare metal. The setup scripts really strip out the defenses on the OS, so using Commando as your daily driver can be really risky. &lt;strong&gt;You have been warned!&lt;/strong&gt;&lt;/p&gt;
-
-&lt;p&gt;At time of writing you will need the following spec:&lt;/p&gt;
-
-&lt;ul&gt;
-  &lt;li&gt;Windows 10 1803, 1809, 1903 or 1909 - Windows 7 is no longer supported. Install should work but issues will not be resolved. New tools will not be added but can be manually installed.&lt;/li&gt;
-  &lt;li&gt;60 GB Hard Drive&lt;/li&gt;
-  &lt;li&gt;2 GB RAM&lt;/li&gt;
-&lt;/ul&gt;
-
-&lt;h3 id=&quot;the-virtual-machine&quot;&gt;The Virtual Machine&lt;/h3&gt;
-
-&lt;p&gt;Building a VM is beyond the scope of this post. I’m using a gen1 hyper-v machine and windows 10, I wrote &lt;a href=&quot;/kalisetup/Kali-Linux-HyperV-Style.html&quot;&gt;Kali Linux HyperV Style&lt;/a&gt; outlining how to set up a Kali VM on Hyper-V, the steps can be easily adapted to Windows 10.&lt;/p&gt;
-
-&lt;p&gt;It doesn’t really matter which platform you chose, there are plenty to chose from and plenty of guides to follow on how to create them. I don’t believe in re-inventing the wheel, nor do I want to sway you in the solution you chose. I repeat, &lt;strong&gt;I DO NOT&lt;/strong&gt; recommend running the Commando configuration on bare metal (although some features will not work as a VM).&lt;/p&gt;
-
-&lt;blockquote&gt;
-  &lt;p&gt;If you are using Windows to download the image you will need to download the Setup Tool and select the ISO file option to get the image. Pretending to be Linux will let you go straight to the ISO downloads.&lt;/p&gt;
-&lt;/blockquote&gt;
-
-&lt;p&gt;As for a new Windows 10 ‘Machine’, I’m using the &lt;strong&gt;Windows.iso&lt;/strong&gt; iso available &lt;a href=&quot;https://www.microsoft.com/en-gb/software-download/windows10&quot;&gt;here&lt;/a&gt;. You may need a valid Activation Key of format (xxxxx-xxxxx-xxxxx-xxxxx-xxxxx) to use images from this source.&lt;/p&gt;
-
-&lt;h3 id=&quot;a-note-about-commando&quot;&gt;A note about Commando&lt;/h3&gt;
-
-&lt;p&gt;This is a short read, but loooong install process. The installer script will throw errors during the process but a re-running it &lt;em&gt;after&lt;/em&gt; it completes will bring you closer to a full install as dependencies are updated and met. You can reduce the tool-set (I won’t be), the Kali Linux subsystem in particular takes a fair chunk of time to finish.&lt;/p&gt;
-
-&lt;p&gt;The Commando &lt;a href=&quot;https://github.com/fireeye/commando-vm&quot;&gt;repo&lt;/a&gt; is basically a powershell script that installs dependencies and packages for a lot of security tools. It runs on an install and forced reboot cycle which can take some time to complete.&lt;/p&gt;
-
-&lt;p&gt;It is still a little experimental, but the install script does a good job of handling issues. It often requires a couple of runs (which are not unattended), but will eventually pick up everything without the need for manual configuration.&lt;/p&gt;
-
-&lt;p&gt;&lt;img src=&quot;\assets\images\CommandoSetup\posts\warning.png&quot; alt=&quot;warning.png&quot; /&gt;&lt;/p&gt;
-
-&lt;p&gt;While this is tedious, we must remember that the base OS is not designed to accommodate the security tools out of the box, in fact Windows has many layers designed to defend against them.&lt;/p&gt;
-
-&lt;h2 id=&quot;going-commando&quot;&gt;Going Commando&lt;/h2&gt;
-
-&lt;p&gt;Download the installer packages from &lt;a href=&quot;https://github.com/fireeye/commando-vm&quot;&gt;here&lt;/a&gt;&lt;/p&gt;
-
-&lt;p&gt;Log into the windows host and open a powershell as an admin.&lt;/p&gt;
-
-&lt;p&gt;Run the following commands to allow unrestricted access for the installer and execute it. (see the risk here?!? 😉)&lt;/p&gt;
-
-&lt;figure class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-powershell&quot; data-lang=&quot;powershell&quot;&gt;&lt;span class=&quot;nf&quot;&gt;Unblock-File&lt;/span&gt;&lt;span class=&quot;w&quot;&gt; &lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;nx&quot;&gt;\install.ps1&lt;/span&gt;&lt;span class=&quot;w&quot;&gt;
-&lt;/span&gt;&lt;span class=&quot;nf&quot;&gt;Set-ExecutionPolicy&lt;/span&gt;&lt;span class=&quot;w&quot;&gt; &lt;/span&gt;&lt;span class=&quot;nx&quot;&gt;Unrestricted&lt;/span&gt;&lt;span class=&quot;w&quot;&gt; &lt;/span&gt;&lt;span class=&quot;nt&quot;&gt;-f&lt;/span&gt;&lt;span class=&quot;w&quot;&gt;
-&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;nf&quot;&gt;\install.ps1&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/figure&gt;
-
-&lt;p&gt;Make sure to turn off Tamper Protection:&lt;/p&gt;
-
-&lt;p&gt;&lt;img src=&quot;\assets\images\CommandoSetup\posts\tamperOff.png&quot; alt=&quot;tamperOff.png&quot; /&gt;&lt;/p&gt;
-
-&lt;blockquote&gt;
-  &lt;p&gt;More detailed Instructions on how to &lt;a href=&quot;https://www.tenforums.com/tutorials/123792-turn-off-tamper-protection-windows-defender-antivirus.html&quot;&gt;Turn off Tamper Protection&lt;/a&gt;&lt;/p&gt;
-&lt;/blockquote&gt;
-
-&lt;p&gt;The PoSH terminal will through errors as dependencies need to be met, but following the on screen prompts will eventually produces the framework.&lt;/p&gt;
-
-&lt;p&gt;First time round it reboots:&lt;/p&gt;
-
-&lt;p&gt;&lt;img src=&quot;\assets\images\CommandoSetup\posts\cycle.png&quot; alt=&quot;cycle.png&quot; /&gt;&lt;/p&gt;
-
-&lt;p&gt;after a few moments it restarts the script:&lt;/p&gt;
-
-&lt;p&gt;&lt;img src=&quot;\assets\images\CommandoSetup\posts\restart.png&quot; alt=&quot;restart.png&quot; /&gt;&lt;/p&gt;
-
-&lt;p&gt;An issue I had was with the command &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;apt-get -y update --fix-missing &amp;amp;&amp;amp; apt-get -y dist-upgrade &amp;amp;&amp;amp; exit&lt;/code&gt; when the script was installing the kali linux subsystem:&lt;/p&gt;
-
-&lt;p&gt;&lt;img src=&quot;\assets\images\CommandoSetup\posts\dpkg.png&quot; alt=&quot;dpkg.png&quot; /&gt;&lt;/p&gt;
-
-&lt;p&gt;My network card went into hibernate on the host machine and interrupted the install, doh!&lt;/p&gt;
-
-&lt;p&gt;I ran the suggested command to attempt a repair:&lt;/p&gt;
-
-&lt;figure class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-shell&quot; data-lang=&quot;shell&quot;&gt;dpkg &lt;span class=&quot;nt&quot;&gt;--configure&lt;/span&gt; &lt;span class=&quot;nt&quot;&gt;-a&lt;/span&gt; &lt;/code&gt;&lt;/pre&gt;&lt;/figure&gt;
-
-&lt;p&gt;This will take a while.&lt;/p&gt;
-
-&lt;p&gt;At various stages, some of the Kali packages may fail. In some cases this will be because the host won’t have the “hardware” (Bluetooth for example) or because the packages are not compatible (yet). The Kali packages in the subsystem aren’t as big a deal for me as my preference is to use a Kali VM for Linux, but the benefits of having Linux tooling on Windows (curl, wget, ssh etc) make this a worthwhile tool to configure.&lt;/p&gt;
-
-&lt;p&gt;Once the command finishes, the installation can continue if I run the following in the Kali subsystem terminal:&lt;/p&gt;
-
-&lt;figure class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-shell&quot; data-lang=&quot;shell&quot;&gt;apt-get &lt;span class=&quot;nt&quot;&gt;-y&lt;/span&gt; update &lt;span class=&quot;nt&quot;&gt;--fix-missing&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;&amp;amp;&amp;amp;&lt;/span&gt; apt-get &lt;span class=&quot;nt&quot;&gt;-y&lt;/span&gt; dist-upgrade &lt;span class=&quot;o&quot;&gt;&amp;amp;&amp;amp;&lt;/span&gt; &lt;span class=&quot;nb&quot;&gt;exit&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/figure&gt;
-
-&lt;p&gt;This caused the script to time out and fail on the cmd terminal:&lt;/p&gt;
-
-&lt;p&gt;&lt;img src=&quot;\assets\images\CommandoSetup\posts\scriptFail.png&quot; alt=&quot;scriptFail.png&quot; /&gt;&lt;/p&gt;
-
-&lt;p&gt;Full disclosure: I had to run the script once to complete the setup, but it took about 8 hours to complete.&lt;/p&gt;
-
-&lt;p&gt;I let the rest of the Kali install, but it doesn’t complete the build, if like me you don’t see the README.md and the Background Commando you might need to run the script again as admin:&lt;/p&gt;
-
-&lt;figure class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-powershell&quot; data-lang=&quot;powershell&quot;&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;nf&quot;&gt;\install.ps1&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/figure&gt;
-
-&lt;p&gt;This time it progresses a lot faster, the PoSH terminal will throw and handle errors as it encounters dependencies that it missed the first time round and validates packages that are already installed.&lt;/p&gt;
-
-&lt;p&gt;Following the on screen prompts eventually produces the finished framework:&lt;/p&gt;
-
-&lt;blockquote&gt;
-  &lt;p&gt;As I’m running this on a VM, the Hyper-V tooling is not available and will always throw an error.&lt;/p&gt;
-&lt;/blockquote&gt;
-
-&lt;p&gt;Note the README.md and the Background have been set.&lt;/p&gt;
-
-&lt;p&gt;&lt;img src=&quot;\assets\images\CommandoSetup\posts\commandoDesktop.png&quot; alt=&quot;commando.png&quot; /&gt;&lt;/p&gt;
-
-&lt;h2 id=&quot;wrap-up&quot;&gt;Wrap Up&lt;/h2&gt;
-
-&lt;p&gt;During this post we introduced Commando on Windows 10 and took a look at the steps to install it. Next post &lt;a href=&quot;/commandosetup/Commando-Setup-for-HTB.html&quot;&gt;Commando Setup for HTB&lt;/a&gt; I’m going to look at building on this image and get set up for &lt;a href=&quot;https://www.hackthebox.eu/home&quot;&gt;HTB&lt;/a&gt;&lt;/p&gt;</content><author><name></name></author><category term="LabSetup" /><category term="HyperV" /><category term="Windows" /><summary type="html">Kali is the industry agreed Linux platform for Penetration Testing. While it is an excellent framework, sometimes it can be challenging getting it to fit Windows use-cases. Often it is simpler just to use Windows, in this post I’m going to setup a Windows Commando VM.</summary></entry><entry><title type="html">Clean Kali Setup for HTB</title><link href="http://localhost:4000/kalisetup/Clean-Kali-Setup-for-HTB.html" rel="alternate" type="text/html" title="Clean Kali Setup for HTB" /><published>2020-04-18T00:00:00+01:00</published><updated>2020-04-18T00:00:00+01:00</updated><id>http://localhost:4000/kalisetup/Clean-Kali-Setup-for-HTB</id><content type="html" xml:base="http://localhost:4000/kalisetup/Clean-Kali-Setup-for-HTB.html">&lt;p&gt;In this short post I’m going to look at setting up a base Kali image for &lt;a href=&quot;https://www.hackthebox.eu/home&quot; target=&quot;_blank&quot;&gt;HTB&lt;/a&gt;.&lt;/p&gt;
-
-&lt;h2 id=&quot;prerequisites&quot;&gt;Prerequisites&lt;/h2&gt;
-
-&lt;p&gt;You will need a clean install of Kali Linux, my previous post &lt;a href=&quot;/kalisetup/Kali-Linux-HyperV-Style.html&quot;&gt;Kali Linux HyperV Style&lt;/a&gt; covers how to build one on Hyper-V and that’s the image I’m starting from.&lt;/p&gt;
+&lt;p&gt;You will need a clean install of Kali Linux, my previous post &lt;a href=&quot;/kalisetup/Windows-Commando-Install.html&quot;&gt;Windows Commando&lt;/a&gt; covers how to build one on Hyper-V and that’s the image I’m starting from.&lt;/p&gt;
 
 &lt;p&gt;You will also need an account for Hack the Box so that you can connect. I won’t be covering how to get an account for it here, as that’s cheating 😉&lt;/p&gt;
 
@@ -878,7 +758,117 @@ gcc 15704.c &lt;span class=&quot;nt&quot;&gt;-o&lt;/span&gt; evil&lt;/code&gt;&l
 
 &lt;p&gt;&lt;img src=&quot;\assets\images\KaliSetup\posts\tun0.png&quot; alt=&quot;tun0.png&quot; /&gt;&lt;/p&gt;
 
-&lt;p&gt;Next post &lt;a href=&quot;/commandosetup/Windows-Commando-Install.html&quot;&gt;Windows Commando&lt;/a&gt; I’m going posting my writeup for Popcorn a retired box on the platform using Kali.&lt;/p&gt;</content><author><name></name></author><category term="LabSetup" /><category term="HyperV" /><category term="Kali" /><summary type="html">In this short post I’m going to look at setting up a base Kali image for HTB.</summary></entry><entry><title type="html">Kali Linux HyperV Style</title><link href="http://localhost:4000/kalisetup/Kali-Linux-HyperV-Style.html" rel="alternate" type="text/html" title="Kali Linux HyperV Style" /><published>2020-04-17T00:00:00+01:00</published><updated>2020-04-17T00:00:00+01:00</updated><id>http://localhost:4000/kalisetup/Kali-Linux-HyperV-Style</id><content type="html" xml:base="http://localhost:4000/kalisetup/Kali-Linux-HyperV-Style.html">&lt;p&gt;Sometimes I run Kali in HyperV, because I have a beefy windows 10 (professional) laptop and also why the hell not?!? 
+&lt;p&gt;Next post &lt;a href=&quot;/kalisetup/HTB-Popcorn-with-Kali.html&quot;&gt;HTB Popcorn Walkthrough with Kali&lt;/a&gt; I’m going posting my writeup for Popcorn a retired box on the platform using Kali.&lt;/p&gt;</content><author><name></name></author><category term="LabSetup" /><category term="HyperV" /><category term="Kali" /><summary type="html">In this short post I’m going to look at setting up a base Kali image for HTB.</summary></entry><entry><title type="html">Windows Commando</title><link href="http://localhost:4000/kalisetup/Windows-Commando-Install.html" rel="alternate" type="text/html" title="Windows Commando" /><published>2020-04-18T00:00:00+01:00</published><updated>2020-04-18T00:00:00+01:00</updated><id>http://localhost:4000/kalisetup/Windows-Commando-Install</id><content type="html" xml:base="http://localhost:4000/kalisetup/Windows-Commando-Install.html">&lt;p&gt;Kali is the industry agreed Linux platform for Penetration Testing. While it is an excellent framework, sometimes it can be challenging getting it to fit Windows use-cases. Often it is simpler just to use Windows, in this post I’m going to setup a Windows Commando VM.&lt;/p&gt;
+
+&lt;h2 id=&quot;prerequisites&quot;&gt;Prerequisites&lt;/h2&gt;
+
+&lt;p&gt;You will need a genuine copy of windows 10 to follow along, &lt;strong&gt;I DO NOT&lt;/strong&gt; recommend running the Commando configuration on bare metal. The setup scripts really strip out the defenses on the OS, so using Commando as your daily driver can be really risky. &lt;strong&gt;You have been warned!&lt;/strong&gt;&lt;/p&gt;
+
+&lt;p&gt;At time of writing you will need the following spec:&lt;/p&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;Windows 10 1803, 1809, 1903 or 1909 - Windows 7 is no longer supported. Install should work but issues will not be resolved. New tools will not be added but can be manually installed.&lt;/li&gt;
+  &lt;li&gt;60 GB Hard Drive&lt;/li&gt;
+  &lt;li&gt;2 GB RAM&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;h3 id=&quot;the-virtual-machine&quot;&gt;The Virtual Machine&lt;/h3&gt;
+
+&lt;p&gt;Building a VM is beyond the scope of this post. I’m using a gen1 hyper-v machine and windows 10, I wrote &lt;a href=&quot;/kalisetup/Kali-Linux-HyperV-Style.html&quot;&gt;Kali Linux HyperV Style&lt;/a&gt; outlining how to set up a Kali VM on Hyper-V, the steps can be easily adapted to Windows 10.&lt;/p&gt;
+
+&lt;p&gt;It doesn’t really matter which platform you chose, there are plenty to chose from and plenty of guides to follow on how to create them. I don’t believe in re-inventing the wheel, nor do I want to sway you in the solution you chose. I repeat, &lt;strong&gt;I DO NOT&lt;/strong&gt; recommend running the Commando configuration on bare metal (although some features will not work as a VM).&lt;/p&gt;
+
+&lt;blockquote&gt;
+  &lt;p&gt;If you are using Windows to download the image you will need to download the Setup Tool and select the ISO file option to get the image. Pretending to be Linux will let you go straight to the ISO downloads.&lt;/p&gt;
+&lt;/blockquote&gt;
+
+&lt;p&gt;As for a new Windows 10 ‘Machine’, I’m using the &lt;strong&gt;Windows.iso&lt;/strong&gt; iso available &lt;a href=&quot;https://www.microsoft.com/en-gb/software-download/windows10&quot;&gt;here&lt;/a&gt;. You may need a valid Activation Key of format (xxxxx-xxxxx-xxxxx-xxxxx-xxxxx) to use images from this source.&lt;/p&gt;
+
+&lt;h3 id=&quot;a-note-about-commando&quot;&gt;A note about Commando&lt;/h3&gt;
+
+&lt;p&gt;This is a short read, but loooong install process. The installer script will throw errors during the process but a re-running it &lt;em&gt;after&lt;/em&gt; it completes will bring you closer to a full install as dependencies are updated and met. You can reduce the tool-set (I won’t be), the Kali Linux subsystem in particular takes a fair chunk of time to finish.&lt;/p&gt;
+
+&lt;p&gt;The Commando &lt;a href=&quot;https://github.com/fireeye/commando-vm&quot;&gt;repo&lt;/a&gt; is basically a powershell script that installs dependencies and packages for a lot of security tools. It runs on an install and forced reboot cycle which can take some time to complete.&lt;/p&gt;
+
+&lt;p&gt;It is still a little experimental, but the install script does a good job of handling issues. It often requires a couple of runs (which are not unattended), but will eventually pick up everything without the need for manual configuration.&lt;/p&gt;
+
+&lt;p&gt;&lt;img src=&quot;\assets\images\KaliSetup\posts\warning.png&quot; alt=&quot;warning.png&quot; /&gt;&lt;/p&gt;
+
+&lt;p&gt;While this is tedious, we must remember that the base OS is not designed to accommodate the security tools out of the box, in fact Windows has many layers designed to defend against them.&lt;/p&gt;
+
+&lt;h2 id=&quot;going-commando&quot;&gt;Going Commando&lt;/h2&gt;
+
+&lt;p&gt;Download the installer packages from &lt;a href=&quot;https://github.com/fireeye/commando-vm&quot;&gt;here&lt;/a&gt;&lt;/p&gt;
+
+&lt;p&gt;Log into the windows host and open a powershell as an admin.&lt;/p&gt;
+
+&lt;p&gt;Run the following commands to allow unrestricted access for the installer and execute it. (see the risk here?!? 😉)&lt;/p&gt;
+
+&lt;figure class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-powershell&quot; data-lang=&quot;powershell&quot;&gt;&lt;span class=&quot;nf&quot;&gt;Unblock-File&lt;/span&gt;&lt;span class=&quot;w&quot;&gt; &lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;nx&quot;&gt;\install.ps1&lt;/span&gt;&lt;span class=&quot;w&quot;&gt;
+&lt;/span&gt;&lt;span class=&quot;nf&quot;&gt;Set-ExecutionPolicy&lt;/span&gt;&lt;span class=&quot;w&quot;&gt; &lt;/span&gt;&lt;span class=&quot;nx&quot;&gt;Unrestricted&lt;/span&gt;&lt;span class=&quot;w&quot;&gt; &lt;/span&gt;&lt;span class=&quot;nt&quot;&gt;-f&lt;/span&gt;&lt;span class=&quot;w&quot;&gt;
+&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;nf&quot;&gt;\install.ps1&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/figure&gt;
+
+&lt;p&gt;Make sure to turn off Tamper Protection:&lt;/p&gt;
+
+&lt;p&gt;&lt;img src=&quot;\assets\images\KaliSetup\posts\tamperOff.png&quot; alt=&quot;tamperOff.png&quot; /&gt;&lt;/p&gt;
+
+&lt;blockquote&gt;
+  &lt;p&gt;More detailed Instructions on how to &lt;a href=&quot;https://www.tenforums.com/tutorials/123792-turn-off-tamper-protection-windows-defender-antivirus.html&quot;&gt;Turn off Tamper Protection&lt;/a&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+
+&lt;p&gt;The PoSH terminal will through errors as dependencies need to be met, but following the on screen prompts will eventually produces the framework.&lt;/p&gt;
+
+&lt;p&gt;First time round it reboots:&lt;/p&gt;
+
+&lt;p&gt;&lt;img src=&quot;\assets\images\KaliSetup\posts\cycle.png&quot; alt=&quot;cycle.png&quot; /&gt;&lt;/p&gt;
+
+&lt;p&gt;after a few moments it restarts the script:&lt;/p&gt;
+
+&lt;p&gt;&lt;img src=&quot;\assets\images\KaliSetup\posts\restart.png&quot; alt=&quot;restart.png&quot; /&gt;&lt;/p&gt;
+
+&lt;p&gt;An issue I had was with the command &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;apt-get -y update --fix-missing &amp;amp;&amp;amp; apt-get -y dist-upgrade &amp;amp;&amp;amp; exit&lt;/code&gt; when the script was installing the kali linux subsystem:&lt;/p&gt;
+
+&lt;p&gt;&lt;img src=&quot;\assets\images\KaliSetup\posts\dpkg.png&quot; alt=&quot;dpkg.png&quot; /&gt;&lt;/p&gt;
+
+&lt;p&gt;My network card went into hibernate on the host machine and interrupted the install, doh!&lt;/p&gt;
+
+&lt;p&gt;I ran the suggested command to attempt a repair:&lt;/p&gt;
+
+&lt;figure class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-shell&quot; data-lang=&quot;shell&quot;&gt;dpkg &lt;span class=&quot;nt&quot;&gt;--configure&lt;/span&gt; &lt;span class=&quot;nt&quot;&gt;-a&lt;/span&gt; &lt;/code&gt;&lt;/pre&gt;&lt;/figure&gt;
+
+&lt;p&gt;This will take a while.&lt;/p&gt;
+
+&lt;p&gt;At various stages, some of the Kali packages may fail. In some cases this will be because the host won’t have the “hardware” (Bluetooth for example) or because the packages are not compatible (yet). The Kali packages in the subsystem aren’t as big a deal for me as my preference is to use a Kali VM for Linux, but the benefits of having Linux tooling on Windows (curl, wget, ssh etc) make this a worthwhile tool to configure.&lt;/p&gt;
+
+&lt;p&gt;Once the command finishes, the installation can continue if I run the following in the Kali subsystem terminal:&lt;/p&gt;
+
+&lt;figure class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-shell&quot; data-lang=&quot;shell&quot;&gt;apt-get &lt;span class=&quot;nt&quot;&gt;-y&lt;/span&gt; update &lt;span class=&quot;nt&quot;&gt;--fix-missing&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;&amp;amp;&amp;amp;&lt;/span&gt; apt-get &lt;span class=&quot;nt&quot;&gt;-y&lt;/span&gt; dist-upgrade &lt;span class=&quot;o&quot;&gt;&amp;amp;&amp;amp;&lt;/span&gt; &lt;span class=&quot;nb&quot;&gt;exit&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/figure&gt;
+
+&lt;p&gt;This caused the script to time out and fail on the cmd terminal:&lt;/p&gt;
+
+&lt;p&gt;&lt;img src=&quot;\assets\images\KaliSetup\posts\scriptFail.png&quot; alt=&quot;scriptFail.png&quot; /&gt;&lt;/p&gt;
+
+&lt;p&gt;Full disclosure: I had to run the script once to complete the setup, but it took about 8 hours to complete.&lt;/p&gt;
+
+&lt;p&gt;I let the rest of the Kali install, but it doesn’t complete the build, if like me you don’t see the README.md and the Background Commando you might need to run the script again as admin:&lt;/p&gt;
+
+&lt;figure class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-powershell&quot; data-lang=&quot;powershell&quot;&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;nf&quot;&gt;\install.ps1&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/figure&gt;
+
+&lt;p&gt;This time it progresses a lot faster, the PoSH terminal will throw and handle errors as it encounters dependencies that it missed the first time round and validates packages that are already installed.&lt;/p&gt;
+
+&lt;p&gt;Following the on screen prompts eventually produces the finished framework:&lt;/p&gt;
+
+&lt;blockquote&gt;
+  &lt;p&gt;As I’m running this on a VM, the Hyper-V tooling is not available and will always throw an error.&lt;/p&gt;
+&lt;/blockquote&gt;
+
+&lt;p&gt;Note the README.md and the Background have been set.&lt;/p&gt;
+
+&lt;p&gt;&lt;img src=&quot;\assets\images\KaliSetup\posts\commandoDesktop.png&quot; alt=&quot;commando.png&quot; /&gt;&lt;/p&gt;
+
+&lt;h2 id=&quot;wrap-up&quot;&gt;Wrap Up&lt;/h2&gt;
+
+&lt;p&gt;During this post we introduced Commando on Windows 10 and took a look at the steps to install it. Next post &lt;a href=&quot;/kalisetup/Clean-Kali-Setup-for-HTB.html&quot;&gt;Clean Kali Setup for HTB&lt;/a&gt; I’m going to look at building on the my original Kali Image to get set up for &lt;a href=&quot;https://www.hackthebox.eu/home&quot;&gt;HTB&lt;/a&gt;&lt;/p&gt;</content><author><name></name></author><category term="LabSetup" /><category term="HyperV" /><category term="Windows" /><summary type="html">Kali is the industry agreed Linux platform for Penetration Testing. While it is an excellent framework, sometimes it can be challenging getting it to fit Windows use-cases. Often it is simpler just to use Windows, in this post I’m going to setup a Windows Commando VM.</summary></entry><entry><title type="html">Kali Linux HyperV Style</title><link href="http://localhost:4000/kalisetup/Kali-Linux-HyperV-Style.html" rel="alternate" type="text/html" title="Kali Linux HyperV Style" /><published>2020-04-17T00:00:00+01:00</published><updated>2020-04-17T00:00:00+01:00</updated><id>http://localhost:4000/kalisetup/Kali-Linux-HyperV-Style</id><content type="html" xml:base="http://localhost:4000/kalisetup/Kali-Linux-HyperV-Style.html">&lt;p&gt;Sometimes I run Kali in HyperV, because I have a beefy windows 10 (professional) laptop and also why the hell not?!? 
 This post I’m going to build out a HyperV Kali VM from the base image available from Offensive Security.&lt;/p&gt;
 
 &lt;h2 id=&quot;prerequisites&quot;&gt;Prerequisites&lt;/h2&gt;
@@ -1201,7 +1191,63 @@ This triggers a Merging for the VM, which acts as the starting point of the VM n
 We configured some virtual hardware, looked at some optional additions for GPU and an extra NIC. 
 Next we configured RDP from a post install of the Kali OS on our hardware and finally we made a backup image for use in the future.&lt;/p&gt;
 
-&lt;p&gt;Next post &lt;a href=&quot;/kalisetup/Clean-Kali-Setup-for-HTB.html&quot;&gt;Clean Kali Setup for HTB&lt;/a&gt; I’m going to look at building on this image and get set up for &lt;a href=&quot;https://www.hackthebox.eu/home&quot;&gt;HTB&lt;/a&gt;&lt;/p&gt;</content><author><name></name></author><category term="LabSetup" /><category term="HyperV" /><summary type="html">Sometimes I run Kali in HyperV, because I have a beefy windows 10 (professional) laptop and also why the hell not?!? This post I’m going to build out a HyperV Kali VM from the base image available from Offensive Security.</summary></entry><entry><title type="html">Think like a Hacker</title><link href="http://localhost:4000/musings/Think-Like-a-Hacker.html" rel="alternate" type="text/html" title="Think like a Hacker" /><published>2020-04-10T00:00:00+01:00</published><updated>2020-04-10T00:00:00+01:00</updated><id>http://localhost:4000/musings/Think-Like-a-Hacker</id><content type="html" xml:base="http://localhost:4000/musings/Think-Like-a-Hacker.html">&lt;p&gt;Lots of different terms apply to the offensive side of security, collectively I refer to it as the Red side but what is the difference in the real world?&lt;/p&gt;
+&lt;p&gt;Next post &lt;a href=&quot;/kalisetup/Windows-Commando-Install.html&quot;&gt;Windows Commando&lt;/a&gt; I’m going to look at building on this image and get set up for &lt;a href=&quot;https://www.hackthebox.eu/home&quot;&gt;HTB&lt;/a&gt;&lt;/p&gt;</content><author><name></name></author><category term="LabSetup" /><category term="HyperV" /><summary type="html">Sometimes I run Kali in HyperV, because I have a beefy windows 10 (professional) laptop and also why the hell not?!? This post I’m going to build out a HyperV Kali VM from the base image available from Offensive Security.</summary></entry><entry><title type="html">Debunking OSCP</title><link href="http://localhost:4000/offsecmusings/Debunking-OSCP.html" rel="alternate" type="text/html" title="Debunking OSCP" /><published>2020-04-11T00:00:00+01:00</published><updated>2020-04-11T00:00:00+01:00</updated><id>http://localhost:4000/offsecmusings/Debunking-OSCP</id><content type="html" xml:base="http://localhost:4000/offsecmusings/Debunking-OSCP.html">&lt;p&gt;A couple of years ago I passed my Offensive Security Certified Professional (OSCP) certification. Often considered &lt;strong&gt;the&lt;/strong&gt; certification to get in the pen-testing space it has a fearsome reputation for being very difficult. In this post I’m looking at debunking some of the myths.&lt;/p&gt;
+
+&lt;h2 id=&quot;what-is-offensive-security-certified-professional&quot;&gt;What is Offensive Security Certified Professional?&lt;/h2&gt;
+
+&lt;p&gt;The internet will tell you a lot anecdotally about OSCP but the best place to learn about it is the official &lt;a href=&quot;https://www.offensive-security.com/pwk-oscp/&quot;&gt;PWK/OSCP Site&lt;/a&gt;. In summary OSCP is a 2 day exam consisting of a 24 hour practical exam of 5 challenges followed by a further 24 hours to submit your written report of your efforts.&lt;/p&gt;
+
+&lt;p&gt;In order to sit the exam, you need to sign up for the Penetration Testing with Kali (PWK) which not only gives you personal training documentation and videos but also access to one of many shared network labs. The course content is excellent as are the scenarios presented in the lab, I’ve had the good fortune of sampling many different trainings in this area and PWK with OSCP is one of the best available publicly. I thoroughly recommend it for anyone interested in technical security as it exposes you to hacker techniques and teaches hard lessons.&lt;/p&gt;
+
+&lt;h2 id=&quot;what-will-pwk-teach-me&quot;&gt;What will PWK teach me?&lt;/h2&gt;
+
+&lt;p&gt;It is important to remember that PWK is a foundational course, it covers a lot of different content but does not go too deep. It will not turn you into an elite hacker but it will give you exposure to many of the different techniques needed to perform attacks. The OSCP exam proves that you have sufficient mastery of these techniques and can adapt perform assessments on non standard environments.&lt;/p&gt;
+
+&lt;p&gt;The main thing you learn is how to use Kali Linux for pentesting, which is expected as the course is is Pen-Testing With Kali Linux. This isn’t a bad thing, Kali is a pretty decent OS, recently it underwent a massive facelift and has become far more user friendly than older iterations.&lt;/p&gt;
+
+&lt;p&gt;At time of writing it does not require exploit development from scratch, although being able to read and edit existing python, perl, C, PoSH, ruby, JS, php and bash is expected. While this seems like a multitude of languages to learn you need only a rudimentary understanding of how to read and where to edit it to customize existing exploits. Prior to sitting PWK I had some exposure to python and bash, by the end I could confidently read and edit all of the above languages.&lt;/p&gt;
+
+&lt;p&gt;The biggest thing you learn from PWK is how to &lt;strong&gt;Try Harder&lt;/strong&gt;, as so eloquently described &lt;a href=&quot;https://www.offensive-security.com/offsec/what-it-means-to-try-harder/&quot;&gt;here&lt;/a&gt;. It took me 3 attempts to get the certification, each time I became more determined to pass until eventually I tried Hard enough to succeed.&lt;/p&gt;
+
+&lt;h2 id=&quot;why-do-oscp&quot;&gt;Why do OSCP?&lt;/h2&gt;
+
+&lt;p&gt;As I mentioned earlier it took me 3 attempts to get the certification. Each time I became more determined to pass until eventually I Tried Hard enough to succeed.
+This is why I recommend it, not because I became a ‘l33tz h4xx0r’ but because it developed new skills and an attitude which have served me well in my professional career so far.&lt;/p&gt;
+
+&lt;p&gt;For me OSCP was more than a certification, it was a challenge to overcome a marathon to complete or a mountain to climb. I did a lot of reading on it before hand and it’s reputation made it something I wanted to achieve. It gave me something to aim for and something to train for, which I really wanted at the time and so I went for it.&lt;/p&gt;
+
+&lt;p&gt;At the time I was the first of my peers to sit it, but since then I’ve met many individuals with different skill sets and the difficulty factor varies. Depending on your experience many of the sections can be trivial to learn and if you’ve spent considerable time on alternate platforms many of the techniques explored will already be in your repertoire.&lt;/p&gt;
+
+&lt;p&gt;Do OSCP if you want to learn something, not if you want a certification it is a measure of a learning journey and not a post to say you made it to the destination. 
+Buying one round of training is a hard requirement to sit the exam. So if you want value for money just sign up, a resit costs a fraction of the price and you’ll know what to expect next time. If you pass first time… great!&lt;/p&gt;
+
+&lt;h2 id=&quot;will-oscp-get-me-a-job&quot;&gt;Will OSCP get me a job?&lt;/h2&gt;
+
+&lt;p&gt;No, OSCP is great to have on your CV but you get yourself a job. It’s my experience that in technology, certifications and education show that you can learn how to do something and will help get you through HR requirements but ultimately individual’s make themselves employable. OSCP may get you noticed, but you need to deliver on attitude.&lt;/p&gt;
+
+&lt;h2 id=&quot;what-should-i-do-to-prepare&quot;&gt;What Should I do to Prepare?&lt;/h2&gt;
+
+&lt;p&gt;From the website, all students are required to have:&lt;/p&gt;
+
+&lt;ol&gt;
+  &lt;li&gt;Solid understanding of TCP/IP networking&lt;/li&gt;
+  &lt;li&gt;Reasonable Windows and Linux administration experience&lt;/li&gt;
+  &lt;li&gt;Familiarity of Bash scripting with basic Python or Perl a plus&lt;/li&gt;
+&lt;/ol&gt;
+
+&lt;p&gt;And to be fair, if you can commit to the lab time then that is enough. If you want more preparation the free &lt;a href=&quot;https://www.offensive-security.com/metasploit-unleashed/&quot;&gt;Metasploit Unleashed Course&lt;/a&gt; course gives you a good grounding. Platforms like &lt;a href=&quot;https://tryhackme.com/&quot;&gt;Try Hack Me&lt;/a&gt; and &lt;a href=&quot;https://www.hackthebox.eu/&quot;&gt;Hack the Box&lt;/a&gt; offer a good way to practice and learn. Try Hack Me is a bit more beginner friendly than Hack the Box but both have great practice resources. The key thing to remember is that PWK (and OSCP) offers a training opportunity, so to get the most out of it you need to be prepared to learn.&lt;/p&gt;
+
+&lt;p&gt;The OSCP certification is notorious for being really difficult and many people fall a foul of the fear of failure here. As a result they over-prepare and don’t really get the full value of the PWK training. Check the course pre-requisites, if you think you are close to them you are good to go.&lt;/p&gt;
+
+&lt;p&gt;Worst case if you fail you will still have the PWK training resources, a grounding of the basics and experience of the exam. A re-sit is inexpensive relative to the initial outlay and you will be free to work on the areas you need to improve on to get the cert.&lt;/p&gt;
+
+&lt;h2 id=&quot;how-hard-is-it&quot;&gt;How hard is it?&lt;/h2&gt;
+
+&lt;p&gt;Meh! It is hard until it isn’t. It took me a year from deciding to do it to passing it. In the beginning it was very difficult, but at the time I had little knowledge of the resources available. These days there are many more tools available and a lot of the manual steps can be heavily automated. It is a foundation course, but not a beginner course. The right attitude and good time management will make it easier.&lt;/p&gt;
+
+&lt;h2 id=&quot;summary&quot;&gt;Summary&lt;/h2&gt;
+
+&lt;p&gt;TODO&lt;/p&gt;</content><author><name></name></author><category term="Offsec" /><summary type="html">A couple of years ago I passed my Offensive Security Certified Professional (OSCP) certification. Often considered the certification to get in the pen-testing space it has a fearsome reputation for being very difficult. In this post I’m looking at debunking some of the myths.</summary></entry><entry><title type="html">Think like a Hacker</title><link href="http://localhost:4000/offsecmusings/Think-Like-a-Hacker.html" rel="alternate" type="text/html" title="Think like a Hacker" /><published>2020-04-10T00:00:00+01:00</published><updated>2020-04-10T00:00:00+01:00</updated><id>http://localhost:4000/offsecmusings/Think-Like-a-Hacker</id><content type="html" xml:base="http://localhost:4000/offsecmusings/Think-Like-a-Hacker.html">&lt;p&gt;Lots of different terms apply to the offensive side of security, collectively I refer to it as the Red side but what is the difference in the real world?&lt;/p&gt;
 
 &lt;h2 id=&quot;the-different-types-of-hacker&quot;&gt;The Different Types of Hacker&lt;/h2&gt;
 
