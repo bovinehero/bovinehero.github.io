@@ -1,4 +1,182 @@
-<?xml version="1.0" encoding="utf-8"?><feed xmlns="http://www.w3.org/2005/Atom" ><generator uri="https://jekyllrb.com/" version="3.8.5">Jekyll</generator><link href="http://localhost:4000/feed.xml" rel="self" type="application/atom+xml" /><link href="http://localhost:4000/" rel="alternate" type="text/html" /><updated>2020-05-07T19:46:25+01:00</updated><id>http://localhost:4000/feed.xml</id><title type="html">Bovine Hero Blog</title><subtitle>Bovine Hero's Security Blog</subtitle><entry><title type="html">HTB Popcorn Walkthrough with Kali</title><link href="http://localhost:4000/kalisetup/HTB-Popcorn-with-Kali.html" rel="alternate" type="text/html" title="HTB Popcorn Walkthrough with Kali" /><published>2020-04-20T00:00:00+01:00</published><updated>2020-04-20T00:00:00+01:00</updated><id>http://localhost:4000/kalisetup/HTB-Popcorn-with-Kali</id><content type="html" xml:base="http://localhost:4000/kalisetup/HTB-Popcorn-with-Kali.html">&lt;p&gt;A while back I re-started my Hack the Box journey, eventually making it to Guru. This post covers my write-up of Popcorn : 10.10.10.6 using Kali Linux.&lt;/p&gt;
+<?xml version="1.0" encoding="utf-8"?><feed xmlns="http://www.w3.org/2005/Atom" ><generator uri="https://jekyllrb.com/" version="3.8.5">Jekyll</generator><link href="http://localhost:4000/feed.xml" rel="self" type="application/atom+xml" /><link href="http://localhost:4000/" rel="alternate" type="text/html" /><updated>2020-05-20T21:27:00+01:00</updated><id>http://localhost:4000/feed.xml</id><title type="html">Bovine Hero Blog</title><subtitle>Bovine Hero's Security Blog</subtitle><entry><title type="html">Setting Up Docker on Windows</title><link href="http://localhost:4000/secdevops/Setting-Up-Docker-on-Windows.html" rel="alternate" type="text/html" title="Setting Up Docker on Windows" /><published>2020-05-20T00:00:00+01:00</published><updated>2020-05-20T00:00:00+01:00</updated><id>http://localhost:4000/secdevops/Setting-Up-Docker-on-Windows</id><content type="html" xml:base="http://localhost:4000/secdevops/Setting-Up-Docker-on-Windows.html">&lt;p&gt;This post I’m looking at setting up a Docker image for testing purposes&lt;/p&gt;
+
+&lt;p&gt;Working closely with Application Developers opens you eyes as a security professional, understanding the SDLC and applying it to testing and tooling is one of the most cost effective ways to apply good security practices. Just as developers learn security techniques to become more proficient engineers security professionals learning development process will become better at security.&lt;/p&gt;
+
+&lt;blockquote&gt;
+  &lt;p&gt;The full documentation for the tool is available on &lt;a href=&quot;https://docs.docker.com/docker-for-windows/&quot;&gt;docker docs&lt;/a&gt;. Explaining the concepts of Docker is beyond the scope of this post, I’m assuming a little familiarity with the concepts but if you as the reader need more information the full documentation is available &lt;a href=&quot;https://docs.docker.com/&quot;&gt;here&lt;/a&gt;.&lt;/p&gt;
+&lt;/blockquote&gt;
+
+&lt;h2 id=&quot;the-pre-requisites&quot;&gt;The Pre-requisites&lt;/h2&gt;
+
+&lt;p&gt;I’m using a Windows 10 system with a decent CPU and 32GB Ram, although you &lt;em&gt;can&lt;/em&gt; run with less than 8GB I’d recommend at least 8GB of RAM and a few 100GB of disk space for storage. The system needs to be Hypervisor capable.&lt;/p&gt;
+
+&lt;p&gt;This post is covering how to set up Docker on Hyper V, so obviously we need a Windows Host OS with HyperV enabled. 
+Before we go onto the next stage we to check if HyperV is installed.&lt;/p&gt;
+
+&lt;figure class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-powershell&quot; data-lang=&quot;powershell&quot;&gt;&lt;span class=&quot;nf&quot;&gt;systeminfo&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/figure&gt;
+
+&lt;p&gt;The following response indicates that I have already got it configured (as it was enabled by default during the OS install):&lt;/p&gt;
+
+&lt;figure class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-shell&quot; data-lang=&quot;shell&quot;&gt;Hyper-V Requirements:     A hypervisor has been detected. Features required &lt;span class=&quot;k&quot;&gt;for &lt;/span&gt;Hyper-V will not be displayed.&lt;/code&gt;&lt;/pre&gt;&lt;/figure&gt;
+
+&lt;p&gt;Running Hyper V by default is a good security practice as it sandboxes your OS giving you a protective layer against attackers. Sometimes this is not practical and it &lt;em&gt;may&lt;/em&gt; be disabled, instead of the above message if there is no hypervisor environment you will find the following message in the output:&lt;/p&gt;
+
+&lt;figure class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-shell&quot; data-lang=&quot;shell&quot;&gt;Hyper-V Requirements:     VM Monitor Mode Extensions: Yes
+                          Virtualization Enabled In Firmware: Yes
+                          Second Level Address Translation: Yes
+                          Data Execution Prevention Available: Yes&lt;/code&gt;&lt;/pre&gt;&lt;/figure&gt;
+
+&lt;p&gt;The above components need to be available to enable HyperV. HyperV is a windows feature that can be enabled/disabled via the &lt;strong&gt;Add Remove Windows Features&lt;/strong&gt; tool, how this looks will be a little different depending on your Host’s Windows Version, full documentation on this can be found &lt;a href=&quot;https://docs.microsoft.com/en-us/virtualization/hyper-v-on-windows/about/&quot;&gt;here&lt;/a&gt;.&lt;/p&gt;
+
+&lt;h3 id=&quot;docker&quot;&gt;Docker&lt;/h3&gt;
+
+&lt;p&gt;Traditionally Docker and Windows were not friends, the easiest way to create docker images &lt;em&gt;was&lt;/em&gt; to kickstart a Linux VM and run it docker through it. This was impractical and required a lot of effort, these days for windows &lt;a href=&quot;https://hub.docker.com/editions/community/docker-ce-desktop-windows/&quot;&gt;Docker Desktop&lt;/a&gt; does all this for us.&lt;/p&gt;
+
+&lt;h4 id=&quot;a-note-on-daemon-errors&quot;&gt;A note on Daemon Errors&lt;/h4&gt;
+
+&lt;p&gt;Before we get into the configuration we should note that sometimes there can be a little bit of a problem getting the daemon to work properly when docker commands are issued:&lt;/p&gt;
+
+&lt;figure class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-error&quot; data-lang=&quot;error&quot;&gt;Error response from daemon: open \\.\pipe\docker_engine_linux: The system cannot find the file specified.&lt;/code&gt;&lt;/pre&gt;&lt;/figure&gt;
+
+&lt;p&gt;A restart of the DockerDesktopVM via your Hyper-V Manager and docker service via powershell will usually fix this:&lt;/p&gt;
+
+&lt;figure class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-powershell&quot; data-lang=&quot;powershell&quot;&gt;&lt;span class=&quot;nf&quot;&gt;Net&lt;/span&gt;&lt;span class=&quot;w&quot;&gt; &lt;/span&gt;&lt;span class=&quot;nx&quot;&gt;stop&lt;/span&gt;&lt;span class=&quot;w&quot;&gt; &lt;/span&gt;&lt;span class=&quot;nx&quot;&gt;com.docker.service&lt;/span&gt;&lt;span class=&quot;w&quot;&gt;
+&lt;/span&gt;&lt;span class=&quot;nf&quot;&gt;Net&lt;/span&gt;&lt;span class=&quot;w&quot;&gt; &lt;/span&gt;&lt;span class=&quot;nx&quot;&gt;start&lt;/span&gt;&lt;span class=&quot;w&quot;&gt; &lt;/span&gt;&lt;span class=&quot;nx&quot;&gt;com.docker.service&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/figure&gt;
+
+&lt;p&gt;Failing that stop the VM then manually end all the docker tasks in &lt;strong&gt;Task Manager&lt;/strong&gt;. Once they have all stopped restart the Docker Desktop App as Admin and try the above commands again.&lt;/p&gt;
+
+&lt;h4 id=&quot;back-to-the-install&quot;&gt;Back to the Install&lt;/h4&gt;
+
+&lt;p&gt;The desktop app has an easy wizard installer which leverages Hyper-V so that Docker Desktop can act as an abstract layer which managing the VM and provides us with functionality on powershell.&lt;/p&gt;
+
+&lt;p&gt;It also comes with a getting started tutorial:&lt;/p&gt;
+
+&lt;p&gt;&lt;img src=&quot;\assets\images\SecDevOps\posts\dockerD.png&quot; alt=&quot;dockerD&quot; /&gt;&lt;/p&gt;
+
+&lt;p&gt;Skipping that I open a new admin powershell and run the following command to pull down a standard nginx image:&lt;/p&gt;
+
+&lt;figure class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-powershell&quot; data-lang=&quot;powershell&quot;&gt;&lt;span class=&quot;nf&quot;&gt;docker&lt;/span&gt;&lt;span class=&quot;w&quot;&gt; &lt;/span&gt;&lt;span class=&quot;nx&quot;&gt;pull&lt;/span&gt;&lt;span class=&quot;w&quot;&gt; &lt;/span&gt;&lt;span class=&quot;nx&quot;&gt;nginxdemos/hello&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/figure&gt;
+
+&lt;p&gt;This downloads the image&lt;/p&gt;
+
+&lt;figure class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-shell&quot; data-lang=&quot;shell&quot;&gt;Using default tag: latest
+latest: Pulling from nginxdemos/hello
+550fe1bea624: Pull &lt;span class=&quot;nb&quot;&gt;complete                                                                                             &lt;/span&gt;d421ba34525b: Pull &lt;span class=&quot;nb&quot;&gt;complete                                                                                             &lt;/span&gt;fdcbcb327323: Pull &lt;span class=&quot;nb&quot;&gt;complete                                                                                             &lt;/span&gt;bfbcec2fc4d5: Pull &lt;span class=&quot;nb&quot;&gt;complete                                                                                             &lt;/span&gt;0497d4d5654f: Pull &lt;span class=&quot;nb&quot;&gt;complete                                                                                             &lt;/span&gt;f9518aaa159c: Pull &lt;span class=&quot;nb&quot;&gt;complete                                                                                             &lt;/span&gt;a70e975849d8: Pull &lt;span class=&quot;nb&quot;&gt;complete                                                                                             &lt;/span&gt;Digest: sha256:f5a0b2a5fe9af497c4a7c186ef6412bb91ff19d39d6ac24a4997eaed2b0bb334
+Status: Downloaded newer image &lt;span class=&quot;k&quot;&gt;for &lt;/span&gt;nginxdemos/hello:latest
+docker.io/nginxdemos/hello:latest&lt;/code&gt;&lt;/pre&gt;&lt;/figure&gt;
+
+&lt;p&gt;And it can be started with:&lt;/p&gt;
+
+&lt;figure class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-powershell&quot; data-lang=&quot;powershell&quot;&gt;&lt;span class=&quot;nf&quot;&gt;docker&lt;/span&gt;&lt;span class=&quot;w&quot;&gt; &lt;/span&gt;&lt;span class=&quot;nx&quot;&gt;run&lt;/span&gt;&lt;span class=&quot;w&quot;&gt; &lt;/span&gt;&lt;span class=&quot;nt&quot;&gt;-P&lt;/span&gt;&lt;span class=&quot;w&quot;&gt; &lt;/span&gt;&lt;span class=&quot;nt&quot;&gt;-d&lt;/span&gt;&lt;span class=&quot;w&quot;&gt; &lt;/span&gt;&lt;span class=&quot;nx&quot;&gt;nginxdemos/hello&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/figure&gt;
+
+&lt;p&gt;I get the following message:&lt;/p&gt;
+
+&lt;figure class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-shell&quot; data-lang=&quot;shell&quot;&gt;ae95a80511b8422ea3635f892b97d563390a399dca406dc0ce0b5484f581662f&lt;/code&gt;&lt;/pre&gt;&lt;/figure&gt;
+
+&lt;p&gt;Cool it started, I need to find out the port the container is serving on with a &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;docker ps&lt;/code&gt; command.&lt;/p&gt;
+
+&lt;figure class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-shell&quot; data-lang=&quot;shell&quot;&gt;CONTAINER ID        IMAGE               COMMAND                  CREATED             STATUS              PORTS                   NAMES
+ae95a80511b8        nginxdemos/hello    &lt;span class=&quot;s2&quot;&gt;&quot;nginx -g 'daemon of…&quot;&lt;/span&gt;   14 seconds ago      Up 13 seconds       0.0.0.0:32768-&amp;gt;80/tcp   elastic_heisenberg&lt;/code&gt;&lt;/pre&gt;&lt;/figure&gt;
+
+&lt;p&gt;In the ports section I can see the container’s port 80 has been forwarded to my host’s port 32768. If I visit http://127.0.0.1:32768/ i get this:&lt;/p&gt;
+
+&lt;p&gt;&lt;img src=&quot;\assets\images\SecDevOps\posts\nginx.png&quot; alt=&quot;nginx&quot; /&gt;&lt;/p&gt;
+
+&lt;p&gt;We cn also double check via PoSH&lt;/p&gt;
+
+&lt;figure class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-powershell&quot; data-lang=&quot;powershell&quot;&gt;&lt;span class=&quot;nf&quot;&gt;Invoke-WebRequest&lt;/span&gt;&lt;span class=&quot;w&quot;&gt; &lt;/span&gt;&lt;span class=&quot;nt&quot;&gt;-Uri&lt;/span&gt;&lt;span class=&quot;w&quot;&gt; &lt;/span&gt;&lt;span class=&quot;nx&quot;&gt;http://127.0.0.1:32768/&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/figure&gt;
+
+&lt;p&gt;to get:&lt;/p&gt;
+
+&lt;figure class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-shell&quot; data-lang=&quot;shell&quot;&gt;StatusCode        : 200
+StatusDescription : OK
+Content           : &amp;lt;&lt;span class=&quot;o&quot;&gt;!&lt;/span&gt;DOCTYPE html&amp;gt;
+                    &amp;lt;html&amp;gt;
+                    &amp;lt;&lt;span class=&quot;nb&quot;&gt;head&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;&amp;gt;&lt;/span&gt;
+                    &amp;lt;title&amp;gt;Hello World&amp;lt;/title&amp;gt;
+                    &amp;lt;&lt;span class=&quot;nb&quot;&gt;link &lt;/span&gt;&lt;span class=&quot;nv&quot;&gt;href&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAEAAAABACAYAAACqaXHeAAAGPElEQVR42u1bDUyUd
+                    Rj/iwpolMlcbZqtXFnNsuSCez/OIMg1V7SFONuaU8P1M...
+RawContent        : HTTP/1.1 200 OK
+                    Transfer-Encoding: chunked
+                    Connection: keep-alive
+                    Cache-Control: no-cache
+                    Content-Type: text/html
+                    Date: Wed, 20 May 2020 18:16:10 GMT
+                    Expires: Wed, 20 May 2020 18:16:09 GMT
+                    Serv...
+Forms             : {}
+Headers           : {[Transfer-Encoding, chunked], [Connection, keep-alive], [Cache-Control, no-cache], [Content-Type,
+                    text/html]...}
+Images            : {@{innerHTML=; innerText=; outerHTML=&amp;lt;IMG alt=&quot;&lt;/span&gt;NGINX Logo&lt;span class=&quot;s2&quot;&gt;&quot; src=&quot;&lt;/span&gt;data:image/png&lt;span class=&quot;p&quot;&gt;;&lt;/span&gt;&lt;span class=&quot;nb&quot;&gt;base64&lt;/span&gt;,iVBORw0KGgoAA
+                    AANSUhEUgAAAWAAAABICAMAAAD/N9+RAAAAVFBMVEUAAAAAmQAAmQAAmQAAmQAAmQAAmQAAmQAAmQAAmQAAmQAAmQAAmQAAmQAA
+                    mQAAmQAAmQAAmQAAmQAAmQAAmQAAmQAAmQAAmQAAmQAAmQAAmQAAmQDBect+AAAAG3RSTlMAB0AY8SD5SM82v1npsJ/YjSl0EVL
+                    ftqllgMdZgsoQAAAHd0lEQVR42szZ6XabMBCG4ZGFxSazLzZz//fZc9I4JpbEN8LQ0/dnGwJ5DJGG0HdpM9kkuzVXiqussmRpLr
+                    RdnwqDp9ePyY7zXdFbqptHOz00RTVUxWiyquvJ26Upknp2/heWN0Uyzt3qYtKMn805ybsW/LdK01YVC6sVELH81XJ9o6j5q6Qkc
+                    epe83dJp8ipf161HSgm1TyPK5//cuN1d5KmE342bsnkLK6hre78LNG0KuWfOrFDwats69w8ln+qFIlrx9Vxf8808e8eJGx9YEXh
+                    CpZ3kX2gfFtbrX4m05IonTE7wsGLnpXY1/Kqr3v/5r+NcAOvy8HXCRt74W+alH568KqCJKmM37LafVhe3ZTU1/mmA7uV9Ar8vPj
+                    ZVCPDZI+CDdwFC68yIooZnbhmIAx8XyoZu5mcYO9HzhSo47gGCqR53ULPlAGPkuyazJVeKWYsjH15Djy/VhPO8LoM/OJE4XNfeJ
+                    19LUfRj18KF9gLA2GZL4/UsLdFHQVccWyTCDjZD9wm7Kt2PgIgjH3ZBlf46iDgnOO7nwusavZmVoCaPU0q1pcnshyoOwa44PiS6
+                    6nANw7U0isbK5x7j3gQB0uPAB54T8WZwA/RHrxhLIx9TbsBnLSfA6uRd9WdBzywCFiNUcJ5wr4eRByu7j8G7nhfpj0LuE0A8Ots
+                    SBj7ZooIL+dyYLxFm27+EvfSzgHua/GYXrK3Qol9a03bwNxEAeMt2ix/bptzgCeGwFhY7ouAufwIOA/PSni3nJ8B3DAElgtjXwx
+                    s8k+Al/BdiVfDWh0PPDAAjhXGvgTnVjkwujzbk1t4TWkOB24TBBwrjH2JQZnaC6xGsPdCT296MHA/MgKWC2NfL7Blp2ov8AM88/
+                    gNbX8osCrc5xMAA2Ho6wIXHTt1+4C1iZwMW8NvzYcCN67vAICBMPZ1galip3QXcAXHXzyVlB8AYyiT5wAYCWNfF1gtYGYWAufhN
+                    ynyTWqiDwPOjeelnQiYShMQBr5+YNIWzMwy4CX69afv1NNRwHr07FKEwDT4hTPs6wL7P+tCxQKXm/eifJ963wmMF7hCYWBXGJdp
+                    AsBUopkZAyv3j3+i9PUtTa/U9VcAGC1wmgAwFsa+LnBooLxj4K0t2qjo8AAwWuAIAO8TznoSANMEZmYErA14p3EyMF7gSgLAQBj
+                    4ImBVg5kZAM/8u4VAJwJ7l+2GADAQBr4A2D+1Z0oMnKM3Y2cD4wUOAANh5IuB6cJOsxg4Q0eeCwwXuFETBnZLDfSVA1NwZsbAJX
+                    wN/C+B7771BAAjYeyLgX0z8yACVlawx1NaXh+5TcMLHACGwtgXA6OZ2QUObdGsorfabjIsr4wcNOACB4CBMPLFwOHpcuwx8NWgL
+                    XTJURW0H1gtngUOA8cLLz1FAsOZWQ4MfFH5B8CV7x75b4D/NHduS47CMBCVwYFAiDEmCQT+/z/3ZWumah1otZdL/MxMZc5gybJa
+                    nU8tLI9DhF8PESXJ10k64PAxyn1LiPisMhr/N8kNHF+bpwPOis95+juS3IJOrsgQYBlXj2mWFVHRgHGC+4pj2kKjbG4ufKGRLmd
+                    tTTJgc12WKn1BofE7zBTXzAhwtlIqP9h5gmTAbq1xcHqpvBbHBgRY7suXPTl/ROMB4wR36mUPKjXnNwLcrVxXXimRZTLgDBSiZ1
+                    5XYj3XAwAWv3zh7gnAXtIAx6Etnq888cIdX/fZDgDul1tGvf4Vtn0S4M8J7i7ROq1lhCVHzzwGvBpYbJ5AOEgq4EEzZn5K01Mrm
+                    qvNOmDTLrft+8FSRzQecFBpO05p26tlnw7oIso14YnJ3i5aL6DF0wMuleqkM4Qn+smcAKRTL1Y65UDQVAO+WK2+7gTplH54usjW
+                    AXek+K+LCuxEwGMLul0R4EPFfz8L18zzKmDxIKSCN95LIuBGr3GujpevErqxGQDuLaPuyUAfBAPGg6Mx4OME2DhQVgUJWAIzQnB
+                    FfRAeMI5N1XEjBBiwjCxg0+qHYG7wt/GA8capDh+CqYkpCoykjPKWesio2gywEwD4qDEuDNjUJGCptQqUAB5MB3w1APBhg4gYsP
+                    QtCbib00Zpi3wrwM1FAOBjR2lrZBXCARY3J623bAS4yAQAPnIYHAOWkgSc2xS+T7MV4CAA8LF2BhiwBAwYP4+lPBsBdgIAH2XIg
+                    QHjTf+SrRw5auEAG5Dg9ID3t5TBgM3EWR88eMAVCVieYM5aDXgHUyQAmKiZR9nIFckJC/gFnALUgHew9QKAiZq5A3+EXspDAw7g
+                    P64GvIcxXQvfHl2B7tiozSf+y1JSNQ31gRYDQb6HteKQ4B3s4QucflRrDW8OKiHBujCO3s0u5qAjwKR0vnkDozL1emgd5W6EWa1
+                    ud7l97G0n3jhYzACOEMlHtVpjeBA/mLf/7IOoQsa7y+b7GDR3Rbw98fKQLy+5xv7VIXowIhy1ztUfbdzLYrz7cbrvRb/K+nf7wP
+                    PQpAXsEQ/7l2AXW97/AGkCwaNsIif8zU3y5eZaO/mK/jKDV1s872/Fz11K5TLE1zzEiP1km8ndDMcj3JvmFfqdvubhD8TgHPiN+
+                    LViAAAAAElFTkSuQmCC&lt;span class=&quot;s2&quot;&gt;&quot;&amp;gt;; outerText=; tagName=IMG; alt=NGINX Logo; src=data:image/png;base64,iVBORw0KG
+                    goAAAANSUhEUgAAAWAAAABICAMAAAD/N9+RAAAAVFBMVEUAAAAAmQAAmQAAmQAAmQAAmQAAmQAAmQAAmQAAmQAAmQAAmQAAmQAA
+                    mQAAmQAAmQAAmQAAmQAAmQAAmQAAmQAAmQAAmQAAmQAAmQAAmQAAmQAAmQDBect+AAAAG3RSTlMAB0AY8SD5SM82v1npsJ/YjSl
+                    0EVLftqllgMdZgsoQAAAHd0lEQVR42szZ6XabMBCG4ZGFxSazLzZz//fZc9I4JpbEN8LQ0/dnGwJ5DJGG0HdpM9kkuzVXiqussm
+                    RpLrRdnwqDp9ePyY7zXdFbqptHOz00RTVUxWiyquvJ26Upknp2/heWN0Uyzt3qYtKMn805ybsW/LdK01YVC6sVELH81XJ9o6j5q
+                    6Qkcepe83dJp8ipf161HSgm1TyPK5//cuN1d5KmE342bsnkLK6hre78LNG0KuWfOrFDwats69w8ln+qFIlrx9Vxf8808e8eJGx9
+                    YEXhCpZ3kX2gfFtbrX4m05IonTE7wsGLnpXY1/Kqr3v/5r+NcAOvy8HXCRt74W+alH568KqCJKmM37LafVhe3ZTU1/mmA7uV9Ar
+                    8vPjZVCPDZI+CDdwFC68yIooZnbhmIAx8XyoZu5mcYO9HzhSo47gGCqR53ULPlAGPkuyazJVeKWYsjH15Djy/VhPO8LoM/OJE4X
+                    NfeJ19LUfRj18KF9gLA2GZL4/UsLdFHQVccWyTCDjZD9wm7Kt2PgIgjH3ZBlf46iDgnOO7nwusavZmVoCaPU0q1pcnshyoOwa44
+                    PiS66nANw7U0isbK5x7j3gQB0uPAB54T8WZwA/RHrxhLIx9TbsBnLSfA6uRd9WdBzywCFiNUcJ5wr4eRByu7j8G7nhfpj0LuE0A
+                    8OtsSBj7ZooIL+dyYLxFm27+EvfSzgHua/GYXrK3Qol9a03bwNxEAeMt2ix/bptzgCeGwFhY7ouAufwIOA/PSni3nJ8B3DAElgt
+                    jXwxs8k+Al/BdiVfDWh0PPDAAjhXGvgTnVjkwujzbk1t4TWkOB24TBBwrjH2JQZnaC6xGsPdCT296MHA/MgKWC2NfL7Blp2ov8A
+                    M88/gNbX8osCrc5xMAA2Ho6wIXHTt1+4C1iZwMW8NvzYcCN67vAICBMPZ1galip3QXcAXHXzyVlB8AYyiT5wAYCWNfF1gtYGYWA
+                    ufhNynyTWqiDwPOjeelnQiYShMQBr5+YNIWzMwy4CX69afv1NNRwHr07FKEwDT4hTPs6wL7P+tCxQKXm/eifJ963wmMF7hCYWBX
+                    GJdpAsBUopkZAyv3j3+i9PUtTa/U9VcAGC1wmgAwFsa+LnBooLxj4K0t2qjo8AAwWuAIAO8TznoSANMEZmYErA14p3EyMF7gSgL
+                    AQBj4ImBVg5kZAM/8u4VAJwJ7l+2GADAQBr4A2D+1Z0oMnKM3Y2cD4wUOAANh5IuB6cJOsxg4Q0eeCwwXuFETBnZLDfSVA1NwZs
+                    bAJXwN/C+B7771BAAjYeyLgX0z8yACVlawx1NaXh+5TcMLHACGwtgXA6OZ2QUObdGsorfabjIsr4wcNOACB4CBMPLFwOHpcuwx8
+                    NWgLXTJURW0H1gtngUOA8cLLz1FAsOZWQ4MfFH5B8CV7x75b4D/NHduS47CMBCVwYFAiDEmCQT+/z/3ZWumah1otZdL/MxMZc5g
+                    ybJanU8tLI9DhF8PESXJ10k64PAxyn1LiPisMhr/N8kNHF+bpwPOis95+juS3IJOrsgQYBlXj2mWFVHRgHGC+4pj2kKjbG4ufKG
+                    RLmdtTTJgc12WKn1BofE7zBTXzAhwtlIqP9h5gmTAbq1xcHqpvBbHBgRY7suXPTl/ROMB4wR36mUPKjXnNwLcrVxXXimRZTLgDB
+                    SiZ15XYj3XAwAWv3zh7gnAXtIAx6Etnq888cIdX/fZDgDul1tGvf4Vtn0S4M8J7i7ROq1lhCVHzzwGvBpYbJ5AOEgq4EEzZn5K0
+                    1MrmqvNOmDTLrft+8FSRzQecFBpO05p26tlnw7oIso14YnJ3i5aL6DF0wMuleqkM4Qn+smcAKRTL1Y65UDQVAO+WK2+7gTplH54
+                    usjWAXek+K+LCuxEwGMLul0R4EPFfz8L18zzKmDxIKSCN95LIuBGr3GujpevErqxGQDuLaPuyUAfBAPGg6Mx4OME2DhQVgUJWAI
+                    zQnBFfRAeMI5N1XEjBBiwjCxg0+qHYG7wt/GA8capDh+CqYkpCoykjPKWesio2gywEwD4qDEuDNjUJGCptQqUAB5MB3w1APBhg4
+                    gYsPQtCbib00Zpi3wrwM1FAOBjR2lrZBXCARY3J623bAS4yAQAPnIYHAOWkgSc2xS+T7MV4CAA8LF2BhiwBAwYP4+lPBsBdgIAH
+                    2XIgQHjTf+SrRw5auEAG5Dg9ID3t5TBgM3EWR88eMAVCVieYM5aDXgHUyQAmKiZR9nIFckJC/gFnALUgHew9QKAiZq5A3+EXspD
+                    Aw7gP64GvIcxXQvfHl2B7tiozSf+y1JSNQ31gRYDQb6HteKQ4B3s4QucflRrDW8OKiHBujCO3s0u5qAjwKR0vnkDozL1emgd5W6
+                    EWa1ud7l97G0n3jhYzACOEMlHtVpjeBA/mLf/7IOoQsa7y+b7GDR3Rbw98fKQLy+5xv7VIXowIhy1ztUfbdzLYrz7cbrvRb/K+n
+                    f7wPPQpAXsEQ/7l2AXW97/AGkCwaNsIif8zU3y5eZaO/mK/jKDV1s872/Fz11K5TLE1zzEiP1km8ndDMcj3JvmFfqdvubhD8TgH
+                    PiN+LViAAAAAElFTkSuQmCC}}
+InputFields       : {@{innerHTML=; innerText=; outerHTML=&amp;lt;INPUT onchange=changeCookie() id=check type=checkbox&amp;gt;;
+                    outerText=; tagName=INPUT; onchange=changeCookie(); id=check; type=checkbox}}
+Links             : {}
+ParsedHtml        : System.__ComObject
+RawContentLength  : 7218&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/figure&gt;
+
+&lt;p&gt;Now that I have a fully operational container I can look at getting it onto K8s, I stop the instance via its Container ID:&lt;/p&gt;
+
+&lt;figure class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-powershell&quot; data-lang=&quot;powershell&quot;&gt;&lt;span class=&quot;nf&quot;&gt;docker&lt;/span&gt;&lt;span class=&quot;w&quot;&gt; &lt;/span&gt;&lt;span class=&quot;nx&quot;&gt;stop&lt;/span&gt;&lt;span class=&quot;w&quot;&gt; &lt;/span&gt;&lt;span class=&quot;nx&quot;&gt;ae95a80511b8&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/figure&gt;
+
+&lt;p&gt;Excellent! Now that I have a PoC in play next post &lt;a href=&quot;&quot;&gt;&lt;/a&gt; I’m going to look into setting up a custom container we can use for auto deployments.&lt;/p&gt;</content><author><name></name></author><category term="LabSetup" /><category term="HyperV" /><summary type="html">This post I’m looking at setting up a Docker image for testing purposes</summary></entry><entry><title type="html">HTB Popcorn Walkthrough with Kali</title><link href="http://localhost:4000/kalisetup/HTB-Popcorn-with-Kali.html" rel="alternate" type="text/html" title="HTB Popcorn Walkthrough with Kali" /><published>2020-04-20T00:00:00+01:00</published><updated>2020-04-20T00:00:00+01:00</updated><id>http://localhost:4000/kalisetup/HTB-Popcorn-with-Kali</id><content type="html" xml:base="http://localhost:4000/kalisetup/HTB-Popcorn-with-Kali.html">&lt;p&gt;A while back I re-started my Hack the Box journey, eventually making it to Guru. This post covers my write-up of Popcorn : 10.10.10.6 using Kali Linux.&lt;/p&gt;
 
 &lt;h2 id=&quot;why-popcorn&quot;&gt;Why Popcorn?&lt;/h2&gt;
 
@@ -1243,11 +1421,15 @@ Buying one round of training is a hard requirement to sit the exam. So if you wa
 
 &lt;h2 id=&quot;how-hard-is-it&quot;&gt;How hard is it?&lt;/h2&gt;
 
-&lt;p&gt;Meh! It is hard until it isn’t. It took me a year from deciding to do it to passing it. In the beginning it was very difficult, but at the time I had little knowledge of the resources available. These days there are many more tools available and a lot of the manual steps can be heavily automated. It is a foundation course, but not a beginner course. The right attitude and good time management will make it easier.&lt;/p&gt;
+&lt;p&gt;Meh! It is hard until it isn’t. It took me a year from starting to passing it. In the beginning it was very difficult, but at the time I had little knowledge of the resources available. These days there are many more tools available and a lot of the manual steps can be heavily automated. It is a foundation course, but not a beginner course. The right attitude and good time management will make it easier. Many folks offer ‘OSCP Cheat Sheets’ and ‘OSCP like boxes’, in truth the only real OSCP cheat sheet is the one you make for yourself on the course and the OSCP boxes… well they are the ones you sit on the exam.&lt;/p&gt;
 
-&lt;h2 id=&quot;summary&quot;&gt;Summary&lt;/h2&gt;
+&lt;h2 id=&quot;in-summary&quot;&gt;In Summary&lt;/h2&gt;
 
-&lt;p&gt;TODO&lt;/p&gt;</content><author><name></name></author><category term="Offsec" /><summary type="html">A couple of years ago I passed my Offensive Security Certified Professional (OSCP) certification. Often considered the certification to get in the pen-testing space it has a fearsome reputation for being very difficult. In this post I’m looking at debunking some of the myths.</summary></entry><entry><title type="html">Think like a Hacker</title><link href="http://localhost:4000/offsecmusings/Think-Like-a-Hacker.html" rel="alternate" type="text/html" title="Think like a Hacker" /><published>2020-04-10T00:00:00+01:00</published><updated>2020-04-10T00:00:00+01:00</updated><id>http://localhost:4000/offsecmusings/Think-Like-a-Hacker</id><content type="html" xml:base="http://localhost:4000/offsecmusings/Think-Like-a-Hacker.html">&lt;p&gt;Lots of different terms apply to the offensive side of security, collectively I refer to it as the Red side but what is the difference in the real world?&lt;/p&gt;
+&lt;p&gt;Hopefully this post has given you a little insight into the OSCP certification and debunked some of the concerns you may have.&lt;/p&gt;
+
+&lt;p&gt;While the course and the labs are both educational and fun, the real value of this certification (for me at least) is the learning experience. For that reason it’s my opinion that if you you want to do become OSCP and you think you meet the requirements, then sign up and take the course. I would add the caveat that if you are a beginner, plan to budget for 180 days and an additional resit.&lt;/p&gt;
+
+&lt;p&gt;The first exam attempt and 90 days will give you a good measure of your abilities, if you need more independent study take the second 90 days (or less) and a resit after a break and a little while on other platforms. If you beat the labs and training in under 30 days, you didn’t need to take this course.&lt;/p&gt;</content><author><name></name></author><category term="Offsec" /><summary type="html">A couple of years ago I passed my Offensive Security Certified Professional (OSCP) certification. Often considered the certification to get in the pen-testing space it has a fearsome reputation for being very difficult. In this post I’m looking at debunking some of the myths.</summary></entry><entry><title type="html">Think like a Hacker</title><link href="http://localhost:4000/offsecmusings/Think-Like-a-Hacker.html" rel="alternate" type="text/html" title="Think like a Hacker" /><published>2020-04-10T00:00:00+01:00</published><updated>2020-04-10T00:00:00+01:00</updated><id>http://localhost:4000/offsecmusings/Think-Like-a-Hacker</id><content type="html" xml:base="http://localhost:4000/offsecmusings/Think-Like-a-Hacker.html">&lt;p&gt;Lots of different terms apply to the offensive side of security, collectively I refer to it as the Red side but what is the difference in the real world?&lt;/p&gt;
 
 &lt;h2 id=&quot;the-different-types-of-hacker&quot;&gt;The Different Types of Hacker&lt;/h2&gt;
 

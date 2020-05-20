@@ -1,0 +1,46 @@
+---
+layout: post
+title:  "Preparing for OSCE"
+categories: "ExploitDev"
+tags: [LabSetup, HyperV, ExploitDev]
+thumb: \assets\images\ExploitDev\posts\PBCrichton-Malware-Hazard-Symbol.png.png
+---
+
+A while back I got my OSCP, did some Hack the Box and learned some custom exploits. After smashing through the CTP coursework I thought I was hot shit and booked my OSCE exam... and I failed. This post is the first in a series that's going to chronicle my training for a second attempt nearly 2 years on.
+
+## OSCE vs OSCP
+
+TODO
+
+## The Lab Setup
+
+TODO
+
+[Vulnserver](https://github.com/stephenbradshaw/vulnserver)
+
+
+
+https://www.youtube.com/watch?v=0n3Li63PwnQ&t=30s 
+
+## Bible
+* https://tulpa-security.com/2017/07/18...
+## Reviews
+* https://www.abatchy.com/2017/03/osce-...
+* https://jhalon.github.io/OSCE-Review/
+* https://netsec.ws/?p=517
+* https://sock-raw.org/blog/osce-review/
+* https://www.doyler.net/security-not-i...
+* https://coffeegist.com/security/my-os...
+* https://blog.own.sh/oscp-osce-oswp-re...
+* https://stacktrac3.co/osce-review-ctp...
+* https://medium.com/@david.valles/the-...
+## Practice
+* Vulnserver
+  - http://www.thegreycorner.com/2010/12/...
+  - https://github.com/stephenbradshaw/vu...
+  - https://h0mbre.github.io/LTER_SEH_Suc...
+  - http://sh3llc0d3r.com/vulnserver-gmon...
+  - https://purpl3f0xsec.tech/2019/09/10/...
+## Subencoding
+* https://marcosvalle.github.io/re/expl...
+* http://vellosec.net/2018/08/carving-s...

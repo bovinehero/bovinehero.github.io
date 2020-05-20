@@ -99,7 +99,7 @@ th { color: #E95420; }
 
 .tags { background-color: #E95420; }
 
-.post-thumb { width: 100%; height: auto; max-width: 400px; background-color: #DBDBDB; border-radius: 50%; }
+.post-thumb { width: 100%; height: auto; max-width: 400px; background-color: #DBDBDB; border-radius: 10%; }
 
 a:hover, a:active { background-color: #120009; text-decoration: none; }
 
