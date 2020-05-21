@@ -53,7 +53,16 @@ And to be fair, if you can commit to the lab time then that is enough. If you wa
 
 The OSCP certification is notorious for being really difficult and many people fall a foul of the fear of failure here. As a result they over-prepare and don't really get the full value of the PWK training. Check the course pre-requisites, if you think you are close to them you are good to go. 
 
-Worst case if you fail you will still have the PWK training resources, a grounding of the basics and experience of the exam. A re-sit is inexpensive relative to the initial outlay and you will be free to work on the areas you need to improve on to get the cert. 
+Worst case if you fail you will still have the PWK training resources, a grounding of the basics and experience of the exam. A re-sit is inexpensive relative to the initial outlay and you will be free to work on the areas you need to improve on to get the cert.
+
+There are of course other resources that specialize in different disciplines, but for most of the challenges in the course I'd recommend searching the web for appropriate techniques. Some folks like to book learn, ones that I found useful were:
+
+1. [Penetration Testing: A Hands-On Introduction to Hacking](https://www.amazon.co.uk/gp/product/1593275641/ref=as_li_tl?ie=UTF8&camp=1634&creative=6738&creativeASIN=1593275641&linkCode=as2&tag=bovinehero-21&linkId=4bf1565c65d493fcf8a63cac421e43e2) - A little dated now but an excellent addition to your library if you want something to read before you start. It covers most of the basic techniques, but the lab examples are not easy to set up in a Windows 10 world.
+2. [Metasploit: The Penetration Tester's Guide](https://www.amazon.co.uk/gp/product/159327288X/ref=as_li_tl?ie=UTF8&camp=1634&creative=6738&creativeASIN=159327288X&linkCode=as2&tag=bovinehero-21&linkId=a22a8ca0e7ba93e0710dcd92666ed58c) - A lot of folks don't like to use metasploit while training for OSCP, none the less it is an excellent tool for learning how the exploits work and worthwhile read to learn how the framework works.
+3. Kali Linux Revealed – Mastering the Penetration Testing Distribution [free Kali Linux Book](https://www.kali.org/download-kali-linux-revealed-book/) - Free e-book and a worth reading, especially if you want to learn _how_ to manage and install Kali.
+4. [Nmap Network Scanning: The Official Nmap Project Guide to Network Discovery and Security](https://www.amazon.co.uk/gp/product/0979958717/ref=as_li_tl?ie=UTF8&camp=1634&creative=6738&creativeASIN=0979958717&linkCode=as2&tag=bovinehero-21&linkId=2e755e3b8aad584ddbe0369ae70d1e4d) - Despite being written in 2011, this book still remains one of the most useful guides for nmap. Highly recommended. 
+
+Some folks recommend the [Hacker Playbooks](https://www.amazon.co.uk/gp/product/1980901759/ref=as_li_qf_asin_il_tl?ie=UTF8&tag=bovinehero-21&creative=6738&linkCode=as2&creativeASIN=1980901759&linkId=cb6b2ad0c7fe92414987588356225d45), the [RTFM](https://www.amazon.co.uk/gp/product/1494295504/ref=as_li_qf_asin_il_tl?ie=UTF8&tag=bovinehero-21&creative=6738&linkCode=as2&creativeASIN=1494295504&linkId=a3c2a24d7aad6e643c13208e7a378150) and the [Web Application Hacker's Handbook](https://www.amazon.co.uk/gp/product/1118026470/ref=as_li_qf_asin_il_tl?ie=UTF8&tag=bovinehero-21&creative=6738&linkCode=as2&creativeASIN=1118026470&linkId=6044f5d0496a62693004e5244ba610e0). All excellent resources but not really required for OSCP.
 
 ## How hard is it?
 
