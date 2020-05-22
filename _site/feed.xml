@@ -1,4 +1,42 @@
-<?xml version="1.0" encoding="utf-8"?><feed xmlns="http://www.w3.org/2005/Atom" ><generator uri="https://jekyllrb.com/" version="3.8.5">Jekyll</generator><link href="http://localhost:4000/feed.xml" rel="self" type="application/atom+xml" /><link href="http://localhost:4000/" rel="alternate" type="text/html" /><updated>2020-05-20T21:27:00+01:00</updated><id>http://localhost:4000/feed.xml</id><title type="html">Bovine Hero Blog</title><subtitle>Bovine Hero's Security Blog</subtitle><entry><title type="html">Setting Up Docker on Windows</title><link href="http://localhost:4000/secdevops/Setting-Up-Docker-on-Windows.html" rel="alternate" type="text/html" title="Setting Up Docker on Windows" /><published>2020-05-20T00:00:00+01:00</published><updated>2020-05-20T00:00:00+01:00</updated><id>http://localhost:4000/secdevops/Setting-Up-Docker-on-Windows</id><content type="html" xml:base="http://localhost:4000/secdevops/Setting-Up-Docker-on-Windows.html">&lt;p&gt;This post I’m looking at setting up a Docker image for testing purposes&lt;/p&gt;
+<?xml version="1.0" encoding="utf-8"?><feed xmlns="http://www.w3.org/2005/Atom" ><generator uri="https://jekyllrb.com/" version="3.8.5">Jekyll</generator><link href="http://localhost:4000/feed.xml" rel="self" type="application/atom+xml" /><link href="http://localhost:4000/" rel="alternate" type="text/html" /><updated>2020-05-21T20:44:19+01:00</updated><id>http://localhost:4000/feed.xml</id><title type="html">Bovine Hero Blog</title><subtitle>Bovine Hero's Security Blog</subtitle><entry><title type="html">Building a Kali Docker Repo</title><link href="http://localhost:4000/secdevops/Building-a-Kali-Docker-Repo.html" rel="alternate" type="text/html" title="Building a Kali Docker Repo" /><published>2020-05-21T00:00:00+01:00</published><updated>2020-05-21T00:00:00+01:00</updated><id>http://localhost:4000/secdevops/Building-a-Kali-Docker-Repo</id><content type="html" xml:base="http://localhost:4000/secdevops/Building-a-Kali-Docker-Repo.html">&lt;p&gt;Now that I have Docker setup I’m going to build a set of Kali containers to spin up for testing.&lt;/p&gt;
+
+&lt;p&gt;&lt;a href=&quot;/secdevops/Setting-Up-Docker-on-Windows.html&quot;&gt;Last post&lt;/a&gt; I looked at setting up Docker and deploying a PoC demo of an Nginx server. This post I’m going to look at starting a local repo of Docker images based on a Vanilla Kali.&lt;/p&gt;
+
+&lt;h2 id=&quot;clearing-the-decks&quot;&gt;Clearing the Decks&lt;/h2&gt;
+
+&lt;p&gt;First I check that I have no docker processes running:&lt;/p&gt;
+
+&lt;figure class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-powershell&quot; data-lang=&quot;powershell&quot;&gt;&lt;span class=&quot;nf&quot;&gt;docker&lt;/span&gt;&lt;span class=&quot;w&quot;&gt; &lt;/span&gt;&lt;span class=&quot;nx&quot;&gt;ps&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/figure&gt;
+
+&lt;p&gt;I don’t:&lt;/p&gt;
+
+&lt;figure class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-shell&quot; data-lang=&quot;shell&quot;&gt;CONTAINER ID        IMAGE               COMMAND             CREATED             STATUS              PORTS               NAMES&lt;/code&gt;&lt;/pre&gt;&lt;/figure&gt;
+
+&lt;p&gt;Next I want to think about where I want to store my docker stuff. With docker running I right click on the icon on the taskbar to get to settings.&lt;/p&gt;
+
+&lt;p&gt;In Resources I can specify a storage location to a more convenient one than the default:&lt;/p&gt;
+
+&lt;p&gt;&lt;img src=&quot;\assets\images\SecDevOps\posts\image-location.png&quot; alt=&quot;image-location.png&quot; /&gt;&lt;/p&gt;
+
+&lt;p&gt;And so that I can easily share resources between containers I specify a file share location as well:&lt;/p&gt;
+
+&lt;p&gt;&lt;img src=&quot;\assets\images\SecDevOps\posts\fileShare.png&quot; alt=&quot;fileShare.png&quot; /&gt;&lt;/p&gt;
+
+&lt;p&gt;After an &lt;strong&gt;Apply and Reset&lt;/strong&gt; the changes take place.&lt;/p&gt;
+
+&lt;h2 id=&quot;getting-a-base-image&quot;&gt;Getting a Base Image&lt;/h2&gt;
+
+&lt;p&gt;I want to start with an official Kali linux base, luckily Kali Linux have published images on &lt;a href=&quot;https://registry.hub.docker.com/u/kalilinux&quot;&gt;DockerHub&lt;/a&gt;.&lt;/p&gt;
+
+&lt;p&gt;Ordinarily I would kick off a pull of the remote image and run it interactively via the following commands:&lt;/p&gt;
+
+&lt;figure class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-powershell&quot; data-lang=&quot;powershell&quot;&gt;&lt;span class=&quot;nf&quot;&gt;docker&lt;/span&gt;&lt;span class=&quot;w&quot;&gt; &lt;/span&gt;&lt;span class=&quot;nx&quot;&gt;pull&lt;/span&gt;&lt;span class=&quot;w&quot;&gt; &lt;/span&gt;&lt;span class=&quot;nx&quot;&gt;kalilinux/kali-rolling&lt;/span&gt;&lt;span class=&quot;w&quot;&gt;
+&lt;/span&gt;&lt;span class=&quot;nf&quot;&gt;docker&lt;/span&gt;&lt;span class=&quot;w&quot;&gt; &lt;/span&gt;&lt;span class=&quot;nx&quot;&gt;run&lt;/span&gt;&lt;span class=&quot;w&quot;&gt; &lt;/span&gt;&lt;span class=&quot;nt&quot;&gt;-t&lt;/span&gt;&lt;span class=&quot;w&quot;&gt; &lt;/span&gt;&lt;span class=&quot;nt&quot;&gt;-i&lt;/span&gt;&lt;span class=&quot;w&quot;&gt; &lt;/span&gt;&lt;span class=&quot;nx&quot;&gt;kalilinux/kali-rolling&lt;/span&gt;&lt;span class=&quot;w&quot;&gt; &lt;/span&gt;&lt;span class=&quot;nx&quot;&gt;/bin/bash&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/figure&gt;
+
+&lt;p&gt;This would let me quickly configure a bare bones Kali (shell only) image. While this is fast I’m lazy, if I have to do something more than twice I want to leverage some automation. So I’m going to use a Dockerfile to configure and set up set up my base image.
+What is a Dockerfile? It is a simple configuration file which specifies the initial setup of a container.&lt;/p&gt;
+
+&lt;p&gt;This has several advantages, but where it really shines for me is the ability to refer to this file for a base image and then build on it to create custom Kali builds for individual test cases. This simplifies deployments and reduces my workload, indeed in enterprise these files can be templated with variables and quickly scaled as needed.&lt;/p&gt;</content><author><name></name></author><category term="LabSetup" /><category term="HyperV" /><category term="Docker" /><summary type="html">Now that I have Docker setup I’m going to build a set of Kali containers to spin up for testing.</summary></entry><entry><title type="html">Setting Up Docker on Windows</title><link href="http://localhost:4000/secdevops/Setting-Up-Docker-on-Windows.html" rel="alternate" type="text/html" title="Setting Up Docker on Windows" /><published>2020-05-20T00:00:00+01:00</published><updated>2020-05-20T00:00:00+01:00</updated><id>http://localhost:4000/secdevops/Setting-Up-Docker-on-Windows</id><content type="html" xml:base="http://localhost:4000/secdevops/Setting-Up-Docker-on-Windows.html">&lt;p&gt;This post I’m looking at setting up a PoC Docker image for testing purposes&lt;/p&gt;
 
 &lt;p&gt;Working closely with Application Developers opens you eyes as a security professional, understanding the SDLC and applying it to testing and tooling is one of the most cost effective ways to apply good security practices. Just as developers learn security techniques to become more proficient engineers security professionals learning development process will become better at security.&lt;/p&gt;
 
@@ -176,7 +214,7 @@ RawContentLength  : 7218&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/figure&gt;
 
 &lt;figure class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-powershell&quot; data-lang=&quot;powershell&quot;&gt;&lt;span class=&quot;nf&quot;&gt;docker&lt;/span&gt;&lt;span class=&quot;w&quot;&gt; &lt;/span&gt;&lt;span class=&quot;nx&quot;&gt;stop&lt;/span&gt;&lt;span class=&quot;w&quot;&gt; &lt;/span&gt;&lt;span class=&quot;nx&quot;&gt;ae95a80511b8&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/figure&gt;
 
-&lt;p&gt;Excellent! Now that I have a PoC in play next post &lt;a href=&quot;&quot;&gt;&lt;/a&gt; I’m going to look into setting up a custom container we can use for auto deployments.&lt;/p&gt;</content><author><name></name></author><category term="LabSetup" /><category term="HyperV" /><summary type="html">This post I’m looking at setting up a Docker image for testing purposes</summary></entry><entry><title type="html">HTB Popcorn Walkthrough with Kali</title><link href="http://localhost:4000/kalisetup/HTB-Popcorn-with-Kali.html" rel="alternate" type="text/html" title="HTB Popcorn Walkthrough with Kali" /><published>2020-04-20T00:00:00+01:00</published><updated>2020-04-20T00:00:00+01:00</updated><id>http://localhost:4000/kalisetup/HTB-Popcorn-with-Kali</id><content type="html" xml:base="http://localhost:4000/kalisetup/HTB-Popcorn-with-Kali.html">&lt;p&gt;A while back I re-started my Hack the Box journey, eventually making it to Guru. This post covers my write-up of Popcorn : 10.10.10.6 using Kali Linux.&lt;/p&gt;
+&lt;p&gt;Excellent! Now that I have a PoC in play next post &lt;a href=&quot;/secdevops/Building-a-Kali-Docker-Repo.html&quot;&gt;Building a Kali Docker Repo&lt;/a&gt; I’m going to look into setting up a custom container we can use for auto deployments.&lt;/p&gt;</content><author><name></name></author><category term="LabSetup" /><category term="HyperV" /><category term="Docker" /><summary type="html">This post I’m looking at setting up a PoC Docker image for testing purposes</summary></entry><entry><title type="html">HTB Popcorn Walkthrough with Kali</title><link href="http://localhost:4000/kalisetup/HTB-Popcorn-with-Kali.html" rel="alternate" type="text/html" title="HTB Popcorn Walkthrough with Kali" /><published>2020-04-20T00:00:00+01:00</published><updated>2020-04-20T00:00:00+01:00</updated><id>http://localhost:4000/kalisetup/HTB-Popcorn-with-Kali</id><content type="html" xml:base="http://localhost:4000/kalisetup/HTB-Popcorn-with-Kali.html">&lt;p&gt;A while back I re-started my Hack the Box journey, eventually making it to Guru. This post covers my write-up of Popcorn : 10.10.10.6 using Kali Linux.&lt;/p&gt;
 
 &lt;h2 id=&quot;why-popcorn&quot;&gt;Why Popcorn?&lt;/h2&gt;
 
@@ -1418,6 +1456,17 @@ Buying one round of training is a hard requirement to sit the exam. So if you wa
 &lt;p&gt;The OSCP certification is notorious for being really difficult and many people fall a foul of the fear of failure here. As a result they over-prepare and don’t really get the full value of the PWK training. Check the course pre-requisites, if you think you are close to them you are good to go.&lt;/p&gt;
 
 &lt;p&gt;Worst case if you fail you will still have the PWK training resources, a grounding of the basics and experience of the exam. A re-sit is inexpensive relative to the initial outlay and you will be free to work on the areas you need to improve on to get the cert.&lt;/p&gt;
+
+&lt;p&gt;There are of course other resources that specialize in different disciplines, but for most of the challenges in the course I’d recommend searching the web for appropriate techniques. Some folks like to book learn, ones that I found useful were:&lt;/p&gt;
+
+&lt;ol&gt;
+  &lt;li&gt;&lt;a href=&quot;https://www.amazon.co.uk/gp/product/1593275641/ref=as_li_tl?ie=UTF8&amp;amp;camp=1634&amp;amp;creative=6738&amp;amp;creativeASIN=1593275641&amp;amp;linkCode=as2&amp;amp;tag=bovinehero-21&amp;amp;linkId=4bf1565c65d493fcf8a63cac421e43e2&quot;&gt;Penetration Testing: A Hands-On Introduction to Hacking&lt;/a&gt; - A little dated now but an excellent addition to your library if you want something to read before you start. It covers most of the basic techniques, but the lab examples are not easy to set up in a Windows 10 world.&lt;/li&gt;
+  &lt;li&gt;&lt;a href=&quot;https://www.amazon.co.uk/gp/product/159327288X/ref=as_li_tl?ie=UTF8&amp;amp;camp=1634&amp;amp;creative=6738&amp;amp;creativeASIN=159327288X&amp;amp;linkCode=as2&amp;amp;tag=bovinehero-21&amp;amp;linkId=a22a8ca0e7ba93e0710dcd92666ed58c&quot;&gt;Metasploit: The Penetration Tester’s Guide&lt;/a&gt; - A lot of folks don’t like to use metasploit while training for OSCP, none the less it is an excellent tool for learning how the exploits work and worthwhile read to learn how the framework works.&lt;/li&gt;
+  &lt;li&gt;Kali Linux Revealed – Mastering the Penetration Testing Distribution &lt;a href=&quot;https://www.kali.org/download-kali-linux-revealed-book/&quot;&gt;free Kali Linux Book&lt;/a&gt; - Free e-book and a worth reading, especially if you want to learn &lt;em&gt;how&lt;/em&gt; to manage and install Kali.&lt;/li&gt;
+  &lt;li&gt;&lt;a href=&quot;https://www.amazon.co.uk/gp/product/0979958717/ref=as_li_tl?ie=UTF8&amp;amp;camp=1634&amp;amp;creative=6738&amp;amp;creativeASIN=0979958717&amp;amp;linkCode=as2&amp;amp;tag=bovinehero-21&amp;amp;linkId=2e755e3b8aad584ddbe0369ae70d1e4d&quot;&gt;Nmap Network Scanning: The Official Nmap Project Guide to Network Discovery and Security&lt;/a&gt; - Despite being written in 2011, this book still remains one of the most useful guides for nmap. Highly recommended.&lt;/li&gt;
+&lt;/ol&gt;
+
+&lt;p&gt;Some folks recommend the &lt;a href=&quot;https://www.amazon.co.uk/gp/product/1980901759/ref=as_li_qf_asin_il_tl?ie=UTF8&amp;amp;tag=bovinehero-21&amp;amp;creative=6738&amp;amp;linkCode=as2&amp;amp;creativeASIN=1980901759&amp;amp;linkId=cb6b2ad0c7fe92414987588356225d45&quot;&gt;Hacker Playbooks&lt;/a&gt;, the &lt;a href=&quot;https://www.amazon.co.uk/gp/product/1494295504/ref=as_li_qf_asin_il_tl?ie=UTF8&amp;amp;tag=bovinehero-21&amp;amp;creative=6738&amp;amp;linkCode=as2&amp;amp;creativeASIN=1494295504&amp;amp;linkId=a3c2a24d7aad6e643c13208e7a378150&quot;&gt;RTFM&lt;/a&gt; and the &lt;a href=&quot;https://www.amazon.co.uk/gp/product/1118026470/ref=as_li_qf_asin_il_tl?ie=UTF8&amp;amp;tag=bovinehero-21&amp;amp;creative=6738&amp;amp;linkCode=as2&amp;amp;creativeASIN=1118026470&amp;amp;linkId=6044f5d0496a62693004e5244ba610e0&quot;&gt;Web Application Hacker’s Handbook&lt;/a&gt;. All excellent resources but not really required for OSCP.&lt;/p&gt;
 
 &lt;h2 id=&quot;how-hard-is-it&quot;&gt;How hard is it?&lt;/h2&gt;
 

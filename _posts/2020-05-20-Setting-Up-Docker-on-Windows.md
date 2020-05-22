@@ -2,11 +2,11 @@
 layout: post
 title:  "Setting Up Docker on Windows"
 categories: "SecDevOps"
-tags: [LabSetup, HyperV]
+tags: [LabSetup, HyperV, Docker]
 thumb: \assets\images\SecDevOps\posts\Moby-logo.png
 ---
 
-This post I'm looking at setting up a Docker image for testing purposes
+This post I'm looking at setting up a PoC Docker image for testing purposes
 
 Working closely with Application Developers opens you eyes as a security professional, understanding the SDLC and applying it to testing and tooling is one of the most cost effective ways to apply good security practices. Just as developers learn security techniques to become more proficient engineers security professionals learning development process will become better at security.
 
@@ -42,7 +42,7 @@ The above components need to be available to enable HyperV. HyperV is a windows 
 
 ### Docker
 
-Traditionally Docker and Windows were not friends, the easiest way to create docker images _was_ to kickstart a Linux VM and run it docker through it. This was impractical and required a lot of effort, these days for windows [Docker Desktop](https://hub.docker.com/editions/community/docker-ce-desktop-windows/) does all this for us. 
+Traditionally Docker and Windows were not friends, the easiest way to create docker images _was_ to kickstart a Linux VM and run it docker through it. This was impractical and required a lot of effort, these days for windows [Docker Desktop](https://hub.docker.com/editions/community/docker-ce-desktop-windows/) does all this for us.
 
 #### A note on Daemon Errors
 
