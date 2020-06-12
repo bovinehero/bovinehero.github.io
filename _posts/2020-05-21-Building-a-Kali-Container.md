@@ -370,6 +370,6 @@ docker run -t -i headless bash
 Simple! This gives me command line version of Kali with most of the tools needed to complete assessments via automation.
 From here I can issue ENTRYPOINTS or CMDs to turn the image executable or simply run a bash shell and login.
 
-Awesome, now I have an on demand kali version of I can run in powershell. This is the end of the Docker series Next post [{{page.next.title}}]({{page.next.url}}) I'm going to look at some other cool stuff around OSCE.
+Awesome, now I have an on demand kali version of I can run in powershell. This is the end of the Docker series. Next post [{{page.next.title}}]({{page.next.url}}) I'm going to look at some other cool stuff around OSCE.
 
 

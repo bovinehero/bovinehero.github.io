@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="utf-8"?><feed xmlns="http://www.w3.org/2005/Atom" ><generator uri="https://jekyllrb.com/" version="3.8.5">Jekyll</generator><link href="http://localhost:4000/feed.xml" rel="self" type="application/atom+xml" /><link href="http://localhost:4000/" rel="alternate" type="text/html" /><updated>2020-05-29T17:45:03+01:00</updated><id>http://localhost:4000/feed.xml</id><title type="html">Bovine Hero Blog</title><subtitle>Bovine Hero's Security Blog</subtitle><entry><title type="html">Preparing for OSCE</title><link href="http://localhost:4000/exploitdev/Preparing-for-OSCE.html" rel="alternate" type="text/html" title="Preparing for OSCE" /><published>2020-05-29T00:00:00+01:00</published><updated>2020-05-29T00:00:00+01:00</updated><id>http://localhost:4000/exploitdev/Preparing%20for%20OSCE</id><content type="html" xml:base="http://localhost:4000/exploitdev/Preparing-for-OSCE.html">&lt;p&gt;A while back I got my OSCP, did some Hack the Box and learned some custom exploits. After smashing through the CTP coursework I thought I was hot shit and booked my OSCE exam… I failed. After a break I decided to prepare for it again, this post I’m going to set up my training Lab for round 2.&lt;/p&gt;
+<?xml version="1.0" encoding="utf-8"?><feed xmlns="http://www.w3.org/2005/Atom" ><generator uri="https://jekyllrb.com/" version="3.8.5">Jekyll</generator><link href="http://localhost:4000/feed.xml" rel="self" type="application/atom+xml" /><link href="http://localhost:4000/" rel="alternate" type="text/html" /><updated>2020-06-12T17:27:40+01:00</updated><id>http://localhost:4000/feed.xml</id><title type="html">Bovine Hero Blog</title><subtitle>Bovine Hero's Security Blog</subtitle><entry><title type="html">Setting Up Windows</title><link href="http://localhost:4000/exploitdev/Setting-Up-Windows.html" rel="alternate" type="text/html" title="Setting Up Windows" /><published>2020-06-12T00:00:00+01:00</published><updated>2020-06-12T00:00:00+01:00</updated><id>http://localhost:4000/exploitdev/Setting%20Up%20Windows</id><content type="html" xml:base="http://localhost:4000/exploitdev/Setting-Up-Windows.html">&lt;p&gt;In this post I’m going to look at setting up BooFuzz on windows 7 for OSCE practice.&lt;/p&gt;</content><author><name></name></author><category term="LabSetup" /><category term="HyperV" /><category term="ExploitDev" /><summary type="html">In this post I’m going to look at setting up BooFuzz on windows 7 for OSCE practice.</summary></entry><entry><title type="html">Preparing for OSCE</title><link href="http://localhost:4000/exploitdev/Preparing-for-OSCE.html" rel="alternate" type="text/html" title="Preparing for OSCE" /><published>2020-06-11T00:00:00+01:00</published><updated>2020-06-11T00:00:00+01:00</updated><id>http://localhost:4000/exploitdev/Preparing-for-OSCE</id><content type="html" xml:base="http://localhost:4000/exploitdev/Preparing-for-OSCE.html">&lt;p&gt;A while back I got my OSCP, did some Hack the Box and learned some custom exploits. After smashing through the CTP coursework I thought I was hot shit and booked my OSCE exam… I failed. After a break I decided to prepare for it again, this post I’m going to set up my training Lab for round 2.&lt;/p&gt;
 
 &lt;h2 id=&quot;osce-vs-oscp-in-a-nutshell&quot;&gt;OSCE vs OSCP in a nutshell.&lt;/h2&gt;
 
@@ -48,53 +48,31 @@
 
 &lt;p&gt;First things first, while Backtrack and Kali come with everything you might need to &lt;em&gt;exploit&lt;/em&gt; a target they don’t have all the tools we need to develop the attack vector. As the exploit development process is against windows targets we need to set up a target app and development environment on our windows machines.&lt;/p&gt;
 
-&lt;h3 id=&quot;windows&quot;&gt;Windows&lt;/h3&gt;
+&lt;blockquote&gt;
+  &lt;p&gt;As environments get setup, take the time to curate your own repo with your software dependencies. This will make it easier on exam day and will save you heartache later.&lt;/p&gt;
+&lt;/blockquote&gt;
+
+&lt;h4 id=&quot;windows&quot;&gt;Windows&lt;/h4&gt;
 
 &lt;ol&gt;
   &lt;li&gt;&lt;strong&gt;Firefox:&lt;/strong&gt; because I’m going to be scraping the open web for tools, first thing I need is a safe(ish) browser, using legacy IE can be dangerous so a &lt;a href=&quot;https://www.mozilla.org/en-GB/firefox/new/&quot;&gt;modern version&lt;/a&gt; of firefox helps.&lt;/li&gt;
-  &lt;li&gt;&lt;strong&gt;Git for Windows:&lt;/strong&gt; I need some way to manage the automation code and tooling that I’ll be developing. Setting up a private git repo and pulling it down is very helpful. These days Linux ships with this as standard but I need to get it for windows. I like Git for Windows available &lt;a href=&quot;https://git-scm.com/download/win&quot;&gt;here&lt;/a&gt;&lt;/li&gt;
+  &lt;li&gt;&lt;strong&gt;Git for Windows:&lt;/strong&gt; I need some way to manage the automation code and tooling that I’ll be developing. Setting up a private git repo and pulling it down is very helpful. These days Linux ships with this as standard but I need to get it for windows. I like Git for Windows available &lt;a href=&quot;https://git-scm.com/download/win&quot;&gt;here&lt;/a&gt;.&lt;/li&gt;
   &lt;li&gt;&lt;strong&gt;VulnServer:&lt;/strong&gt; For the target app &lt;a href=&quot;https://github.com/stephenbradshaw/vulnserver&quot;&gt;Vulnserver&lt;/a&gt; offers a lot of bang for your buck, if you can comfortably beat all the ways in here you are ready for CTP.&lt;/li&gt;
-  &lt;li&gt;&lt;strong&gt;Immunity Debugger:&lt;/strong&gt; in CTP &lt;a href=&quot;http://www.ollydbg.de/&quot;&gt;OllyDB&lt;/a&gt; is the Debugger of choice, but if you’ve done OSCP then &lt;a href=&quot;https://www.immunityinc.com/products/debugger/&quot;&gt;Immunity Debugger&lt;/a&gt; is perhaps more familiar and offers a lot of extensibility with python. Its only downside is that it is not available in py3 (yet?!?)&lt;/li&gt;
-  &lt;li&gt;&lt;strong&gt;FUZZER&lt;/strong&gt; Spike&lt;/li&gt;
-  &lt;li&gt;&lt;strong&gt;Wireshark:&lt;/strong&gt;&lt;/li&gt;
-  &lt;li&gt;&lt;strong&gt;LordPE:&lt;/strong&gt;&lt;/li&gt;
-  &lt;li&gt;&lt;strong&gt;Anti Virus:&lt;/strong&gt; AVG Anti Virus&lt;/li&gt;
-  &lt;li&gt;&lt;strong&gt;nasm:&lt;/strong&gt; use backtrack / kali for this&lt;/li&gt;
-  &lt;li&gt;&lt;strong&gt;msfvenom:&lt;/strong&gt; use backtrack / kali for this&lt;/li&gt;
+  &lt;li&gt;&lt;strong&gt;Immunity Debugger:&lt;/strong&gt; in CTP &lt;a href=&quot;http://www.ollydbg.de/&quot;&gt;OllyDB&lt;/a&gt; is the Debugger of choice, but if you’ve done OSCP then &lt;a href=&quot;https://www.immunityinc.com/products/debugger/&quot;&gt;Immunity Debugger&lt;/a&gt; is perhaps more familiar and offers a lot of extensibility with python. Its only downside is that it is not available in py3 (yet?!?).&lt;/li&gt;
+  &lt;li&gt;&lt;strong&gt;BooFuzz:&lt;/strong&gt; Spike is the fuzzer used in CTP.  Superbly powerful but the more advanced features are a little difficult to use if you are not familiar with C. &lt;a href=&quot;https://github.com/jtpereyda/boofuzz.git&quot;&gt;BooFuzz&lt;/a&gt; offers a more friendly python wrapper around fuzzing. Python 3 is suggested but it works with Python 2 and comes with significant documentation &lt;a href=&quot;https://boofuzz.readthedocs.io/en/stable/user/install.html#prerequisites&quot;&gt;here&lt;/a&gt;&lt;/li&gt;
+  &lt;li&gt;&lt;strong&gt;Wireshark:&lt;/strong&gt;  When you need to debug your connections, &lt;a href=&quot;https://www.wireshark.org/download.html&quot;&gt;wireshark&lt;/a&gt; is first in class.&lt;/li&gt;
+  &lt;li&gt;&lt;strong&gt;LordPE:&lt;/strong&gt; This tool lets you edit the x86 portable binaries for AV evasion. Note the base binary will flag as malware, you will need a &lt;a href=&quot;https://samsclass.info/127/proj/lordpe.zip&quot;&gt;zipped download&lt;/a&gt; in order to bypass defender/AV.&lt;/li&gt;
+  &lt;li&gt;&lt;strong&gt;Anti Virus:&lt;/strong&gt; Bypassing Anti Virus is part of the course. The AV used in the training is a little dated, with this in mind I’m of the opinion that if you can beat any modern (free) AV, you should be able to beat the one in the exam. So pick one. Personally I use Virus Total’s API for training as it gives a quick validation without having to trigger a custom scan.&lt;/li&gt;
+  &lt;li&gt;&lt;strong&gt;Remote Desktop __[OPTIONAL]&lt;/strong&gt;:__ Pretty handy if you have a pro version and want multiple screens on RDP. Official docks are &lt;a href=&quot;https://docs.microsoft.com/en-us/windows-server/remote/remote-desktop-services/clients/remote-desktop-allow-access&quot;&gt;here&lt;/a&gt;.&lt;/li&gt;
 &lt;/ol&gt;
 
-&lt;p&gt;https://www.youtube.com/watch?v=0n3Li63PwnQ&amp;amp;t=30s&lt;/p&gt;
+&lt;h4 id=&quot;backtrackkali&quot;&gt;Backtrack/Kali&lt;/h4&gt;
 
-&lt;h2 id=&quot;bible&quot;&gt;Bible&lt;/h2&gt;
-&lt;ul&gt;
-  &lt;li&gt;https://tulpa-security.com/2017/07/18…
-    &lt;h2 id=&quot;reviews&quot;&gt;Reviews&lt;/h2&gt;
-  &lt;/li&gt;
-  &lt;li&gt;https://www.abatchy.com/2017/03/osce-…&lt;/li&gt;
-  &lt;li&gt;https://jhalon.github.io/OSCE-Review/&lt;/li&gt;
-  &lt;li&gt;https://netsec.ws/?p=517&lt;/li&gt;
-  &lt;li&gt;https://sock-raw.org/blog/osce-review/&lt;/li&gt;
-  &lt;li&gt;https://www.doyler.net/security-not-i…&lt;/li&gt;
-  &lt;li&gt;https://coffeegist.com/security/my-os…&lt;/li&gt;
-  &lt;li&gt;https://blog.own.sh/oscp-osce-oswp-re…&lt;/li&gt;
-  &lt;li&gt;https://stacktrac3.co/osce-review-ctp…&lt;/li&gt;
-  &lt;li&gt;https://medium.com/@david.valles/the-…
-    &lt;h2 id=&quot;practice&quot;&gt;Practice&lt;/h2&gt;
-  &lt;/li&gt;
-  &lt;li&gt;Vulnserver
-    &lt;ul&gt;
-      &lt;li&gt;http://www.thegreycorner.com/2010/12/…&lt;/li&gt;
-      &lt;li&gt;https://github.com/stephenbradshaw/vu…&lt;/li&gt;
-      &lt;li&gt;https://h0mbre.github.io/LTER_SEH_Suc…&lt;/li&gt;
-      &lt;li&gt;http://sh3llc0d3r.com/vulnserver-gmon…&lt;/li&gt;
-      &lt;li&gt;https://purpl3f0xsec.tech/2019/09/10/…
-        &lt;h2 id=&quot;subencoding&quot;&gt;Subencoding&lt;/h2&gt;
-      &lt;/li&gt;
-    &lt;/ul&gt;
-  &lt;/li&gt;
-  &lt;li&gt;https://marcosvalle.github.io/re/expl…&lt;/li&gt;
-  &lt;li&gt;http://vellosec.net/2018/08/carving-s…&lt;/li&gt;
-&lt;/ul&gt;</content><author><name></name></author><category term="LabSetup" /><category term="HyperV" /><category term="ExploitDev" /><summary type="html">A while back I got my OSCP, did some Hack the Box and learned some custom exploits. After smashing through the CTP coursework I thought I was hot shit and booked my OSCE exam… I failed. After a break I decided to prepare for it again, this post I’m going to set up my training Lab for round 2.</summary></entry><entry><title type="html">Building a Kali Container</title><link href="http://localhost:4000/secdevops/Building-a-Kali-Container.html" rel="alternate" type="text/html" title="Building a Kali Container" /><published>2020-05-21T00:00:00+01:00</published><updated>2020-05-21T00:00:00+01:00</updated><id>http://localhost:4000/secdevops/Building-a-Kali-Container</id><content type="html" xml:base="http://localhost:4000/secdevops/Building-a-Kali-Container.html">&lt;p&gt;Now that I have Docker setup I’m going to build a PoC nmap container out of a base Kali image.&lt;/p&gt;
+&lt;p&gt;Most of the exploit development will happen on the windows machine but if we’re looking at some auto shell generation and web exploits then Kali or Backtrack will be required. While I &lt;em&gt;can&lt;/em&gt; install Burp on Windows, my preference is to use Kali for this sort of thing as I’m more familiar with the tool set. Backtrack is interesting as it has older versions of the software and ‘just works’ for the Labs.&lt;/p&gt;
+
+&lt;p&gt;For the non Windows exploit development challenges it doesn’t really matter which you choose. In the end I used the backtrack image, but other than some TLS configurations Kali should work just fine.&lt;/p&gt;
+
+&lt;p&gt;Next post &lt;a href=&quot;/exploitdev/Setting-Up-Windows.html&quot;&gt;Setting Up Windows&lt;/a&gt; I’m going to look at building on a windows 7 image and start to get the tools set up for learning.&lt;/p&gt;</content><author><name></name></author><category term="LabSetup" /><category term="HyperV" /><category term="ExploitDev" /><summary type="html">A while back I got my OSCP, did some Hack the Box and learned some custom exploits. After smashing through the CTP coursework I thought I was hot shit and booked my OSCE exam… I failed. After a break I decided to prepare for it again, this post I’m going to set up my training Lab for round 2.</summary></entry><entry><title type="html">Building a Kali Container</title><link href="http://localhost:4000/secdevops/Building-a-Kali-Container.html" rel="alternate" type="text/html" title="Building a Kali Container" /><published>2020-05-21T00:00:00+01:00</published><updated>2020-05-21T00:00:00+01:00</updated><id>http://localhost:4000/secdevops/Building-a-Kali-Container</id><content type="html" xml:base="http://localhost:4000/secdevops/Building-a-Kali-Container.html">&lt;p&gt;Now that I have Docker setup I’m going to build a PoC nmap container out of a base Kali image.&lt;/p&gt;
 
 &lt;p&gt;&lt;a href=&quot;/secdevops/Setting-Up-Docker-on-Windows.html&quot;&gt;Last post&lt;/a&gt; I looked at setting up Docker and deploying a PoC demo of an Nginx server. This post I’m going to build a tool I can actually use.&lt;/p&gt;
 
@@ -417,7 +395,7 @@ Nmap &lt;span class=&quot;k&quot;&gt;done&lt;/span&gt;: 1 IP address &lt;span cl
 &lt;p&gt;Simple! This gives me command line version of Kali with most of the tools needed to complete assessments via automation.
 From here I can issue ENTRYPOINTS or CMDs to turn the image executable or simply run a bash shell and login.&lt;/p&gt;
 
-&lt;p&gt;Awesome, now I have an on demand kali version of I can run in powershell. This is the end of the Docker series Next post &lt;a href=&quot;/exploitdev/Preparing-for-OSCE.html&quot;&gt;Preparing for OSCE&lt;/a&gt; I’m going to look at some other cool stuff around OSCE.&lt;/p&gt;</content><author><name></name></author><category term="LabSetup" /><category term="HyperV" /><category term="Docker" /><summary type="html">Now that I have Docker setup I’m going to build a PoC nmap container out of a base Kali image.</summary></entry><entry><title type="html">Setting Up Docker on Windows</title><link href="http://localhost:4000/secdevops/Setting-Up-Docker-on-Windows.html" rel="alternate" type="text/html" title="Setting Up Docker on Windows" /><published>2020-05-20T00:00:00+01:00</published><updated>2020-05-20T00:00:00+01:00</updated><id>http://localhost:4000/secdevops/Setting-Up-Docker-on-Windows</id><content type="html" xml:base="http://localhost:4000/secdevops/Setting-Up-Docker-on-Windows.html">&lt;p&gt;This post I’m looking at setting up a PoC Docker image for testing purposes&lt;/p&gt;
+&lt;p&gt;Awesome, now I have an on demand kali version of I can run in powershell. This is the end of the Docker series. Next post &lt;a href=&quot;/exploitdev/Preparing-for-OSCE.html&quot;&gt;Preparing for OSCE&lt;/a&gt; I’m going to look at some other cool stuff around OSCE.&lt;/p&gt;</content><author><name></name></author><category term="LabSetup" /><category term="HyperV" /><category term="Docker" /><summary type="html">Now that I have Docker setup I’m going to build a PoC nmap container out of a base Kali image.</summary></entry><entry><title type="html">Setting Up Docker on Windows</title><link href="http://localhost:4000/secdevops/Setting-Up-Docker-on-Windows.html" rel="alternate" type="text/html" title="Setting Up Docker on Windows" /><published>2020-05-20T00:00:00+01:00</published><updated>2020-05-20T00:00:00+01:00</updated><id>http://localhost:4000/secdevops/Setting-Up-Docker-on-Windows</id><content type="html" xml:base="http://localhost:4000/secdevops/Setting-Up-Docker-on-Windows.html">&lt;p&gt;This post I’m looking at setting up a PoC Docker image for testing purposes&lt;/p&gt;
 
 &lt;p&gt;Working closely with Application Developers opens you eyes as a security professional, understanding the SDLC and applying it to testing and tooling is one of the most cost effective ways to apply good security practices. Just as developers learn security techniques to become more proficient engineers security professionals learning development process will become better at security.&lt;/p&gt;
 

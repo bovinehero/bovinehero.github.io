@@ -3,7 +3,7 @@ layout: post
 title:  "Preparing for OSCE"
 categories: "ExploitDev"
 tags: [LabSetup, HyperV, ExploitDev]
-thumb: \assets\images\ExploitDev\posts\PBCrichton-Malware-Hazard-Symbol.png.png
+thumb: \assets\images\ExploitDev\posts\Group-286@2x-300x270.png
 ---
 
 A while back I got my OSCP, did some Hack the Box and learned some custom exploits. After smashing through the CTP coursework I thought I was hot shit and booked my OSCE exam... I failed. After a break I decided to prepare for it again, this post I'm going to set up my training Lab for round 2.
@@ -57,57 +57,26 @@ Specifying the same hardware requirements as the Windows machines I need only po
 
 ### Software for Training
 
-First things first, while Backtrack and Kali come with everything you might need to _exploit_ a target they don't have all the tools we need to develop the attack vector. As the exploit development process is against windows targets we need to set up a target app and development environment on our windows machines.
+First things first, while Backtrack and Kali come with everything you might need to _exploit_ a target they don't have all the tools we need to develop the attack vector. As the exploit development process is against windows targets we need to set up a target app and development environment on our windows machines. 
 
-### Windows
+> As environments get setup, take the time to curate your own repo with your software dependencies. This will make it easier on exam day and will save you heartache later.
+
+#### Windows
 
 1. __Firefox:__ because I'm going to be scraping the open web for tools, first thing I need is a safe(ish) browser, using legacy IE can be dangerous so a [modern version](https://www.mozilla.org/en-GB/firefox/new/) of firefox helps.
-2. __Git for Windows:__ I need some way to manage the automation code and tooling that I'll be developing. Setting up a private git repo and pulling it down is very helpful. These days Linux ships with this as standard but I need to get it for windows. I like Git for Windows available [here](https://git-scm.com/download/win)
+2. __Git for Windows:__ I need some way to manage the automation code and tooling that I'll be developing. Setting up a private git repo and pulling it down is very helpful. These days Linux ships with this as standard but I need to get it for windows. I like Git for Windows available [here](https://git-scm.com/download/win). 
 3. __VulnServer:__ For the target app [Vulnserver](https://github.com/stephenbradshaw/vulnserver) offers a lot of bang for your buck, if you can comfortably beat all the ways in here you are ready for CTP.
-4. __Immunity Debugger:__ in CTP [OllyDB](http://www.ollydbg.de/) is the Debugger of choice, but if you've done OSCP then [Immunity Debugger](https://www.immunityinc.com/products/debugger/) is perhaps more familiar and offers a lot of extensibility with python. Its only downside is that it is not available in py3 (yet?!?)
-5. __FUZZER__ Spike - boofuzz https://github.com/jtpereyda/boofuzz.git requires Py3 pip install mode: https://boofuzz.readthedocs.io/en/stable/user/install.html#prerequisites py2 https://www.python.org/downloads/release/python-2716/ 
-  get boofuzz and do a pip install boofuzz
-  get pydbg from here: https://github.com/Fitblip/pydbg 
-  get libdasm to install pydasm: https://github.com/jtpereyda/libdasm 
-  need C++ compiler for py2
-  https://www.microsoft.com/en-us/download/details.aspx?id=44266 
-  winpcap: 
-  https://www.winpcap.org/install/default.htm 
-  winpcap sdk:
-  https://www.winpcap.org/devel.htm 
+4. __Immunity Debugger:__ in CTP [OllyDB](http://www.ollydbg.de/) is the Debugger of choice, but if you've done OSCP then [Immunity Debugger](https://www.immunityinc.com/products/debugger/) is perhaps more familiar and offers a lot of extensibility with python. Its only downside is that it is not available in py3 (yet?!?).
+5. __BooFuzz:__ Spike is the fuzzer used in CTP.  Superbly powerful but the more advanced features are a little difficult to use if you are not familiar with C. [BooFuzz](https://github.com/jtpereyda/boofuzz.git) offers a more friendly python wrapper around fuzzing. Python 3 is suggested but it works with Python 2 and comes with significant documentation [here](https://boofuzz.readthedocs.io/en/stable/user/install.html#prerequisites)
+6. __Wireshark:__  When you need to debug your connections, [wireshark](https://www.wireshark.org/download.html) is first in class.
+7. __LordPE:__ This tool lets you edit the x86 portable binaries for AV evasion. Note the base binary will flag as malware, you will need a [zipped download](https://samsclass.info/127/proj/lordpe.zip) in order to bypass defender/AV.
+8. __Anti Virus:__ Bypassing Anti Virus is part of the course. The AV used in the training is a little dated, with this in mind I'm of the opinion that if you can beat any modern (free) AV, you should be able to beat the one in the exam. So pick one. Personally I use Virus Total's API for training as it gives a quick validation without having to trigger a custom scan.
+9. __Remote Desktop __\[OPTIONAL\]__:__ Pretty handy if you have a pro version and want multiple screens on RDP. Official docks are [here](https://docs.microsoft.com/en-us/windows-server/remote/remote-desktop-services/clients/remote-desktop-allow-access).
 
-  how to modify: https://github.com/helpsystems/pcapy/wiki/Compiling-Pcapy-on-Windows-Guide 
+#### Backtrack/Kali
 
-  pip install typing
+Most of the exploit development will happen on the windows machine but if we're looking at some auto shell generation and web exploits then Kali or Backtrack will be required. While I _can_ install Burp on Windows, my preference is to use Kali for this sort of thing as I'm more familiar with the tool set. Backtrack is interesting as it has older versions of the software and 'just works' for the Labs. 
 
-6. __Wireshark:__
-7. __LordPE:__
-8. __Anti Virus:__ AVG Anti Virus
-9. __nasm:__ use backtrack / kali for this
-10. __msfvenom:__ use backtrack / kali for this
+For the non Windows exploit development challenges it doesn't really matter which you choose. In the end I used the backtrack image, but other than some TLS configurations Kali should work just fine.
 
-
-https://www.youtube.com/watch?v=0n3Li63PwnQ&t=30s 
-
-## Bible
-* https://tulpa-security.com/2017/07/18...
-## Reviews
-* https://www.abatchy.com/2017/03/osce-...
-* https://jhalon.github.io/OSCE-Review/
-* https://netsec.ws/?p=517
-* https://sock-raw.org/blog/osce-review/
-* https://www.doyler.net/security-not-i...
-* https://coffeegist.com/security/my-os...
-* https://blog.own.sh/oscp-osce-oswp-re...
-* https://stacktrac3.co/osce-review-ctp...
-* https://medium.com/@david.valles/the-...
-## Practice
-* Vulnserver
-  - http://www.thegreycorner.com/2010/12/...
-  - https://github.com/stephenbradshaw/vu...
-  - https://h0mbre.github.io/LTER_SEH_Suc...
-  - http://sh3llc0d3r.com/vulnserver-gmon...
-  - https://purpl3f0xsec.tech/2019/09/10/...
-## Subencoding
-* https://marcosvalle.github.io/re/expl...
-* http://vellosec.net/2018/08/carving-s...
+Next post [{{page.next.title}}]({{page.next.url}}) I'm going to look at building on a windows 7 image and start to get the tools set up for learning.
