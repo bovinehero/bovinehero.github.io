@@ -1,6 +1,102 @@
-<?xml version="1.0" encoding="utf-8"?><feed xmlns="http://www.w3.org/2005/Atom" ><generator uri="https://jekyllrb.com/" version="3.8.5">Jekyll</generator><link href="http://localhost:4000/feed.xml" rel="self" type="application/atom+xml" /><link href="http://localhost:4000/" rel="alternate" type="text/html" /><updated>2020-05-21T20:44:19+01:00</updated><id>http://localhost:4000/feed.xml</id><title type="html">Bovine Hero Blog</title><subtitle>Bovine Hero's Security Blog</subtitle><entry><title type="html">Building a Kali Docker Repo</title><link href="http://localhost:4000/secdevops/Building-a-Kali-Docker-Repo.html" rel="alternate" type="text/html" title="Building a Kali Docker Repo" /><published>2020-05-21T00:00:00+01:00</published><updated>2020-05-21T00:00:00+01:00</updated><id>http://localhost:4000/secdevops/Building-a-Kali-Docker-Repo</id><content type="html" xml:base="http://localhost:4000/secdevops/Building-a-Kali-Docker-Repo.html">&lt;p&gt;Now that I have Docker setup I’m going to build a set of Kali containers to spin up for testing.&lt;/p&gt;
+<?xml version="1.0" encoding="utf-8"?><feed xmlns="http://www.w3.org/2005/Atom" ><generator uri="https://jekyllrb.com/" version="3.8.5">Jekyll</generator><link href="http://localhost:4000/feed.xml" rel="self" type="application/atom+xml" /><link href="http://localhost:4000/" rel="alternate" type="text/html" /><updated>2020-05-29T17:45:03+01:00</updated><id>http://localhost:4000/feed.xml</id><title type="html">Bovine Hero Blog</title><subtitle>Bovine Hero's Security Blog</subtitle><entry><title type="html">Preparing for OSCE</title><link href="http://localhost:4000/exploitdev/Preparing-for-OSCE.html" rel="alternate" type="text/html" title="Preparing for OSCE" /><published>2020-05-29T00:00:00+01:00</published><updated>2020-05-29T00:00:00+01:00</updated><id>http://localhost:4000/exploitdev/Preparing%20for%20OSCE</id><content type="html" xml:base="http://localhost:4000/exploitdev/Preparing-for-OSCE.html">&lt;p&gt;A while back I got my OSCP, did some Hack the Box and learned some custom exploits. After smashing through the CTP coursework I thought I was hot shit and booked my OSCE exam… I failed. After a break I decided to prepare for it again, this post I’m going to set up my training Lab for round 2.&lt;/p&gt;
 
-&lt;p&gt;&lt;a href=&quot;/secdevops/Setting-Up-Docker-on-Windows.html&quot;&gt;Last post&lt;/a&gt; I looked at setting up Docker and deploying a PoC demo of an Nginx server. This post I’m going to look at starting a local repo of Docker images based on a Vanilla Kali.&lt;/p&gt;
+&lt;h2 id=&quot;osce-vs-oscp-in-a-nutshell&quot;&gt;OSCE vs OSCP in a nutshell.&lt;/h2&gt;
+
+&lt;p&gt;There are loads of reviews for OSCP it is a great course. It looks at a broad scope of assessment techniques and gives students a strong foundation to build on, OSCE is more focused and is often touted as a level up from OSCP as it covers more advanced techniques.&lt;/p&gt;
+
+&lt;p&gt;While I certainly found the OSCE exam more difficult (48 hours for OSCE vs 24 in OSCP) it isn’t really a level up, more a specialization in exploit development. Much like medical doctors study medicine not every doctor will specialize in surgery some may look to practice anesthesiology or oncology instead. OSCE is not the same as OSCP, it primarily tests your ability to develop black box exploits (on windows) all of the other stuff takes a back seat. If you really liked the Buffer Overflow content in the PWK course, then this is a natural fit. The big difference is that in OSCE you will need to develop some tooling if you want to pass, passing the exam in manual mode is very difficult.&lt;/p&gt;
+
+&lt;p&gt;Many people feel the course is dated, while at time of writing the content IS old it does cover legitimate techniques to build on. I’m a big fan of walking before running and learning the legacy stuff is a great way to build foundations in an area. I really took a lot out of the course which has helped me become a better at my work. While I’d love to see some modernization in the content the course was definitely a worthwhile experience.&lt;/p&gt;
+
+&lt;h2 id=&quot;the-lab-setup&quot;&gt;The Lab Setup&lt;/h2&gt;
+
+&lt;h3 id=&quot;vms-for-testing&quot;&gt;VMs for Testing&lt;/h3&gt;
+&lt;p&gt;The Cracking the Perimeter (CTP) course is pretty old, it relies on Windows XP and Vista to develop the exploits and Backtrack instead of Kali. This comes with a few challenges, in 2020 legitimate copies of both XP and Vista are very difficult to get a hold of. Windows 7 &lt;em&gt;is&lt;/em&gt; still available if you have a product key from &lt;a href=&quot;https://www.microsoft.com/en-gb/software-download/windows7&quot;&gt;Microsoft&lt;/a&gt; which I found is a suitable substitute for Vista. XP is a little harder to get, while not 100% necessary for practice it does make an appearance in the course. XP’s (really, really) legacy browsers offer plenty of exploit opportunities to practice on. Just make sure you get the &lt;strong&gt;x86&lt;/strong&gt; version, &lt;strong&gt;x64&lt;/strong&gt; architecture OS are too modern and makes the learning more difficult.&lt;/p&gt;
+
+&lt;p&gt;Building images is a pretty standard task in HyperV and if you can get a hold of XP and Win7 Pro iso files, you can even enable remote desktop. I covered how set up virtual hardware for a Kali VM in this &lt;a href=&quot;/kalisetup/Kali-Linux-HyperV-Style.html&quot;&gt;post&lt;/a&gt;. There is little difference in creating the ‘hardware’ components but for x86 guest VMs need to be GEN1 and I have specified the following hardware specs:&lt;/p&gt;
+
+&lt;ol&gt;
+  &lt;li&gt;1024 - 4096 MB RAM (more than 4GB is wasteful)&lt;/li&gt;
+  &lt;li&gt;128 GB HDD (gives a base install plus a little room for programs.)&lt;/li&gt;
+  &lt;li&gt;1 Network Adapter (I had to use a Legacy Adapter for XP)&lt;/li&gt;
+&lt;/ol&gt;
+
+&lt;p&gt;For the windows VMs once the base Windows OS is installed make sure that updates are disabled and that the network adapter is pointed to an external network switch. This will allow easy downloads for tools. Once everything is installed remapping the VM’s network Adapter to point internally will help stop any rogue code getting in or out.&lt;/p&gt;
+
+&lt;blockquote&gt;
+  &lt;p&gt;make sure to disable secure boot options!&lt;/p&gt;
+&lt;/blockquote&gt;
+
+&lt;p&gt;When you sign up for CTP Offensive security give you a custom &lt;a href=&quot;http://downloads.kali.org/BT5R3-GNOME-VM-32.7z&quot;&gt;Backtrack image&lt;/a&gt; for the course. While the course can be completed with Kali the Metasploit version in Kali is more automated than the one in Backtrack. When on engagements this is obviously better it disadvantages learning as some of the code execution is obfuscated in encoding. Forgoing Backtrack isn’t a deal breaker, but really helps with the course and so it is worthwhile creating a VM for it.&lt;/p&gt;
+
+&lt;p&gt;The image supplied is optimized for VMWare Workstation/Player, but I can’t use that as I’m on HyperV so it needs converted. Luckily &lt;a href=&quot;https://www.microsoft.com/en-gb/download/details.aspx?id=42497&quot;&gt;Microsoft Virtual Machine Converter&lt;/a&gt; comes with a handy set of tools that can do this for me. The GUI version isn’t really optimized for VMWare Workstation/Player it is best with a VMWare ESX server, I don’t have this but can leverage the &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;MvmcCmdlet.psd1&lt;/code&gt; module in powershell. Once I extract the BT5R3-GNOME-VM-32 machine via 7zip All I need to do is import the module and execute conversion commands to get a compatible VHD disk:&lt;/p&gt;
+
+&lt;figure class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-powershell&quot; data-lang=&quot;powershell&quot;&gt;&lt;span class=&quot;nf&quot;&gt;Import-Module&lt;/span&gt;&lt;span class=&quot;w&quot;&gt; &lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;C:\Program Files\Microsoft Virtual Machine Converter\MvmcCmdlet.psd1&quot;&lt;/span&gt;&lt;span class=&quot;w&quot;&gt;
+&lt;/span&gt;&lt;span class=&quot;nf&quot;&gt;ConvertTo-MvmcVirtualHardDisk&lt;/span&gt;&lt;span class=&quot;w&quot;&gt; &lt;/span&gt;&lt;span class=&quot;nt&quot;&gt;-SourceLiteralPath&lt;/span&gt;&lt;span class=&quot;w&quot;&gt; &lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;nx&quot;&gt;\BT5R3-GNOME-VM-32.vmdk&lt;/span&gt;&lt;span class=&quot;w&quot;&gt; &lt;/span&gt;&lt;span class=&quot;nt&quot;&gt;-DestinationLiteralPath&lt;/span&gt;&lt;span class=&quot;w&quot;&gt; &lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;nx&quot;&gt;\BT5R3-GNOME-VM-32&lt;/span&gt;&lt;span class=&quot;w&quot;&gt; &lt;/span&gt;&lt;span class=&quot;nt&quot;&gt;-VhdType&lt;/span&gt;&lt;span class=&quot;w&quot;&gt; &lt;/span&gt;&lt;span class=&quot;nx&quot;&gt;DynamicHardDisk&lt;/span&gt;&lt;span class=&quot;w&quot;&gt; &lt;/span&gt;&lt;span class=&quot;nt&quot;&gt;-VhdFormat&lt;/span&gt;&lt;span class=&quot;w&quot;&gt; &lt;/span&gt;&lt;span class=&quot;nx&quot;&gt;Vhd&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/figure&gt;
+
+&lt;p&gt;And it works:&lt;/p&gt;
+
+&lt;figure class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-powershell&quot; data-lang=&quot;powershell&quot;&gt;&lt;span class=&quot;nf&quot;&gt;Destination&lt;/span&gt;&lt;span class=&quot;w&quot;&gt;                                &lt;/span&gt;&lt;span class=&quot;nx&quot;&gt;Source&lt;/span&gt;&lt;span class=&quot;w&quot;&gt;
+&lt;/span&gt;&lt;span class=&quot;nf&quot;&gt;-----------&lt;/span&gt;&lt;span class=&quot;w&quot;&gt;                                &lt;/span&gt;&lt;span class=&quot;nf&quot;&gt;------&lt;/span&gt;&lt;span class=&quot;w&quot;&gt;
+&lt;/span&gt;&lt;span class=&quot;nx&quot;&gt;K:\BT5R3-GNOME-VM-32\BT5R3-GNOME-VM-32.vhd&lt;/span&gt;&lt;span class=&quot;w&quot;&gt; &lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;nx&quot;&gt;\BT5R3-GNOME-VM-32.vmdk&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/figure&gt;
+
+&lt;p&gt;Specifying the same hardware requirements as the Windows machines I need only point the Virtual hard disk to point to the &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;BT5R3-GNOME-VM-32.vhd&lt;/code&gt; file and power it on.&lt;/p&gt;
+
+&lt;p&gt;&lt;img src=&quot;\assets\images\ExploitDev\posts\BT.png&quot; alt=&quot;BT.png&quot; /&gt;&lt;/p&gt;
+
+&lt;h3 id=&quot;software-for-training&quot;&gt;Software for Training&lt;/h3&gt;
+
+&lt;p&gt;First things first, while Backtrack and Kali come with everything you might need to &lt;em&gt;exploit&lt;/em&gt; a target they don’t have all the tools we need to develop the attack vector. As the exploit development process is against windows targets we need to set up a target app and development environment on our windows machines.&lt;/p&gt;
+
+&lt;h3 id=&quot;windows&quot;&gt;Windows&lt;/h3&gt;
+
+&lt;ol&gt;
+  &lt;li&gt;&lt;strong&gt;Firefox:&lt;/strong&gt; because I’m going to be scraping the open web for tools, first thing I need is a safe(ish) browser, using legacy IE can be dangerous so a &lt;a href=&quot;https://www.mozilla.org/en-GB/firefox/new/&quot;&gt;modern version&lt;/a&gt; of firefox helps.&lt;/li&gt;
+  &lt;li&gt;&lt;strong&gt;Git for Windows:&lt;/strong&gt; I need some way to manage the automation code and tooling that I’ll be developing. Setting up a private git repo and pulling it down is very helpful. These days Linux ships with this as standard but I need to get it for windows. I like Git for Windows available &lt;a href=&quot;https://git-scm.com/download/win&quot;&gt;here&lt;/a&gt;&lt;/li&gt;
+  &lt;li&gt;&lt;strong&gt;VulnServer:&lt;/strong&gt; For the target app &lt;a href=&quot;https://github.com/stephenbradshaw/vulnserver&quot;&gt;Vulnserver&lt;/a&gt; offers a lot of bang for your buck, if you can comfortably beat all the ways in here you are ready for CTP.&lt;/li&gt;
+  &lt;li&gt;&lt;strong&gt;Immunity Debugger:&lt;/strong&gt; in CTP &lt;a href=&quot;http://www.ollydbg.de/&quot;&gt;OllyDB&lt;/a&gt; is the Debugger of choice, but if you’ve done OSCP then &lt;a href=&quot;https://www.immunityinc.com/products/debugger/&quot;&gt;Immunity Debugger&lt;/a&gt; is perhaps more familiar and offers a lot of extensibility with python. Its only downside is that it is not available in py3 (yet?!?)&lt;/li&gt;
+  &lt;li&gt;&lt;strong&gt;FUZZER&lt;/strong&gt; Spike&lt;/li&gt;
+  &lt;li&gt;&lt;strong&gt;Wireshark:&lt;/strong&gt;&lt;/li&gt;
+  &lt;li&gt;&lt;strong&gt;LordPE:&lt;/strong&gt;&lt;/li&gt;
+  &lt;li&gt;&lt;strong&gt;Anti Virus:&lt;/strong&gt; AVG Anti Virus&lt;/li&gt;
+  &lt;li&gt;&lt;strong&gt;nasm:&lt;/strong&gt; use backtrack / kali for this&lt;/li&gt;
+  &lt;li&gt;&lt;strong&gt;msfvenom:&lt;/strong&gt; use backtrack / kali for this&lt;/li&gt;
+&lt;/ol&gt;
+
+&lt;p&gt;https://www.youtube.com/watch?v=0n3Li63PwnQ&amp;amp;t=30s&lt;/p&gt;
+
+&lt;h2 id=&quot;bible&quot;&gt;Bible&lt;/h2&gt;
+&lt;ul&gt;
+  &lt;li&gt;https://tulpa-security.com/2017/07/18…
+    &lt;h2 id=&quot;reviews&quot;&gt;Reviews&lt;/h2&gt;
+  &lt;/li&gt;
+  &lt;li&gt;https://www.abatchy.com/2017/03/osce-…&lt;/li&gt;
+  &lt;li&gt;https://jhalon.github.io/OSCE-Review/&lt;/li&gt;
+  &lt;li&gt;https://netsec.ws/?p=517&lt;/li&gt;
+  &lt;li&gt;https://sock-raw.org/blog/osce-review/&lt;/li&gt;
+  &lt;li&gt;https://www.doyler.net/security-not-i…&lt;/li&gt;
+  &lt;li&gt;https://coffeegist.com/security/my-os…&lt;/li&gt;
+  &lt;li&gt;https://blog.own.sh/oscp-osce-oswp-re…&lt;/li&gt;
+  &lt;li&gt;https://stacktrac3.co/osce-review-ctp…&lt;/li&gt;
+  &lt;li&gt;https://medium.com/@david.valles/the-…
+    &lt;h2 id=&quot;practice&quot;&gt;Practice&lt;/h2&gt;
+  &lt;/li&gt;
+  &lt;li&gt;Vulnserver
+    &lt;ul&gt;
+      &lt;li&gt;http://www.thegreycorner.com/2010/12/…&lt;/li&gt;
+      &lt;li&gt;https://github.com/stephenbradshaw/vu…&lt;/li&gt;
+      &lt;li&gt;https://h0mbre.github.io/LTER_SEH_Suc…&lt;/li&gt;
+      &lt;li&gt;http://sh3llc0d3r.com/vulnserver-gmon…&lt;/li&gt;
+      &lt;li&gt;https://purpl3f0xsec.tech/2019/09/10/…
+        &lt;h2 id=&quot;subencoding&quot;&gt;Subencoding&lt;/h2&gt;
+      &lt;/li&gt;
+    &lt;/ul&gt;
+  &lt;/li&gt;
+  &lt;li&gt;https://marcosvalle.github.io/re/expl…&lt;/li&gt;
+  &lt;li&gt;http://vellosec.net/2018/08/carving-s…&lt;/li&gt;
+&lt;/ul&gt;</content><author><name></name></author><category term="LabSetup" /><category term="HyperV" /><category term="ExploitDev" /><summary type="html">A while back I got my OSCP, did some Hack the Box and learned some custom exploits. After smashing through the CTP coursework I thought I was hot shit and booked my OSCE exam… I failed. After a break I decided to prepare for it again, this post I’m going to set up my training Lab for round 2.</summary></entry><entry><title type="html">Building a Kali Container</title><link href="http://localhost:4000/secdevops/Building-a-Kali-Container.html" rel="alternate" type="text/html" title="Building a Kali Container" /><published>2020-05-21T00:00:00+01:00</published><updated>2020-05-21T00:00:00+01:00</updated><id>http://localhost:4000/secdevops/Building-a-Kali-Container</id><content type="html" xml:base="http://localhost:4000/secdevops/Building-a-Kali-Container.html">&lt;p&gt;Now that I have Docker setup I’m going to build a PoC nmap container out of a base Kali image.&lt;/p&gt;
+
+&lt;p&gt;&lt;a href=&quot;/secdevops/Setting-Up-Docker-on-Windows.html&quot;&gt;Last post&lt;/a&gt; I looked at setting up Docker and deploying a PoC demo of an Nginx server. This post I’m going to build a tool I can actually use.&lt;/p&gt;
 
 &lt;h2 id=&quot;clearing-the-decks&quot;&gt;Clearing the Decks&lt;/h2&gt;
 
@@ -36,7 +132,292 @@
 &lt;p&gt;This would let me quickly configure a bare bones Kali (shell only) image. While this is fast I’m lazy, if I have to do something more than twice I want to leverage some automation. So I’m going to use a Dockerfile to configure and set up set up my base image.
 What is a Dockerfile? It is a simple configuration file which specifies the initial setup of a container.&lt;/p&gt;
 
-&lt;p&gt;This has several advantages, but where it really shines for me is the ability to refer to this file for a base image and then build on it to create custom Kali builds for individual test cases. This simplifies deployments and reduces my workload, indeed in enterprise these files can be templated with variables and quickly scaled as needed.&lt;/p&gt;</content><author><name></name></author><category term="LabSetup" /><category term="HyperV" /><category term="Docker" /><summary type="html">Now that I have Docker setup I’m going to build a set of Kali containers to spin up for testing.</summary></entry><entry><title type="html">Setting Up Docker on Windows</title><link href="http://localhost:4000/secdevops/Setting-Up-Docker-on-Windows.html" rel="alternate" type="text/html" title="Setting Up Docker on Windows" /><published>2020-05-20T00:00:00+01:00</published><updated>2020-05-20T00:00:00+01:00</updated><id>http://localhost:4000/secdevops/Setting-Up-Docker-on-Windows</id><content type="html" xml:base="http://localhost:4000/secdevops/Setting-Up-Docker-on-Windows.html">&lt;p&gt;This post I’m looking at setting up a PoC Docker image for testing purposes&lt;/p&gt;
+&lt;p&gt;This has several advantages, but where it really shines for me is the ability to refer to this file for a base image and then build on it to create custom Kali builds for individual test cases. This simplifies deployments and reduces my workload, indeed in enterprise these files can be templated with variables and quickly scaled as needed.&lt;/p&gt;
+
+&lt;blockquote&gt;
+  &lt;p&gt;When you issue a docker build command, the current working directory is called the build context. By default, the Dockerfile is assumed to be located here, but you can specify a different location with the file flag (-f). Regardless of where the Dockerfile actually lives, all recursive contents of files and directories in the current directory are sent to the Docker daemon as the build context.&lt;/p&gt;
+&lt;/blockquote&gt;
+
+&lt;p&gt;First off I want to clean out all my stored images:&lt;/p&gt;
+
+&lt;figure class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-powershell&quot; data-lang=&quot;powershell&quot;&gt;&lt;span class=&quot;nf&quot;&gt;docker&lt;/span&gt;&lt;span class=&quot;w&quot;&gt; &lt;/span&gt;&lt;span class=&quot;nx&quot;&gt;rmi&lt;/span&gt;&lt;span class=&quot;w&quot;&gt; &lt;/span&gt;&lt;span class=&quot;err&quot;&gt;$&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;nf&quot;&gt;docker&lt;/span&gt;&lt;span class=&quot;w&quot;&gt; &lt;/span&gt;&lt;span class=&quot;nx&quot;&gt;images&lt;/span&gt;&lt;span class=&quot;w&quot;&gt; &lt;/span&gt;&lt;span class=&quot;nt&quot;&gt;-a&lt;/span&gt;&lt;span class=&quot;w&quot;&gt; &lt;/span&gt;&lt;span class=&quot;nt&quot;&gt;-q&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;&lt;span class=&quot;w&quot;&gt; &lt;/span&gt;&lt;span class=&quot;nt&quot;&gt;--force&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/figure&gt;
+
+&lt;p&gt;&lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;Dockerfile&lt;/code&gt; contents:&lt;/p&gt;
+
+&lt;figure class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-conf&quot; data-lang=&quot;conf&quot;&gt;&lt;span class=&quot;c&quot;&gt;# Kali Linux Base Image to start all Kali builds with
+&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;FROM&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;kalilinux&lt;/span&gt;/&lt;span class=&quot;n&quot;&gt;kali&lt;/span&gt;-&lt;span class=&quot;n&quot;&gt;rolling&lt;/span&gt; 
+&lt;span class=&quot;n&quot;&gt;LABEL&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;Description&lt;/span&gt;=&lt;span class=&quot;s2&quot;&gt;&quot;Base Image to start all Kali builds with&quot;&lt;/span&gt; &lt;/code&gt;&lt;/pre&gt;&lt;/figure&gt;
+
+&lt;p&gt;If I go to the same directory as my Docker file I can kick off a build for an image and tag it as &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;base&lt;/code&gt; with:&lt;/p&gt;
+
+&lt;figure class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-powershell&quot; data-lang=&quot;powershell&quot;&gt;&lt;span class=&quot;nf&quot;&gt;docker&lt;/span&gt;&lt;span class=&quot;w&quot;&gt; &lt;/span&gt;&lt;span class=&quot;nx&quot;&gt;build&lt;/span&gt;&lt;span class=&quot;w&quot;&gt; &lt;/span&gt;&lt;span class=&quot;nt&quot;&gt;-t&lt;/span&gt;&lt;span class=&quot;w&quot;&gt; &lt;/span&gt;&lt;span class=&quot;nx&quot;&gt;base&lt;/span&gt;&lt;span class=&quot;w&quot;&gt; &lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/figure&gt;
+
+&lt;p&gt;To get the following output&lt;/p&gt;
+
+&lt;figure class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-shell&quot; data-lang=&quot;shell&quot;&gt;Sending build context to Docker daemon  2.048kB
+Step 1/2 : FROM kalilinux/kali-rolling
+ &lt;span class=&quot;nt&quot;&gt;---&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;&amp;gt;&lt;/span&gt; 461ce11a4bd9
+Step 2/2 : LABEL &lt;span class=&quot;nv&quot;&gt;Description&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;base Image to start all Kali builds with&quot;&lt;/span&gt;
+ &lt;span class=&quot;nt&quot;&gt;---&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;&amp;gt;&lt;/span&gt; Using cache
+ &lt;span class=&quot;nt&quot;&gt;---&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;&amp;gt;&lt;/span&gt; 1777f73dd909
+Successfully built 1777f73dd909
+Successfully tagged base:latest
+SECURITY WARNING: You are building a Docker image from Windows against a non-Windows Docker host. All files and directories added to build context will have &lt;span class=&quot;s1&quot;&gt;'-rwxr-xr-x'&lt;/span&gt; permissions. It is recommended to double check and reset permissions &lt;span class=&quot;k&quot;&gt;for &lt;/span&gt;sensitive files and directories.&lt;/code&gt;&lt;/pre&gt;&lt;/figure&gt;
+
+&lt;p&gt;I can run the base image interactively in this command prompt in privileged mode:&lt;/p&gt;
+
+&lt;figure class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-powershell&quot; data-lang=&quot;powershell&quot;&gt;&lt;span class=&quot;nf&quot;&gt;docker&lt;/span&gt;&lt;span class=&quot;w&quot;&gt; &lt;/span&gt;&lt;span class=&quot;nx&quot;&gt;run&lt;/span&gt;&lt;span class=&quot;w&quot;&gt; &lt;/span&gt;&lt;span class=&quot;nt&quot;&gt;-t&lt;/span&gt;&lt;span class=&quot;w&quot;&gt; &lt;/span&gt;&lt;span class=&quot;nt&quot;&gt;-i&lt;/span&gt;&lt;span class=&quot;w&quot;&gt; &lt;/span&gt;&lt;span class=&quot;nt&quot;&gt;--privileged&lt;/span&gt;&lt;span class=&quot;w&quot;&gt; &lt;/span&gt;&lt;span class=&quot;nx&quot;&gt;base&lt;/span&gt;&lt;span class=&quot;w&quot;&gt; &lt;/span&gt;&lt;span class=&quot;nx&quot;&gt;bash&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/figure&gt;
+
+&lt;p&gt;and perform some basic commands:&lt;/p&gt;
+
+&lt;figure class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-shell&quot; data-lang=&quot;shell&quot;&gt;root@bcbf347910d1:/# &lt;span class=&quot;nb&quot;&gt;id&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;&amp;amp;&amp;amp;&lt;/span&gt; &lt;span class=&quot;nb&quot;&gt;uname&lt;/span&gt; &lt;span class=&quot;nt&quot;&gt;-a&lt;/span&gt;
+&lt;span class=&quot;nv&quot;&gt;uid&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;0&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;root&lt;span class=&quot;o&quot;&gt;)&lt;/span&gt; &lt;span class=&quot;nv&quot;&gt;gid&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;0&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;root&lt;span class=&quot;o&quot;&gt;)&lt;/span&gt; &lt;span class=&quot;nb&quot;&gt;groups&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;0&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;root&lt;span class=&quot;o&quot;&gt;)&lt;/span&gt;
+Linux bcbf347910d1 4.19.76-linuxkit &lt;span class=&quot;c&quot;&gt;#1 SMP Fri Apr 3 15:53:26 UTC 2020 x86_64 GNU/Linux&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/figure&gt;
+
+&lt;p&gt;This is a pretty basic image it comes with very few tools by default and requires package installations to be of any real benefit for us, from here I’m free to customize the build manually. These changes only persist for the life of the container and if I want to persist them I will need to commit changes to the image in a separate shell on the host device.&lt;/p&gt;
+
+&lt;p&gt;As I mentioned earlier, manual configurations are tiresome it is my preference to automate as much of this as possible. To do this we can leverage RUM, CMD and ENTRYPOINT commands.&lt;/p&gt;
+
+&lt;blockquote&gt;
+  &lt;p&gt;RUN executes command(s) in a new layer and creates a new image. E.g., it is often used for installing software packages. CMD sets default command and/or parameters, which can be overwritten from command line when docker container runs. ENTRYPOINT configures a container that will run as an executable. &lt;a href=&quot;https://goinbigdata.com/docker-run-vs-cmd-vs-entrypoint/&quot;&gt;source&lt;/a&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+
+&lt;p&gt;Below is an example of a dockerfile that will install nmap and exploitdb packages using RUN:&lt;/p&gt;
+
+&lt;figure class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-conf&quot; data-lang=&quot;conf&quot;&gt;&lt;span class=&quot;c&quot;&gt;# Kali Linux base Image to start all Kali builds with
+&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;FROM&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;kalilinux&lt;/span&gt;/&lt;span class=&quot;n&quot;&gt;kali&lt;/span&gt;-&lt;span class=&quot;n&quot;&gt;rolling&lt;/span&gt; 
+&lt;span class=&quot;n&quot;&gt;LABEL&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;Description&lt;/span&gt;=&lt;span class=&quot;s2&quot;&gt;&quot;base Image to start all Kali builds with&quot;&lt;/span&gt; 
+&lt;span class=&quot;n&quot;&gt;RUN&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;apt&lt;/span&gt;-&lt;span class=&quot;n&quot;&gt;get&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;update&lt;/span&gt; &amp;amp;&amp;amp; &lt;span class=&quot;n&quot;&gt;apt&lt;/span&gt;-&lt;span class=&quot;n&quot;&gt;get&lt;/span&gt; -&lt;span class=&quot;n&quot;&gt;y&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;install&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;nmap&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;exploitdb&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/figure&gt;
+
+&lt;p&gt;This time when I rebuild my base image:&lt;/p&gt;
+
+&lt;figure class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-powershell&quot; data-lang=&quot;powershell&quot;&gt;&lt;span class=&quot;nf&quot;&gt;docker&lt;/span&gt;&lt;span class=&quot;w&quot;&gt; &lt;/span&gt;&lt;span class=&quot;nx&quot;&gt;build&lt;/span&gt;&lt;span class=&quot;w&quot;&gt; &lt;/span&gt;&lt;span class=&quot;nt&quot;&gt;-t&lt;/span&gt;&lt;span class=&quot;w&quot;&gt; &lt;/span&gt;&lt;span class=&quot;nx&quot;&gt;base&lt;/span&gt;&lt;span class=&quot;w&quot;&gt; &lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/figure&gt;
+
+&lt;p&gt;It pulls performs an install&lt;/p&gt;
+
+&lt;figure class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-shell&quot; data-lang=&quot;shell&quot;&gt;Sending build context to Docker daemon  2.048kB
+Step 1/3 : FROM kalilinux/kali-rolling
+ &lt;span class=&quot;nt&quot;&gt;---&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;&amp;gt;&lt;/span&gt; 461ce11a4bd9
+Step 2/3 : LABEL &lt;span class=&quot;nv&quot;&gt;Description&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;base Image to start all Kali builds with&quot;&lt;/span&gt;
+ &lt;span class=&quot;nt&quot;&gt;---&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;&amp;gt;&lt;/span&gt; Using cache
+ &lt;span class=&quot;nt&quot;&gt;---&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;&amp;gt;&lt;/span&gt; cf572134723d
+Step 3/3 : RUN apt-get update &lt;span class=&quot;o&quot;&gt;&amp;amp;&amp;amp;&lt;/span&gt; apt-get &lt;span class=&quot;nt&quot;&gt;-y&lt;/span&gt; &lt;span class=&quot;nb&quot;&gt;install &lt;/span&gt;nmap exploitdb
+ &lt;span class=&quot;nt&quot;&gt;---&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;&amp;gt;&lt;/span&gt; Running &lt;span class=&quot;k&quot;&gt;in &lt;/span&gt;ca06b3e4b27f
+Get:1 http://kali.download/kali kali-rolling InRelease &lt;span class=&quot;o&quot;&gt;[&lt;/span&gt;30.5 kB]
+Get:2 http://kali.download/kali kali-rolling/contrib amd64 Packages &lt;span class=&quot;o&quot;&gt;[&lt;/span&gt;99.4 kB]
+Get:3 http://kali.download/kali kali-rolling/main amd64 Packages &lt;span class=&quot;o&quot;&gt;[&lt;/span&gt;16.5 MB]
+Get:4 http://kali.download/kali kali-rolling/non-free amd64 Packages &lt;span class=&quot;o&quot;&gt;[&lt;/span&gt;195 kB]
+Fetched 16.8 MB &lt;span class=&quot;k&quot;&gt;in &lt;/span&gt;3s &lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;5665 kB/s&lt;span class=&quot;o&quot;&gt;)&lt;/span&gt;
+Reading package lists...
+Reading package lists...
+Building dependency tree...
+The following additional packages will be installed:
+  libblas3 libicu63 liblinear4 liblua5.3-0 libssh2-1 libssl1.1 libxml2
+  libxml2-utils lua-lpeg nmap-common
+Suggested packages:
+  liblinear-tools liblinear-dev ncat ndiff zenmap
+The following NEW packages will be installed:
+  exploitdb libblas3 libicu63 liblinear4 liblua5.3-0 libssh2-1 libssl1.1
+  libxml2 libxml2-utils lua-lpeg nmap nmap-common
+0 upgraded, 12 newly installed, 0 to remove and 10 not upgraded.
+Need to get 44.6 MB of archives.
+After this operation, 251 MB of additional disk space will be used.
+Get:1 http://kali.download/kali kali-rolling/main amd64 libblas3 amd64 3.9.0-2 &lt;span class=&quot;o&quot;&gt;[&lt;/span&gt;153 kB]
+Get:2 http://kali.download/kali kali-rolling/main amd64 libicu63 amd64 63.2-3 &lt;span class=&quot;o&quot;&gt;[&lt;/span&gt;8296 kB]
+Get:3 http://kali.download/kali kali-rolling/main amd64 liblinear4 amd64 2.3.0+dfsg-4 &lt;span class=&quot;o&quot;&gt;[&lt;/span&gt;43.7 kB]
+Get:4 http://kali.download/kali kali-rolling/main amd64 liblua5.3-0 amd64 5.3.3-1.1+b1 &lt;span class=&quot;o&quot;&gt;[&lt;/span&gt;120 kB]
+Get:5 http://kali.download/kali kali-rolling/main amd64 libssh2-1 amd64 1.8.0-2.1 &lt;span class=&quot;o&quot;&gt;[&lt;/span&gt;140 kB]
+Get:6 http://kali.download/kali kali-rolling/main amd64 libssl1.1 amd64 1.1.1g-1 &lt;span class=&quot;o&quot;&gt;[&lt;/span&gt;1543 kB]
+Get:7 http://kali.download/kali kali-rolling/main amd64 libxml2 amd64 2.9.10+dfsg-5 &lt;span class=&quot;o&quot;&gt;[&lt;/span&gt;709 kB]
+Get:8 http://kali.download/kali kali-rolling/main amd64 libxml2-utils amd64 2.9.10+dfsg-5 &lt;span class=&quot;o&quot;&gt;[&lt;/span&gt;108 kB]
+Get:9 http://kali.download/kali kali-rolling/main amd64 lua-lpeg amd64 1.0.2-1 &lt;span class=&quot;o&quot;&gt;[&lt;/span&gt;33.3 kB]
+Get:10 http://kali.download/kali kali-rolling/main amd64 nmap-common all 7.80+dfsg1-2kali2 &lt;span class=&quot;o&quot;&gt;[&lt;/span&gt;3952 kB]
+Get:11 http://kali.download/kali kali-rolling/main amd64 nmap amd64 7.80+dfsg1-2kali2 &lt;span class=&quot;o&quot;&gt;[&lt;/span&gt;1999 kB]
+Get:12 http://kali.download/kali kali-rolling/main amd64 exploitdb all 20200515-0kali1 &lt;span class=&quot;o&quot;&gt;[&lt;/span&gt;27.5 MB]
+debconf: delaying package configuration, since apt-utils is not installed
+Fetched 44.6 MB &lt;span class=&quot;k&quot;&gt;in &lt;/span&gt;4s &lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;11.5 MB/s&lt;span class=&quot;o&quot;&gt;)&lt;/span&gt;
+Selecting previously unselected package libblas3:amd64.
+&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;Reading database ... 6524 files and directories currently installed.&lt;span class=&quot;o&quot;&gt;)&lt;/span&gt;
+Preparing to unpack .../00-libblas3_3.9.0-2_amd64.deb ...
+Unpacking libblas3:amd64 &lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;3.9.0-2&lt;span class=&quot;o&quot;&gt;)&lt;/span&gt; ...
+Selecting previously unselected package libicu63:amd64.
+Preparing to unpack .../01-libicu63_63.2-3_amd64.deb ...
+Unpacking libicu63:amd64 &lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;63.2-3&lt;span class=&quot;o&quot;&gt;)&lt;/span&gt; ...
+Selecting previously unselected package liblinear4:amd64.
+Preparing to unpack .../02-liblinear4_2.3.0+dfsg-4_amd64.deb ...
+Unpacking liblinear4:amd64 &lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;2.3.0+dfsg-4&lt;span class=&quot;o&quot;&gt;)&lt;/span&gt; ...
+Selecting previously unselected package liblua5.3-0:amd64.
+Preparing to unpack .../03-liblua5.3-0_5.3.3-1.1+b1_amd64.deb ...
+Unpacking liblua5.3-0:amd64 &lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;5.3.3-1.1+b1&lt;span class=&quot;o&quot;&gt;)&lt;/span&gt; ...
+Selecting previously unselected package libssh2-1:amd64.
+Preparing to unpack .../04-libssh2-1_1.8.0-2.1_amd64.deb ...
+Unpacking libssh2-1:amd64 &lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;1.8.0-2.1&lt;span class=&quot;o&quot;&gt;)&lt;/span&gt; ...
+Selecting previously unselected package libssl1.1:amd64.
+Preparing to unpack .../05-libssl1.1_1.1.1g-1_amd64.deb ...
+Unpacking libssl1.1:amd64 &lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;1.1.1g-1&lt;span class=&quot;o&quot;&gt;)&lt;/span&gt; ...
+Selecting previously unselected package libxml2:amd64.
+Preparing to unpack .../06-libxml2_2.9.10+dfsg-5_amd64.deb ...
+Unpacking libxml2:amd64 &lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;2.9.10+dfsg-5&lt;span class=&quot;o&quot;&gt;)&lt;/span&gt; ...
+Selecting previously unselected package libxml2-utils.
+Preparing to unpack .../07-libxml2-utils_2.9.10+dfsg-5_amd64.deb ...
+Unpacking libxml2-utils &lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;2.9.10+dfsg-5&lt;span class=&quot;o&quot;&gt;)&lt;/span&gt; ...
+Selecting previously unselected package lua-lpeg:amd64.
+Preparing to unpack .../08-lua-lpeg_1.0.2-1_amd64.deb ...
+Unpacking lua-lpeg:amd64 &lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;1.0.2-1&lt;span class=&quot;o&quot;&gt;)&lt;/span&gt; ...
+Selecting previously unselected package nmap-common.
+Preparing to unpack .../09-nmap-common_7.80+dfsg1-2kali2_all.deb ...
+Unpacking nmap-common &lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;7.80+dfsg1-2kali2&lt;span class=&quot;o&quot;&gt;)&lt;/span&gt; ...
+Selecting previously unselected package nmap.
+Preparing to unpack .../10-nmap_7.80+dfsg1-2kali2_amd64.deb ...
+Unpacking nmap &lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;7.80+dfsg1-2kali2&lt;span class=&quot;o&quot;&gt;)&lt;/span&gt; ...
+Selecting previously unselected package exploitdb.
+Preparing to unpack .../11-exploitdb_20200515-0kali1_all.deb ...
+Unpacking exploitdb &lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;20200515-0kali1&lt;span class=&quot;o&quot;&gt;)&lt;/span&gt; ...
+Setting up lua-lpeg:amd64 &lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;1.0.2-1&lt;span class=&quot;o&quot;&gt;)&lt;/span&gt; ...
+Setting up libssl1.1:amd64 &lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;1.1.1g-1&lt;span class=&quot;o&quot;&gt;)&lt;/span&gt; ...
+debconf: unable to initialize frontend: Dialog
+debconf: &lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;TERM is not &lt;span class=&quot;nb&quot;&gt;set&lt;/span&gt;, so the dialog frontend is not usable.&lt;span class=&quot;o&quot;&gt;)&lt;/span&gt;
+debconf: falling back to frontend: Readline
+debconf: unable to initialize frontend: Readline
+debconf: &lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;Can&lt;span class=&quot;s1&quot;&gt;'t locate Term/ReadLine.pm in @INC (you may need to install the Term::ReadLine module) (@INC contains: /etc/perl /usr/local/lib/x86_64-linux-gnu/perl/5.30.0 /usr/local/share/perl/5.30.0 /usr/lib/x86_64-linux-gnu/perl5/5.30 /usr/share/perl5 /usr/lib/x86_64-linux-gnu/perl/5.30 /usr/share/perl/5.30 /usr/local/lib/site_perl /usr/lib/x86_64-linux-gnu/perl-base) at /usr/share/perl5/Debconf/FrontEnd/Readline.pm line 7.)
+debconf: falling back to frontend: Teletype
+Setting up libicu63:amd64 (63.2-3) ...
+Setting up libblas3:amd64 (3.9.0-2) ...
+update-alternatives: using /usr/lib/x86_64-linux-gnu/blas/libblas.so.3 to provide /usr/lib/x86_64-linux-gnu/libblas.so.3 (libblas.so.3-x86_64-linux-gnu) in auto mode
+Setting up nmap-common (7.80+dfsg1-2kali2) ...
+Setting up liblua5.3-0:amd64 (5.3.3-1.1+b1) ...
+Setting up libssh2-1:amd64 (1.8.0-2.1) ...
+Setting up libxml2:amd64 (2.9.10+dfsg-5) ...
+Setting up liblinear4:amd64 (2.3.0+dfsg-4) ...
+Setting up libxml2-utils (2.9.10+dfsg-5) ...
+Setting up nmap (7.80+dfsg1-2kali2) ...
+Setting up exploitdb (20200515-0kali1) ...
+Processing triggers for libc-bin (2.30-7) ...
+Removing intermediate container ca06b3e4b27f
+ ---&amp;gt; a4c12ef59c80
+Successfully built a4c12ef59c80
+Successfully tagged base:latest
+SECURITY WARNING: You are building a Docker image from Windows against a non-Windows Docker host. All files and directories added to build context will have '&lt;/span&gt;&lt;span class=&quot;nt&quot;&gt;-rwxr-xr-x&lt;/span&gt;&lt;span class=&quot;s1&quot;&gt;' permissions. It is recommended to double check and reset permissions for sensitive files and directories.&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/figure&gt;
+
+&lt;p&gt;This time when I start up the container:&lt;/p&gt;
+
+&lt;figure class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-powershell&quot; data-lang=&quot;powershell&quot;&gt;&lt;span class=&quot;nf&quot;&gt;docker&lt;/span&gt;&lt;span class=&quot;w&quot;&gt; &lt;/span&gt;&lt;span class=&quot;nx&quot;&gt;run&lt;/span&gt;&lt;span class=&quot;w&quot;&gt; &lt;/span&gt;&lt;span class=&quot;nt&quot;&gt;-t&lt;/span&gt;&lt;span class=&quot;w&quot;&gt; &lt;/span&gt;&lt;span class=&quot;nt&quot;&gt;-i&lt;/span&gt;&lt;span class=&quot;w&quot;&gt; &lt;/span&gt;&lt;span class=&quot;nt&quot;&gt;--privileged&lt;/span&gt;&lt;span class=&quot;w&quot;&gt; &lt;/span&gt;&lt;span class=&quot;nx&quot;&gt;base&lt;/span&gt;&lt;span class=&quot;w&quot;&gt; &lt;/span&gt;&lt;span class=&quot;nx&quot;&gt;bash&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/figure&gt;
+
+&lt;p&gt;I can see I have nmap installed.&lt;/p&gt;
+
+&lt;p&gt;&lt;img src=&quot;\assets\images\SecDevOps\posts\nmapDocker.png&quot; alt=&quot;nmapDocker.png&quot; /&gt;&lt;/p&gt;
+
+&lt;p&gt;This is pretty cool, now I can quickly spin up an nmap capable container on demand.&lt;/p&gt;
+
+&lt;p&gt;Taking it a step further, what if I want to execute nmap commands from the docker container without using invoking a shell? I can use CMD:&lt;/p&gt;
+
+&lt;figure class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-conf&quot; data-lang=&quot;conf&quot;&gt;&lt;span class=&quot;c&quot;&gt;# Kali Linux base Image to start all Kali builds with
+&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;FROM&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;kalilinux&lt;/span&gt;/&lt;span class=&quot;n&quot;&gt;kali&lt;/span&gt;-&lt;span class=&quot;n&quot;&gt;rolling&lt;/span&gt; 
+&lt;span class=&quot;n&quot;&gt;LABEL&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;Description&lt;/span&gt;=&lt;span class=&quot;s2&quot;&gt;&quot;Base Image to start all Kali builds with&quot;&lt;/span&gt; 
+&lt;span class=&quot;n&quot;&gt;RUN&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;apt&lt;/span&gt;-&lt;span class=&quot;n&quot;&gt;get&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;update&lt;/span&gt; &amp;amp;&amp;amp; &lt;span class=&quot;n&quot;&gt;apt&lt;/span&gt;-&lt;span class=&quot;n&quot;&gt;get&lt;/span&gt; -&lt;span class=&quot;n&quot;&gt;y&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;install&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;nmap&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;exploitdb&lt;/span&gt;
+&lt;span class=&quot;n&quot;&gt;CMD&lt;/span&gt; [&lt;span class=&quot;s2&quot;&gt;&quot;/usr/bin/nmap&quot;&lt;/span&gt;,&lt;span class=&quot;s2&quot;&gt;&quot;--version&quot;&lt;/span&gt;]&lt;/code&gt;&lt;/pre&gt;&lt;/figure&gt;
+
+&lt;p&gt;Now when I run it without the bash shell&lt;/p&gt;
+
+&lt;figure class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-powershell&quot; data-lang=&quot;powershell&quot;&gt;&lt;span class=&quot;nf&quot;&gt;docker&lt;/span&gt;&lt;span class=&quot;w&quot;&gt; &lt;/span&gt;&lt;span class=&quot;nx&quot;&gt;run&lt;/span&gt;&lt;span class=&quot;w&quot;&gt; &lt;/span&gt;&lt;span class=&quot;nt&quot;&gt;-t&lt;/span&gt;&lt;span class=&quot;w&quot;&gt; &lt;/span&gt;&lt;span class=&quot;nt&quot;&gt;-i&lt;/span&gt;&lt;span class=&quot;w&quot;&gt; &lt;/span&gt;&lt;span class=&quot;nt&quot;&gt;-base&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/figure&gt;
+
+&lt;p&gt;I get the output piped straight into my shell:&lt;/p&gt;
+
+&lt;figure class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-shell&quot; data-lang=&quot;shell&quot;&gt;Nmap version 7.80 &lt;span class=&quot;o&quot;&gt;(&lt;/span&gt; https://nmap.org &lt;span class=&quot;o&quot;&gt;)&lt;/span&gt;
+Platform: x86_64-pc-linux-gnu
+Compiled with: liblua-5.3.3 openssl-1.1.1d libssh2-1.8.0 libz-1.2.11 libpcre-8.39 nmap-libpcap-1.7.3 nmap-libdnet-1.12 ipv6
+Compiled without:
+Available nsock engines: epoll poll &lt;span class=&quot;k&quot;&gt;select&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/figure&gt;
+
+&lt;p&gt;This is really useful for automated testing at scale, as the Dockerfiles can be dynamically generated with specific tools and commands prepared off of the back of CI/CD triggers. Perhaps more useful however is being able to run a specific tool on demand in docker as an executable, this requires an ENTRYPOINT.&lt;/p&gt;
+
+&lt;figure class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-conf&quot; data-lang=&quot;conf&quot;&gt;&lt;span class=&quot;c&quot;&gt;# Kali Linux Base Image to start all Kali builds with
+&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;FROM&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;kalilinux&lt;/span&gt;/&lt;span class=&quot;n&quot;&gt;kali&lt;/span&gt;-&lt;span class=&quot;n&quot;&gt;rolling&lt;/span&gt; 
+&lt;span class=&quot;n&quot;&gt;LABEL&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;Description&lt;/span&gt;=&lt;span class=&quot;s2&quot;&gt;&quot;Base Image to start all Kali builds with&quot;&lt;/span&gt; 
+&lt;span class=&quot;n&quot;&gt;RUN&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;apt&lt;/span&gt;-&lt;span class=&quot;n&quot;&gt;get&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;update&lt;/span&gt; &amp;amp;&amp;amp; &lt;span class=&quot;n&quot;&gt;apt&lt;/span&gt;-&lt;span class=&quot;n&quot;&gt;get&lt;/span&gt; -&lt;span class=&quot;n&quot;&gt;y&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;install&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;nmap&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;exploitdb&lt;/span&gt;
+&lt;span class=&quot;n&quot;&gt;ENTRYPOINT&lt;/span&gt; [&lt;span class=&quot;s2&quot;&gt;&quot;/usr/bin/nmap&quot;&lt;/span&gt;]
+&lt;span class=&quot;n&quot;&gt;CMD&lt;/span&gt; [&lt;span class=&quot;s2&quot;&gt;&quot;--version&quot;&lt;/span&gt;]&lt;/code&gt;&lt;/pre&gt;&lt;/figure&gt;
+
+&lt;p&gt;The above Dockerfile does the following&lt;/p&gt;
+
+&lt;ol&gt;
+  &lt;li&gt;Locates the Kali base image and pulls it down locally if required&lt;/li&gt;
+  &lt;li&gt;Adds a Descriptive Label for humans to read&lt;/li&gt;
+  &lt;li&gt;Updates the apt repos and installs nmap and searchsploit&lt;/li&gt;
+  &lt;li&gt;Defines the default execution on a docker run to be &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;nmap --version&lt;/code&gt;&lt;/li&gt;
+&lt;/ol&gt;
+
+&lt;p&gt;At this point running&lt;/p&gt;
+
+&lt;figure class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-powershell&quot; data-lang=&quot;powershell&quot;&gt;&lt;span class=&quot;nf&quot;&gt;docker&lt;/span&gt;&lt;span class=&quot;w&quot;&gt; &lt;/span&gt;&lt;span class=&quot;nx&quot;&gt;run&lt;/span&gt;&lt;span class=&quot;w&quot;&gt; &lt;/span&gt;&lt;span class=&quot;nt&quot;&gt;-t&lt;/span&gt;&lt;span class=&quot;w&quot;&gt; &lt;/span&gt;&lt;span class=&quot;nt&quot;&gt;-i&lt;/span&gt;&lt;span class=&quot;w&quot;&gt; &lt;/span&gt;&lt;span class=&quot;nx&quot;&gt;base&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/figure&gt;
+
+&lt;p&gt;Gives me the output I’m expecting:&lt;/p&gt;
+
+&lt;figure class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-shell&quot; data-lang=&quot;shell&quot;&gt;Nmap version 7.80 &lt;span class=&quot;o&quot;&gt;(&lt;/span&gt; https://nmap.org &lt;span class=&quot;o&quot;&gt;)&lt;/span&gt;
+Platform: x86_64-pc-linux-gnu
+Compiled with: liblua-5.3.3 openssl-1.1.1d libssh2-1.8.0 libz-1.2.11 libpcre-8.39 nmap-libpcap-1.7.3 nmap-libdnet-1.12 ipv6
+Compiled without:
+Available nsock engines: epoll poll &lt;span class=&quot;k&quot;&gt;select&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/figure&gt;
+
+&lt;p&gt;the &lt;strong&gt;CMD [”–version”]&lt;/strong&gt; represents a default command context which the entry point uses to execute. I can overwrite this with a command of my own.
+I want if I wanted to run &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;/usr/bin/nmap -A -T4 scanme.nmap.org&lt;/code&gt; via docker I can over write &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;--version&lt;/code&gt; by using the following command:&lt;/p&gt;
+
+&lt;figure class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-powershell&quot; data-lang=&quot;powershell&quot;&gt;&lt;span class=&quot;nf&quot;&gt;docker&lt;/span&gt;&lt;span class=&quot;w&quot;&gt; &lt;/span&gt;&lt;span class=&quot;nx&quot;&gt;run&lt;/span&gt;&lt;span class=&quot;w&quot;&gt; &lt;/span&gt;&lt;span class=&quot;nt&quot;&gt;-t&lt;/span&gt;&lt;span class=&quot;w&quot;&gt; &lt;/span&gt;&lt;span class=&quot;nt&quot;&gt;-i&lt;/span&gt;&lt;span class=&quot;w&quot;&gt; &lt;/span&gt;&lt;span class=&quot;nx&quot;&gt;base&lt;/span&gt;&lt;span class=&quot;w&quot;&gt; &lt;/span&gt;&lt;span class=&quot;nt&quot;&gt;-A&lt;/span&gt;&lt;span class=&quot;w&quot;&gt; &lt;/span&gt;&lt;span class=&quot;nt&quot;&gt;-T4&lt;/span&gt;&lt;span class=&quot;w&quot;&gt; &lt;/span&gt;&lt;span class=&quot;nx&quot;&gt;scanme.nmap.org&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/figure&gt;
+
+&lt;p&gt;This works!&lt;/p&gt;
+
+&lt;figure class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-shell&quot; data-lang=&quot;shell&quot;&gt;Starting Nmap 7.80 &lt;span class=&quot;o&quot;&gt;(&lt;/span&gt; https://nmap.org &lt;span class=&quot;o&quot;&gt;)&lt;/span&gt; at 2020-05-22 13:38 UTC
+Warning: 45.33.32.156 giving up on port because retransmission cap hit &lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;6&lt;span class=&quot;o&quot;&gt;)&lt;/span&gt;&lt;span class=&quot;nb&quot;&gt;.&lt;/span&gt;
+Nmap scan report &lt;span class=&quot;k&quot;&gt;for &lt;/span&gt;scanme.nmap.org &lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;45.33.32.156&lt;span class=&quot;o&quot;&gt;)&lt;/span&gt;
+Host is up &lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;0.036s latency&lt;span class=&quot;o&quot;&gt;)&lt;/span&gt;&lt;span class=&quot;nb&quot;&gt;.&lt;/span&gt;
+Other addresses &lt;span class=&quot;k&quot;&gt;for &lt;/span&gt;scanme.nmap.org &lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;not scanned&lt;span class=&quot;o&quot;&gt;)&lt;/span&gt;: 2600:3c01::f03c:91ff:fe18:bb2f
+Not shown: 996 closed ports
+PORT      STATE SERVICE    VERSION
+22/tcp    open  ssh        OpenSSH 6.6.1p1 Ubuntu 2ubuntu2.13 &lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;Ubuntu Linux&lt;span class=&quot;p&quot;&gt;;&lt;/span&gt; protocol 2.0&lt;span class=&quot;o&quot;&gt;)&lt;/span&gt;
+| ssh-hostkey:
+|   1024 ac:00:a0:1a:82:ff:cc:55:99:dc:67:2b:34:97:6b:75 &lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;DSA&lt;span class=&quot;o&quot;&gt;)&lt;/span&gt;
+|   2048 20:3d:2d:44:62:2a:b0:5a:9d:b5:b3:05:14:c2:a6:b2 &lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;RSA&lt;span class=&quot;o&quot;&gt;)&lt;/span&gt;
+|   256 96:02:bb:5e:57:54:1c:4e:45:2f:56:4c:4a:24:b2:57 &lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;ECDSA&lt;span class=&quot;o&quot;&gt;)&lt;/span&gt;
+|_  256 33:fa:91:0f:e0:e1:7b:1f:6d:05:a2:b0:f1:54:41:56 &lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;ED25519&lt;span class=&quot;o&quot;&gt;)&lt;/span&gt;
+80/tcp    open  http       Apache httpd 2.4.7 &lt;span class=&quot;o&quot;&gt;((&lt;/span&gt;Ubuntu&lt;span class=&quot;o&quot;&gt;))&lt;/span&gt;
+|_http-server-header: Apache/2.4.7 &lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;Ubuntu&lt;span class=&quot;o&quot;&gt;)&lt;/span&gt;
+|_http-title: Go ahead and ScanMe!
+9929/tcp  open  nping-echo Nping &lt;span class=&quot;nb&quot;&gt;echo
+&lt;/span&gt;31337/tcp open  tcpwrapped
+Device &lt;span class=&quot;nb&quot;&gt;type&lt;/span&gt;: printer|switch
+Running &lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;JUST GUESSING&lt;span class=&quot;o&quot;&gt;)&lt;/span&gt;: HP embedded &lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;85%&lt;span class=&quot;o&quot;&gt;)&lt;/span&gt;, Dell embedded &lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;85%&lt;span class=&quot;o&quot;&gt;)&lt;/span&gt;
+OS CPE: cpe:/h:hp:designjet_650c cpe:/h:dell:powerconnect_5424
+Aggressive OS guesses: HP DesignJet 650C printer &lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;85%&lt;span class=&quot;o&quot;&gt;)&lt;/span&gt;, Dell PowerConnect 5424 switch &lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;85%&lt;span class=&quot;o&quot;&gt;)&lt;/span&gt;
+No exact OS matches &lt;span class=&quot;k&quot;&gt;for &lt;/span&gt;host &lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;nb&quot;&gt;test &lt;/span&gt;conditions non-ideal&lt;span class=&quot;o&quot;&gt;)&lt;/span&gt;&lt;span class=&quot;nb&quot;&gt;.&lt;/span&gt;
+Network Distance: 2 hops
+Service Info: OS: Linux&lt;span class=&quot;p&quot;&gt;;&lt;/span&gt; CPE: cpe:/o:linux:linux_kernel
+
+TRACEROUTE &lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;using port 80/tcp&lt;span class=&quot;o&quot;&gt;)&lt;/span&gt;
+HOP RTT     ADDRESS
+1   0.03 ms 172.17.0.1
+2   1.83 ms 45.33.32.156
+
+OS and Service detection performed. Please report any incorrect results at https://nmap.org/submit/ &lt;span class=&quot;nb&quot;&gt;.&lt;/span&gt;
+Nmap &lt;span class=&quot;k&quot;&gt;done&lt;/span&gt;: 1 IP address &lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;1 host up&lt;span class=&quot;o&quot;&gt;)&lt;/span&gt; scanned &lt;span class=&quot;k&quot;&gt;in &lt;/span&gt;135.65 seconds&lt;/code&gt;&lt;/pre&gt;&lt;/figure&gt;
+
+&lt;p&gt;While this is pretty useful a fully interactive container may be more useful.&lt;/p&gt;
+
+&lt;p&gt;Using the following Dockerfile&lt;/p&gt;
+
+&lt;figure class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-conf&quot; data-lang=&quot;conf&quot;&gt;&lt;span class=&quot;c&quot;&gt;# Kali Linux Base Image to start all Kali builds with
+&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;FROM&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;kalilinux&lt;/span&gt;/&lt;span class=&quot;n&quot;&gt;kali&lt;/span&gt;-&lt;span class=&quot;n&quot;&gt;rolling&lt;/span&gt; 
+&lt;span class=&quot;n&quot;&gt;LABEL&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;Description&lt;/span&gt;=&lt;span class=&quot;s2&quot;&gt;&quot;Base Image to start all Kali builds with&quot;&lt;/span&gt; 
+&lt;span class=&quot;n&quot;&gt;RUN&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;apt&lt;/span&gt;-&lt;span class=&quot;n&quot;&gt;get&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;update&lt;/span&gt; &amp;amp;&amp;amp; &lt;span class=&quot;n&quot;&gt;apt&lt;/span&gt;-&lt;span class=&quot;n&quot;&gt;get&lt;/span&gt; -&lt;span class=&quot;n&quot;&gt;y&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;install&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;kali&lt;/span&gt;-&lt;span class=&quot;n&quot;&gt;tools&lt;/span&gt;-&lt;span class=&quot;n&quot;&gt;headless&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/figure&gt;
+
+&lt;p&gt;I can build all the packages and start a session with Kali tools that don’t need a GUI&lt;/p&gt;
+
+&lt;figure class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-powershell&quot; data-lang=&quot;powershell&quot;&gt;&lt;span class=&quot;nf&quot;&gt;docker&lt;/span&gt;&lt;span class=&quot;w&quot;&gt; &lt;/span&gt;&lt;span class=&quot;nx&quot;&gt;build&lt;/span&gt;&lt;span class=&quot;w&quot;&gt; &lt;/span&gt;&lt;span class=&quot;nt&quot;&gt;-t&lt;/span&gt;&lt;span class=&quot;w&quot;&gt; &lt;/span&gt;&lt;span class=&quot;nx&quot;&gt;headless&lt;/span&gt;&lt;span class=&quot;w&quot;&gt; &lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;w&quot;&gt;
+&lt;/span&gt;&lt;span class=&quot;nf&quot;&gt;docker&lt;/span&gt;&lt;span class=&quot;w&quot;&gt; &lt;/span&gt;&lt;span class=&quot;nx&quot;&gt;run&lt;/span&gt;&lt;span class=&quot;w&quot;&gt; &lt;/span&gt;&lt;span class=&quot;nt&quot;&gt;-t&lt;/span&gt;&lt;span class=&quot;w&quot;&gt; &lt;/span&gt;&lt;span class=&quot;nt&quot;&gt;-i&lt;/span&gt;&lt;span class=&quot;w&quot;&gt; &lt;/span&gt;&lt;span class=&quot;nx&quot;&gt;headless&lt;/span&gt;&lt;span class=&quot;w&quot;&gt; &lt;/span&gt;&lt;span class=&quot;nx&quot;&gt;bash&lt;/span&gt;&lt;span class=&quot;w&quot;&gt;  &lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/figure&gt;
+
+&lt;p&gt;Simple! This gives me command line version of Kali with most of the tools needed to complete assessments via automation.
+From here I can issue ENTRYPOINTS or CMDs to turn the image executable or simply run a bash shell and login.&lt;/p&gt;
+
+&lt;p&gt;Awesome, now I have an on demand kali version of I can run in powershell. This is the end of the Docker series Next post &lt;a href=&quot;/exploitdev/Preparing-for-OSCE.html&quot;&gt;Preparing for OSCE&lt;/a&gt; I’m going to look at some other cool stuff around OSCE.&lt;/p&gt;</content><author><name></name></author><category term="LabSetup" /><category term="HyperV" /><category term="Docker" /><summary type="html">Now that I have Docker setup I’m going to build a PoC nmap container out of a base Kali image.</summary></entry><entry><title type="html">Setting Up Docker on Windows</title><link href="http://localhost:4000/secdevops/Setting-Up-Docker-on-Windows.html" rel="alternate" type="text/html" title="Setting Up Docker on Windows" /><published>2020-05-20T00:00:00+01:00</published><updated>2020-05-20T00:00:00+01:00</updated><id>http://localhost:4000/secdevops/Setting-Up-Docker-on-Windows</id><content type="html" xml:base="http://localhost:4000/secdevops/Setting-Up-Docker-on-Windows.html">&lt;p&gt;This post I’m looking at setting up a PoC Docker image for testing purposes&lt;/p&gt;
 
 &lt;p&gt;Working closely with Application Developers opens you eyes as a security professional, understanding the SDLC and applying it to testing and tooling is one of the most cost effective ways to apply good security practices. Just as developers learn security techniques to become more proficient engineers security professionals learning development process will become better at security.&lt;/p&gt;
 
@@ -214,7 +595,7 @@ RawContentLength  : 7218&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/figure&gt;
 
 &lt;figure class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-powershell&quot; data-lang=&quot;powershell&quot;&gt;&lt;span class=&quot;nf&quot;&gt;docker&lt;/span&gt;&lt;span class=&quot;w&quot;&gt; &lt;/span&gt;&lt;span class=&quot;nx&quot;&gt;stop&lt;/span&gt;&lt;span class=&quot;w&quot;&gt; &lt;/span&gt;&lt;span class=&quot;nx&quot;&gt;ae95a80511b8&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/figure&gt;
 
-&lt;p&gt;Excellent! Now that I have a PoC in play next post &lt;a href=&quot;/secdevops/Building-a-Kali-Docker-Repo.html&quot;&gt;Building a Kali Docker Repo&lt;/a&gt; I’m going to look into setting up a custom container we can use for auto deployments.&lt;/p&gt;</content><author><name></name></author><category term="LabSetup" /><category term="HyperV" /><category term="Docker" /><summary type="html">This post I’m looking at setting up a PoC Docker image for testing purposes</summary></entry><entry><title type="html">HTB Popcorn Walkthrough with Kali</title><link href="http://localhost:4000/kalisetup/HTB-Popcorn-with-Kali.html" rel="alternate" type="text/html" title="HTB Popcorn Walkthrough with Kali" /><published>2020-04-20T00:00:00+01:00</published><updated>2020-04-20T00:00:00+01:00</updated><id>http://localhost:4000/kalisetup/HTB-Popcorn-with-Kali</id><content type="html" xml:base="http://localhost:4000/kalisetup/HTB-Popcorn-with-Kali.html">&lt;p&gt;A while back I re-started my Hack the Box journey, eventually making it to Guru. This post covers my write-up of Popcorn : 10.10.10.6 using Kali Linux.&lt;/p&gt;
+&lt;p&gt;Excellent! Now that I have a PoC in play next post &lt;a href=&quot;/secdevops/Building-a-Kali-Container.html&quot;&gt;Building a Kali Container&lt;/a&gt; I’m going to look into setting up a custom container we can use for auto deployments.&lt;/p&gt;</content><author><name></name></author><category term="LabSetup" /><category term="HyperV" /><category term="Docker" /><summary type="html">This post I’m looking at setting up a PoC Docker image for testing purposes</summary></entry><entry><title type="html">HTB Popcorn Walkthrough with Kali</title><link href="http://localhost:4000/kalisetup/HTB-Popcorn-with-Kali.html" rel="alternate" type="text/html" title="HTB Popcorn Walkthrough with Kali" /><published>2020-04-20T00:00:00+01:00</published><updated>2020-04-20T00:00:00+01:00</updated><id>http://localhost:4000/kalisetup/HTB-Popcorn-with-Kali</id><content type="html" xml:base="http://localhost:4000/kalisetup/HTB-Popcorn-with-Kali.html">&lt;p&gt;A while back I re-started my Hack the Box journey, eventually making it to Guru. This post covers my write-up of Popcorn : 10.10.10.6 using Kali Linux.&lt;/p&gt;
 
 &lt;h2 id=&quot;why-popcorn&quot;&gt;Why Popcorn?&lt;/h2&gt;
 
