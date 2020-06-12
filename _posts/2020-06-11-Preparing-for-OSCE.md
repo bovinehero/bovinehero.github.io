@@ -16,9 +16,7 @@ While I certainly found the OSCE exam more difficult (48 hours for OSCE vs 24 in
 
 Many people feel the course is dated, while at time of writing the content IS old it does cover legitimate techniques to build on. I'm a big fan of walking before running and learning the legacy stuff is a great way to build foundations in an area. I really took a lot out of the course which has helped me become a better at my work. While I'd love to see some modernization in the content the course was definitely a worthwhile experience. 
 
-## The Lab Setup
-
-### VMs for Testing
+## VMs for Testing
 The Cracking the Perimeter (CTP) course is pretty old, it relies on Windows XP and Vista to develop the exploits and Backtrack instead of Kali. This comes with a few challenges, in 2020 legitimate copies of both XP and Vista are very difficult to get a hold of. Windows 7 _is_ still available if you have a product key from [Microsoft](https://www.microsoft.com/en-gb/software-download/windows7) which I found is a suitable substitute for Vista. XP is a little harder to get, while not 100% necessary for practice it does make an appearance in the course. XP's (really, really) legacy browsers offer plenty of exploit opportunities to practice on. Just make sure you get the __x86__ version, __x64__ architecture OS are too modern and makes the learning more difficult.
 
 Building images is a pretty standard task in HyperV and if you can get a hold of XP and Win7 Pro iso files, you can even enable remote desktop. I covered how set up virtual hardware for a Kali VM in this [post](/kalisetup/Kali-Linux-HyperV-Style.html). There is little difference in creating the 'hardware' components but for x86 guest VMs need to be GEN1 and I have specified the following hardware specs:
@@ -55,13 +53,13 @@ Specifying the same hardware requirements as the Windows machines I need only po
 
 ![BT.png](\assets\images\ExploitDev\posts\BT.png)
 
-### Software for Training
+## Software for Training
 
 First things first, while Backtrack and Kali come with everything you might need to _exploit_ a target they don't have all the tools we need to develop the attack vector. As the exploit development process is against windows targets we need to set up a target app and development environment on our windows machines. 
 
 > As environments get setup, take the time to curate your own repo with your software dependencies. This will make it easier on exam day and will save you heartache later.
 
-#### Windows
+### Windows
 
 1. __Firefox:__ because I'm going to be scraping the open web for tools, first thing I need is a safe(ish) browser, using legacy IE can be dangerous so a [modern version](https://www.mozilla.org/en-GB/firefox/new/) of firefox helps.
 2. __Git for Windows:__ I need some way to manage the automation code and tooling that I'll be developing. Setting up a private git repo and pulling it down is very helpful. These days Linux ships with this as standard but I need to get it for windows. I like Git for Windows available [here](https://git-scm.com/download/win). 
@@ -73,10 +71,12 @@ First things first, while Backtrack and Kali come with everything you might need
 8. __Anti Virus:__ Bypassing Anti Virus is part of the course. The AV used in the training is a little dated, with this in mind I'm of the opinion that if you can beat any modern (free) AV, you should be able to beat the one in the exam. So pick one. Personally I use Virus Total's API for training as it gives a quick validation without having to trigger a custom scan.
 9. __Remote Desktop __\[OPTIONAL\]__:__ Pretty handy if you have a pro version and want multiple screens on RDP. Official docks are [here](https://docs.microsoft.com/en-us/windows-server/remote/remote-desktop-services/clients/remote-desktop-allow-access).
 
-#### Backtrack/Kali
+### Backtrack/Kali
 
 Most of the exploit development will happen on the windows machine but if we're looking at some auto shell generation and web exploits then Kali or Backtrack will be required. While I _can_ install Burp on Windows, my preference is to use Kali for this sort of thing as I'm more familiar with the tool set. Backtrack is interesting as it has older versions of the software and 'just works' for the Labs. 
 
 For the non Windows exploit development challenges it doesn't really matter which you choose. In the end I used the backtrack image, but other than some TLS configurations Kali should work just fine.
+
+## Next Time
 
 Next post [{{page.next.title}}]({{page.next.url}}) I'm going to look at building on a windows 7 image and start to get the tools set up for learning.
