@@ -70,6 +70,7 @@ First things first, while Backtrack and Kali come with everything you might need
 7. __LordPE:__ This tool lets you edit the x86 portable binaries for AV evasion. Note the base binary will flag as malware, you will need a [zipped download](https://samsclass.info/127/proj/lordpe.zip) in order to bypass defender/AV.
 8. __Anti Virus:__ Bypassing Anti Virus is part of the course. The AV used in the training is a little dated, with this in mind I'm of the opinion that if you can beat any modern (free) AV, you should be able to beat the one in the exam. So pick one. Personally I use Virus Total's API for training as it gives a quick validation without having to trigger a custom scan.
 9. __Remote Desktop __\[OPTIONAL\]__:__ Pretty handy if you have a pro version and want multiple screens on RDP. Official docks are [here](https://docs.microsoft.com/en-us/windows-server/remote/remote-desktop-services/clients/remote-desktop-allow-access).
+10. __Cave Miner:__ Handy Python tool for locating code caves for backdoors in binaries. Available [here](https://github.com/Antonin-Deniau/cave_miner)
 
 ### Backtrack/Kali
 
