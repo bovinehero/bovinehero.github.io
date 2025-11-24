@@ -13,7 +13,7 @@ if (yearSpan) {
 
   const stored = window.localStorage.getItem("bovinehero-theme");
   // Default = light
-  const initial = stored === "dark" ? "dark" : "light";
+  const initial = stored === "light" ? "light" : "dark";
   root.setAttribute("data-theme", initial);
 
   toggle.addEventListener("click", () => {
