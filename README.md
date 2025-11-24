@@ -1,6 +1,6 @@
 # Bovine Hero
 
-Static personal site for Gary Grant — Cyber Risk Engineering, secure systems work, labs, and side projects.
+Static personal site for Me - Cyber Risk Engineering, secure systems work, labs, and side projects.
 
 This repository contains:
 
