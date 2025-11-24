@@ -1,2 +1,124 @@
-<h1>Welcome to Bovine Hero!</h1>
-<p>New site is under development</p>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Bovine Hero – Labs & Secure Systems</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="Bovine Hero – personal site for Gary Grant. Cyber risk engineering, labs, secure systems and experiments.">
+  <link rel="stylesheet" href="css/main.css">
+</head>
+<body>
+  <header>
+    <div class="container">
+      <div class="tagline-row">
+        <div class="tagline">Bovine Hero</div>
+        <div class="theme-toggle" id="theme-toggle" aria-label="Toggle light/dark theme" role="button"></div>
+      </div>
+      <div class="hero">
+        <div class="hero-main">
+          <h1>Secure systems, built on purpose.</h1>
+          <p>
+            Bovine Hero is the personal space of <strong>Gary Grant</strong> –
+            a cyber risk and infrastructure security engineer who enjoys turning
+            unreliable, messy systems into predictable, resilient platforms.
+          </p>
+          <p>
+            This site collects labs, notes, and experiments around secure engineering,
+            automation, and learning by doing.
+          </p>
+          <p>
+            What I do:
+          </p>
+          <div class="pill-row">
+            <span class="pill highlight">Cyber Risk Engineering</span>
+            <span class="pill highlight">Infrastructure &amp; Platform Security</span>
+            <span class="pill highlight">Automation &amp; Tooling</span>
+            <span class="pill highlight">Labs &amp; Experiments</span>
+          </div>
+        </div>
+        <aside>
+          <div class="card">
+            <h3>At a glance</h3>
+            <ul>
+              <li>Principal Engineer &amp; Cyber Risk specialist</li>
+              <li>Background in infra, security, and offensive testing</li>
+              <li>Enjoys building realistic labs and training environments</li>
+            </ul>
+          </div>
+          <div class="card" style="margin-top:0.7rem;">
+            <h3>Elsewhere</h3>
+            <ul>
+              <li><a href="https://www.linkedin.com/in/bovinehero" target="_blank" rel="noopener">LinkedIn</a></li>
+              <li><a href="https://github.com/bovinehero" target="_blank" rel="noopener">GitHub</a></li>
+            </ul>
+          </div>
+        </aside>
+      </div>
+    </div>
+  </header>
+
+  <main class="container">
+    <section id="what-i-do">
+      <h2>What I work on</h2>
+      <p>
+        I care about secure engineering that’s practical: infrastructure that behaves,
+        automation that reduces toil instead of adding noise, and learning environments
+        that are close enough to reality that they actually prepare people for it.
+      </p>
+
+      <div class="projects-grid">
+        <div class="project">
+          <div class="project-title">Dojos <span>Concept</span></div>
+          <p>
+            A long-term idea leaning on open-source technologies, SDLC and some DevOps trickery to learn how to manage security tooling.
+          </p>
+        </div>
+        <div class="project">
+          <div class="project-title">Security Experiments <span>Research</span></div>
+          <p>
+            Small, focused exercises exploring risk, architecture, and offence-informed
+            defence. Many start as scratch repos or throwaway environments and some make it to tabletop exercises.
+          </p>
+        </div>
+        <div class="project">
+          <div class="project-title">Blood Bowl Manager <span>In Progress</span></div>
+          <p>
+            In my spare time I enjoy playing Blood Bowl and I dislike tracking stuff on paper.
+            Maybe I'll publish the app some day, but for now it's for me and my buddies.
+          </p>
+        </div>
+      </div>
+    </section>
+
+    <section id="about">
+      <h2>About Bovine Hero</h2>
+      <p>
+        Bovine Hero is mainly a banner to group together my projects, ideas, and labs.
+        The theme is light-hearted, but the work behind it is serious: building and
+        running secure systems, and helping others learn how to do the same.
+      </p>
+      <p>
+        Over the years I’ve worked across service desk, infrastructure, cyber risk, and
+        security engineering. This site is where the “building secure systems for fun”
+        side of that work lives.
+      </p>
+    </section>
+
+    <section id="contact">
+      <h2>Contact</h2>
+      <p class="meta">
+        If you’re interested in secure systems, labs, or learning platforms and want to chat,
+        you can reach me at <a href="https://www.linkedin.com/in/bovinehero" target="_blank" rel="noopener">LinkedIn</a>.
+      </p>
+    </section>
+  </main>
+
+  <footer>
+    <div class="container">
+      &copy; <span id="year"></span> Bovine Hero. Built as a simple static page; no tracking and no cookies.
+    </div>
+  </footer>
+
+  <script src="js/main.js"></script>
+</body>
+</html>
