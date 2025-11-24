@@ -119,13 +119,21 @@ p {
   align-items: flex-start;
 }
 
+/* Medium screens – tablets and small laptops */
+@media (max-width: 1024px) {
+  header {
+    padding: 2.2rem 1.4rem 1rem;
+  }
+}
+
+/* Phones & small tablets */
 @media (max-width: 720px) {
   .hero {
     grid-template-columns: 1fr;
   }
 
   header {
-    padding: 1.8rem 1.1rem 0.8rem;
+    padding: 2.1rem 1.2rem 0.9rem;
   }
 
   h1 {
@@ -143,6 +151,35 @@ p {
   .card,
   .project {
     padding: 0.9rem 1rem;
+  }
+}
+
+/* Small phones / iPhones in portrait – fix tight top spacing */
+@media (max-width: 480px) {
+  body {
+    /* Respect iPhone safe areas so content doesn’t hug the notch */
+    padding-top: env(safe-area-inset-top);
+    padding-bottom: env(safe-area-inset-bottom);
+  }
+
+  header {
+    padding: 2.4rem 1.2rem 1rem;
+  }
+
+  .tagline-row {
+    gap: 0.75rem;
+  }
+
+  h1 {
+    font-size: 1.7rem;
+  }
+
+  h2 {
+    font-size: 1.05rem;
+  }
+
+  p {
+    font-size: 0.92rem;
   }
 }
 
